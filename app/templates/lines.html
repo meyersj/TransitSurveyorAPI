@@ -1,0 +1,31 @@
+<html>
+  <head>
+    <title>Lines</title>
+  </head>
+
+  <style>
+    table,th,td
+    {
+      text-align:center;
+      border:1px solid black;
+      border-collapse:collapse;
+    }
+  </style>
+
+
+  <body>
+    <a href="http://54.245.116.56">Home</a><br>
+    <a href="http://54.245.116.56/stats/all">Display All</a><br>
+    <table cellpadding=5>
+      <tr bgcolor="#A59A9A">
+        <td>Line</td>
+      </tr>
+      {% for line in lines %}
+      <tr>
+        <td><a href="http://54.245.116.56/stats/{{line}}">{{line}}</a></td>
+      </tr>
+      {% endfor %}
+  </table> 
+ 
+<body>
+</html>

@@ -3,9 +3,35 @@
     <title>Test Database Query</title>
   </head>
 
+  <style>
+    table,th,td
+    {
+      text-align:center;
+      border:1px solid black;
+      border-collapse:collapse;
+    }
+  </style>
+
+
   <body>
-  {% for item in query %}
-    {{item}}<br>
+    <a href="http://54.245.116.56/">Home</a><br>
+    <a href="http://54.245.116.56/stats">Lines</a><br>
+    <table cellpadding=5>
+      <tr bgcolor="#A59A9A">
+        <td>Date</td>
+        <td>Time</td>
+        <td>Line</td>
+        <td>Direction</td>
+    </tr>
+    {% for item in query %}
+      <tr>
+        <td>{{item.date}}</td>
+        <td>{{item.time}}</td>
+        <td>{{item.line}}</td>
+        <td>{{item.dir}}</td>
+      </tr>
   {% endfor %}
-  <body>
+  </table> 
+ 
+<body>
 </html>
