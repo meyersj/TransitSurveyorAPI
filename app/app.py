@@ -74,6 +74,7 @@ def post():
     lat = request.form['lat']
     date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
     add = Test(uuid=uuid, date=date, line=line, dir=dir, lon=lon, lat=lat)
+    
     db.session.add(add)
     db.session.commit()
   else:
