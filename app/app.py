@@ -4,7 +4,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 import logging, datetime
 from logging import FileHandler
 
-
+base_url = "http://54.244.253.136"
 
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
@@ -13,113 +13,174 @@ handler = FileHandler('/tmp/app.log')
 handler.setLevel(logging.DEBUG)
 app.logger.addHandler(handler)
 
+
 class Test(db.Model):
-  id = db.Column(db.Integer, primary_key = True)
-  uuid = db.Column(db.Text)
-  date = db.Column(db.DateTime)
-  line = db.Column(db.Text)
-  dir = db.Column(db.Text)
-  lon = db.Column(db.Text)
-  lat = db.Column(db.Text)
+    __tablename__ = 'test'
+    id = db.Column(db.Integer, primary_key = True)
+    uuid = db.Column(db.Text)
+    date = db.Column(db.DateTime)
+    line = db.Column(db.Text)
+    dir = db.Column(db.Text)
+    lon = db.Column(db.Text)
+    lat = db.Column(db.Text)
 
-  def __init__(self, uuid, date, line, dir, lon, lat):
-    self.uuid = uuid
-    self.date = date
-    self.line = line
-    self.dir = dir
-    self.lon = lon
-    self.lat = lat
+    def __init__(self, uuid, date, line, dir, lon, lat):
+        self.uuid = uuid
+        self.date = date
+        self.line = line
+        self.dir = dir
+        self.lon = lon
+        self.lat = lat
 
-  def __repr__(self):
-    return '<uuid: %r>' % self.id
+    def __repr__(self):
+        return '<uuid: %r>' % self.id
 
-class Matched(db.Model): 
-  id = db.Column(db.Integer, primary_key = True)
-  paired = db.Column(db.Integer, unique = True)
 
-  def __init__(self, paired):
-    self.paired = paired
+class OnScan(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    uuid = db.Column(db.Text)
+    date = db.Column(db.DateTime)
+    line = db.Column(db.Text)
+    dir = db.Column(db.Text)
+    lon = db.Column(db.Text)
+    lat = db.Column(db.Text)
+    match = db.Column(db.Boolean)
 
-class Pairs(db.Model):
-  id = db.Column(db.Integer, primary_key = True)
-  line = db.Column(db.Text)
-  dir = db.Column(db.Text)
-  on_date = db.Column(db.DateTime)
-  on_lon = db.Column(db.Text)
-  on_lat = db.Column(db.Text)
-  off_date = db.Column(db.DateTime)
-  off_lon = db.Column(db.Text)
-  off_lat = db.Column(db.Text)
+    def __init__(self, uuid, date, line, dir, lon, lat):
+        self.uuid = uuid
+        self.date = date
+        self.line = line
+        self.dir = dir
+        self.lon = lon
+        self.lat = lat
+        self.match = False
 
-  def __init__(self, line, dir, on_date, on_lon, on_lat, off_date, off_lon, off_lat):
-    self.line = date
-    self.dir = dir
-    self.on_date = on_date
-    self.on_lon = on_lon
-    self.on_lat = on_lat
-    self.off_date = off_date
-    self.off_lon = off_lon
-    self.off_lat = off_lat
+    def __repr__(self):
+        return '<uuid: %r>' % self.id
+
+class OffScan(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    uuid = db.Column(db.Text)
+    date = db.Column(db.DateTime)
+    line = db.Column(db.Text)
+    dir = db.Column(db.Text)
+    lon = db.Column(db.Text)
+    lat = db.Column(db.Text)
+    match = db.Column(db.Boolean)
+
+    def __init__(self, uuid, date, line, dir, lon, lat, match):
+        self.uuid = uuid
+        self.date = date
+        self.line = line
+        self.dir = dir
+        self.lon = lon
+        self.lat = lat
+        self.match = match
+
+    def __repr__(self):
+        return '<uuid: %r>' % self.id
+
+class OnOff_Pairs(db.Model):
+    __tablename__ = 'onoff_pairs'
+    id = db.Column(db.Integer, primary_key = True)
+    line = db.Column(db.Text)
+    dir = db.Column(db.Text)
+    on_date = db.Column(db.DateTime)
+    on_lon = db.Column(db.Text)
+    on_lat = db.Column(db.Text)
+    off_date = db.Column(db.DateTime)
+    off_lon = db.Column(db.Text)
+    off_lat = db.Column(db.Text)
+
+    def __init__(self, line, dir, on_date, on_lon, on_lat, off_date, off_lon, off_lat):
+        self.line = line
+        self.dir = dir
+        self.on_date = on_date
+        self.on_lon = on_lon
+        self.on_lat = on_lat
+        self.off_date = off_date
+        self.off_lon = off_lon
+        self.off_lat = off_lat
 
 db.create_all()
 
 @app.route('/submit', methods=['POST'])
 def post():
-  if request.method == 'POST':
-    uuid = request.form['uuid']
-    date = request.form['date']
-    line = request.form['line']
-    dir = request.form['dir']
-    lon = request.form['lon']
-    lat = request.form['lat']
-    date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
-    add = Test(uuid=uuid, date=date, line=line, dir=dir, lon=lon, lat=lat)
+    if request.method == 'POST':
+        uuid = request.form['uuid']
+        date = request.form['date']
+        line = request.form['line']
+        dir = request.form['dir']
+        lon = request.form['lon']
+        lat = request.form['lat']
+        mode = request.form['mode']
+        date = datetime.datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
     
-    db.session.add(add)
-    db.session.commit()
-  else:
-    app.logger.error("request not post")
+        add = None
+        if mode == 'on':
+            add = OnScan(uuid=uuid, date=date, line=line, dir=dir, lon=lon, lat=lat)
+        if mode == 'off':
+            on_scan = None
+            on_scan = OnScan.query.filter_by(uuid=uuid, line=line, dir=dir, match=False).order_by(OnScan.date.desc()).first()
+      
+            #TODO
+            """add logic checking for large time discrpency between on and off dates"""
+
+            if on_scan:
+                match = True
+                pair = OnOff_Pairs(line=line, dir=dir,
+                                   on_date=on_scan.date, on_lon=on_scan.lon, on_lat=on_scan.lat,
+                                   off_date=date, off_lon=lon, off_lat=lat)
+                db.session.add(pair)
+            else:
+                match = False
+                app.logger.error("submit: off scan did not find matching on scan")
+                app.logger.error("        " + str(uuid) + " " + str(date))
+
+            add = OffScan(uuid=uuid, date=date, line=line, dir=dir, lon=lon, lat=lat, match=match)
+
+        db.session.add(add)
+        db.session.commit()
+    else:
+        app.logger.error("request not post")
+  
+    return "some response"
  
 @app.route('/stats')
 def stats():
-  results = Test.query.order_by(Test.line).all()
-  lines = []
-  for row in results:
-    lines.append(int(row.line))
-  lines = sorted(list(set(lines)))
-  return render_template('lines.html', lines=lines)
+    on_results = OnScan.query.order_by(OnScan.line).all()
+    off_results = OffScan.query.order_by(OffScan.line).all()
+
+    lines = []
+    for row in on_results:
+        lines.append(int(row.line))
+    for row in off_results:
+        lines.append(int(row.line))
+
+    lines = sorted(list(set(lines)))
+    return render_template('lines.html', base_url=base_url, lines=lines)
 
 
-@app.route('/stats/<in_line>')
-def stats_filter(in_line):
-  if in_line == 'all': 
-    results = Test.query.all()
-  else:
-    results = Test.query.filter_by(line=in_line).all()
-  return render_template('query.html', query=results)
+@app.route('/stats/<in_param>')
+def stats_filter(in_param):
+    if in_param == 'all':
+        on_results = OnScan.query.order_by(OnScan.date.desc()).all()
+        off_results = OffScan.query.order_by(OffScan.date.desc()).all()
+        pair_results = OnOff_Pairs.query.all()
 
-@app.route('/pair/<in_line>')
-def pair(in_line):
-  result = Test.query.filter_by(line=in_line).order_by(Test.date)
-  app.logger.error(result)
+    else:
+        on_results = OnScan.query.filter_by(line=in_param).order_by(OnScan.date.desc()).all()
+        off_results = OffScan.query.filter_by(line=in_param).order_by(OffScan.date.desc()).all()
+        pair_results = OnOff_Pairs.query.filter_by(line=in_param).all()
 
-  first = result.first()
-  #del result[0]
-  #second = result.first()
-  #result2 = Test.query.filter_by(line=in_line).order_by(Test.date).first()
-  result = result[1:]
-  
-  #app.logger.error(type(result[0]))
-  return first.uuid + '**' + result[2].uuid
-
-
-
+    return render_template('query.html', base_url=base_url, 
+                                         on_query=on_results,
+                                         off_query=off_results,
+                                         pair_query=pair_results)
 
 @app.route('/')
 def home():
-  return render_template('home.html')
-
-
+    return render_template('home.html', base_url=base_url)
 
 if __name__ == '__main__':
-  app.run()
+    app.run()
