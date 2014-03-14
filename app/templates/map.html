@@ -1,0 +1,24 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css"/>
+    <script src="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='map.js') }}"></script>
+    <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script> 
+  
+  </head>
+
+  <title>
+  TEST MAP
+  </title>
+  <body>
+    <a href="{{ base_url }}">Home</a><br>
+    <div id="map" style="height:80%;width:100%"></div>
+
+    <script>
+      var map;
+      initmap();
+      var points = {{ points|tojson|safe }};
+      L.geoJson(points).addTo(map); 
+    </script>
+  </body>
+<html>
