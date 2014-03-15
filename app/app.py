@@ -14,11 +14,11 @@ base_url = "http://54.244.253.136"
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
 db = SQLAlchemy(app)
-"""
 handler = FileHandler('/tmp/app.log')
 handler.setLevel(logging.DEBUG)
 app.logger.addHandler(handler)
-"""
+
+
 class OnScan(db.Model):
     #TODO make stop_id reference tm_stops
     id = db.Column(db.Integer, primary_key = True)
@@ -111,7 +111,7 @@ class Stops(db.Model):
    stop_seq = db.Column(db.Integer)
    stop_id = db.Column(db.Integer)
    geom = db.Column(Geometry(geometry_type='POINT', srid=2913))
-
+   grouping = db.Column(db.Integer)
    def __repr__(self):
        return '<uuid: %r>' % self.stop_id
 

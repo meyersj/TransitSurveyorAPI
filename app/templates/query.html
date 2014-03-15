@@ -13,8 +13,8 @@
   </style>
   
   <body>
-    <a href="{{base_url}}">Home</a><br>
-    <a href="{{base_url}}/stats">Lines</a><br><br>
+    <a href="{{ base_url }}">Home</a><br>
+    <a href="{{ base_url }}/stats">Lines</a><br><br>
 
     <b>On Scans</b>
     <table cellpadding=5>
@@ -25,15 +25,17 @@
         <td>Latitude</td>
         <td>Longitude</td>
         <td>UUID</td>
+        <td>StopID</td>
       </tr>
       {% for item in on_query %}
       <tr>
-        <td>{{item.date}}</td>
-        <td>{{item.line}}</td>
-        <td>{{item.dir}}</td>
-        <td>{{item.lat}}</td>
-        <td>{{item.lon}}</td>
-        <td>{{item.uuid}}</td>
+        <td>{{ item.date }}</td>
+        <td>{{ item.line }}</td>
+        <td>{{ item.dir }}</td>
+        <td>{{ item.lat }}</td>
+        <td>{{ item.lon }}</td>
+        <td>{{ item.uuid }}</td>
+        <td>{{ item.stop_id }}</td>
       </tr>
       {% endfor %}
     </table><br> 
@@ -47,15 +49,17 @@
         <td>Latitude</td>
         <td>Longitude</td>
         <td>UUID</td>
+        <td>StopID</td>
       </tr>
       {% for item in off_query %}
       <tr>
-        <td>{{item.date}}</td>
-        <td>{{item.line}}</td>
-        <td>{{item.dir}}</td>
-        <td>{{item.lat}}</td>
-        <td>{{item.lon}}</td>
-        <td>{{item.uuid}}</td>
+        <td>{{ item.date }}</td>
+        <td>{{ item.line }}</td>
+        <td>{{ item.dir }}</td>
+        <td>{{ item.lat }}</td>
+        <td>{{ item.lon }}</td>
+        <td>{{ item.uuid }}</td>
+        <td>{{ item.stop_id }}</td>
       </tr>
       {% endfor %}
     </table><br> 
@@ -68,20 +72,24 @@
         <td>On Time</td>
         <td>On Latitude</td>
         <td>On Longitude</td>
+        <td>On StopID</td>
         <td>Off Time</td>
         <td>Off Latitude</td>
         <td>Off Longitude</td>
+        <td>Off StopID</td>
       </tr>
       {% for item in pair_query %}
       <tr>
-        <td>{{item.line}}</td>
-        <td>{{item.dir}}</td>
-        <td>{{item.on_date}}</td>
-        <td>{{item.on_lat}}</td>
-        <td>{{item.on_lon}}</td>
-        <td>{{item.off_date}}</td>
-        <td>{{item.off_lat}}</td>
-        <td>{{item.off_lon}}</td>
+        <td>{{ item.line }}</td>
+        <td>{{ item.dir }}</td>
+        <td>{{ item.on_date }}</td>
+        <td>{{ item.on_lat }}</td>
+        <td>{{ item.on_lon }}</td>
+        <td>{{ item.on_stop_id }}</td>
+        <td>{{ item.off_date }}</td>
+        <td>{{ item.off_lat }}</td>
+        <td>{{ item.off_lon }}</td>
+        <td>{{ item.off_stop_id }}</td>
       </tr>
       {% endfor %}
     </table> 
