@@ -6,7 +6,6 @@
   <style>
     table,th,td
     {
-      text-align:center;
       border:1px solid black;
       border-collapse:collapse;
     }
@@ -22,7 +21,7 @@
       </tr>
       {% for line in lines %}
       <tr>
-        <td><a href="{{base_url}}/stats/{{line}}">{{line}}</a></td>
+        <td><a href="{{base_url}}/stats/{{line[0]}}">{{line[1]}}</a></td>
       </tr>
       {% endfor %}
   </table> 
