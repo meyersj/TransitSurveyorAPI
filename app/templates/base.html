@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+
+  <head>
+    {% block head %}
+    <title>{% block title %}Home{% endblock %}</title>
+    {% endblock %}
+    {% block style %}
+    <style>
+      table,th,td
+      {
+        border:1px solid black;
+        border-collapse:collapse;
+      }
+    </style>
+    {% endblock %}
+  </head>
+
+  <body>
+    <a href="{{base_url}}">Home</a>&nbsp;&nbsp;
+    <a href="{{base_url}}/stats">Lines</a>&nbsp;&nbsp;
+    <a href="{{base_url}}/stats/all">Display All</a>&nbsp;&nbsp;
+    <a href="{{base_url}}/map">Map</a><br><br>
+    <div id="content">{% block content %}{% endblock %}</div>
+  </body>
+
+</html>
