@@ -7,18 +7,18 @@
 {% block style %}
   {{ super() }}
   <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css"/>
-  <script src="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
+  <script type="text/javascript" src="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
   <script type="text/javascript" src="{{ url_for('static', filename='map.js') }}"></script>
-  <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script> 
-{% endblock }}
+{% endblock %}}
 
 {% block content %}
-  <div id="map" style="height:80%;width:100%"></div>
+  <div id="map" style="height:500px;width:500px"></div>
 
   <script>
-    var map;
+    var map;   
     initmap();
     var geojson = {{ geojson|tojson|safe }};
-    L.geoJson(geojson).addTo(map); 
+    L.geoJson(geojson).addTo(map);
   </script>
+
 {% endblock %}

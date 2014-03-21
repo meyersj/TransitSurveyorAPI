@@ -3,7 +3,7 @@
 
   <head>
     {% block head %}
-    <title>{% block title %}Home{% endblock %}</title>
+    <title>{% block title %}{% endblock %}</title>
     {% endblock %}
     {% block style %}
     <style>
@@ -21,7 +21,10 @@
     <a href="{{base_url}}/stats">Lines</a>&nbsp;&nbsp;
     <a href="{{base_url}}/stats/all">Display All</a>&nbsp;&nbsp;
     <a href="{{base_url}}/map">Map</a><br><br>
-    <div id="content">{% block content %}{% endblock %}</div>
+    <div id="content" style="width:100%;height:100%">
+      {% block content %}
+      {% endblock %}
+    </div>
   </body>
 
 </html>
