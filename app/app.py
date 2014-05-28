@@ -6,12 +6,11 @@ from geoalchemy2.elements import WKTElement
 from geoalchemy2 import functions as func
 import logging, datetime, ast
 from logging import FileHandler
+import app
 
 base_url = "http://54.244.253.136"
 
-app = Flask(__name__)
-app.config.from_pyfile('config.py')
-db = SQLAlchemy(app)
+
 
 handler = FileHandler('/tmp/app.log')
 handler.setLevel(logging.DEBUG)

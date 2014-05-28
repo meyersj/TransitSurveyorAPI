@@ -9,15 +9,16 @@
   <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.css"/>
   <script type="text/javascript" src="http://cdn.leafletjs.com/leaflet-0.6.4/leaflet.js"></script>
   <script type="text/javascript" src="{{ url_for('static', filename='map.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='sample.geosjon') }}"></script>
 {% endblock %}}
 
 {% block content %}
-  <div id="map" style="height:500px;width:500px"></div>
+  <div id="map" style="height:100px;width:100px"></div>
 
   <script>
     var map;   
     initmap();
-    var geojson = {{ geojson|tojson|safe }};
+    //var geojson = {{ geojson|tojson|safe }};
     L.geoJson(geojson).addTo(map);
   </script>
 
