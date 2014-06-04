@@ -58,7 +58,7 @@ class Scans(db.Model):
     line = db.Column(db.Text)
     dir = db.Column(db.Text)
     geom = db.Column(Geometry(geometry_type='POINT', srid=2913))
-   
+
     def __init__(self, date, line, dir, geom):
         self.date = date
         self.line = line
@@ -70,7 +70,7 @@ class Scans(db.Model):
             (self.id, self.date, self.line, self.dir)
 
 
-class OnOffPairs(db.Model):
+class OnOffPairs_Scans(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     on_id = db.Column(db.Integer, db.ForeignKey("scans.id"), nullable=False)
     off_id = db.Column(db.Integer, db.ForeignKey("scans.id"), nullable=False)
@@ -85,6 +85,40 @@ class OnOffPairs(db.Model):
         return '<OnOffPairs: id:%r, on_id:%r, off_id:%r >' %\
             (self.id, self.on_id, self.off_id)
 
+class OnOffPairs_Stops(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    date = db.Column(db.DateTime)
+    line = db.Column(db.Text)
+    dir = db.Column(db.Text)
+    #NOTE see nots from fixme above Stops model
+    on_stop = db.Column(db.Integer, db.ForeignKey("tm_route_stops.gid"), nullable=False)
+    off_stop = db.Column(db.Integer, db.ForeignKey("tm_route_stops.gid"), nullable=False)
+    on = orm.relationship("Stops", foreign_keys=on_stop)
+    off = orm.relationship("Stops", foreign_keys=off_stop)
+
+    def __init__(self, date, line, dir, on_stop, off_stop):
+        self.date = date
+        self.line = line
+        self.dir = dir
+        self.on_stop = on_stop
+        self.off_stop = off_stop
+
+    def __repr__(self):
+        return '<OnOffPairs: id:%r, on_id:%r, off_id:%r >' %\
+            (self.id, self.on_stop, self.off_stop)
+
+
+#NOTE
+"""
+there are 9 records where rte+dir+stop_id is not distinct
+the stop_seq is different
+determine if these stops are on any of the routes to be surveyed
+
+when inserting records into OnOffPairs we may get more than on gid back
+using the above conditions
+
+we will take first gid as for our purposes stop sequence does not matter
+""" 
 class Stops(db.Model):
    __tablename__ = 'tm_route_stops'
    gid = db.Column(db.Integer, primary_key = True)

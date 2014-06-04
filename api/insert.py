@@ -87,7 +87,7 @@ class InsertScan():
             db.session.commit()    
             
             #insert on and off ids into OnOffPairs
-            insertPair = models.OnOffPairs(insertOn.id, insertOff.id)
+            insertPair = models.OnOffPairs_Scans(insertOn.id, insertOff.id)
             db.session.add(insertPair)
             db.session.commit()
 
@@ -99,7 +99,7 @@ class InsertScan():
         #in production this will not be needed
         insertOffTemp = models.OffTemp(uuid=self.uuid, date=self.date, 
                                 line=self.line, dir=self.dir,
-                                geom=self.geom, match=match)
+                                geom=self.geom)
         
         db.session.add(insertOffTemp)
         db.session.commit()
@@ -138,3 +138,51 @@ class InsertScan():
             app.logger.error("Exception thrown in findNearStop: "+str(e))
             app.logger.error(e)
     """
+
+
+class InsertPair():
+    #passed params
+    date = None
+    line = None
+    dir = None
+    on_stop = None
+    off_stop = None 
+    #created params
+    valid = True
+
+    def __init__(self,date,line,dir,on_stop,off_stop):
+        self.date = date
+        self.line = line
+        self.dir = dir
+        self.on_stop = on_stop
+        self.off_stop = off_stop
+        self.isValid = True
+        self.__insertPair()      
+
+    def __insertPair(self):
+        on_stop = models.Stops.query.filter_by(rte=self.line,
+                                               dir=self.dir,
+                                                   stop_id=self.on_stop).first()
+
+        off_stop = models.Stops.query.filter_by(rte=self.line,
+                                                    dir=self.dir,
+                                                    stop_id=self.off_stop).first()
+
+        app.logger.debug(on_stop.gid)
+        app.logger.debug(off_stop.gid)
+
+        if on_stop and off_stop:
+            insert = models.OnOffPairs_Stops(self.date,self.line,self.dir,on_stop.gid,off_stop.gid)
+            db.session.add(insert)
+            db.session.commit()    
+ 
+        else:
+            self.isValid = False
+            if not on_stop:
+                app.logger.error("On stop_id did not match have match in tm_route_stops table")
+            else:
+                app.logger.error("Off stop_id did not match have match in tm_route_stops table")
+
+    def isSuccessful(self):
+        return self.isValid
+    
