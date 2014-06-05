@@ -1,4 +1,6 @@
 *.pyc
 *.*~
 *.swp
-
+data/
+flask/
+virtualenv.py
