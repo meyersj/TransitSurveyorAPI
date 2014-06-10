@@ -2,8 +2,8 @@ from api import app, db, models
 from geoalchemy2.elements import WKTElement
 from geoalchemy2 import functions as func
 
-ON = "ON"
-OFF = "OFF"
+ON = "on"
+OFF = "off"
 
 class InsertScan():
     #passed params
@@ -49,7 +49,7 @@ class InsertScan():
             self.isValid = False
             msg = "failed to convert lat {0} lon {1} to geom: "\
                 .format(self.lat,self.lon) + e
-            app.logger.error(e)
+            app.logger.debug(e)
 
     """insert into temp ON table
     """

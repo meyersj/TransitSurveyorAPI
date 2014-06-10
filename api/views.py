@@ -4,15 +4,15 @@ from api import app
 from insert import InsertScan, InsertPair
 import datetime
 
-UUID = "UUID"
-DATE = "DATE"
-LINE = "LINE"
-DIR = "DIR"
-LON = "LON"
-LAT = "LAT"
-MODE = "MODE"
-ON_STOP = "ON_STOP"
-OFF_STOP = "OFF_STOP"
+UUID = "uuid"
+DATE = "date"
+LINE = "rte"
+DIR = "dir"
+LON = "lon"
+LAT = "lat"
+MODE = "mode"
+ON_STOP = "on_stop"
+OFF_STOP = "off_stop"
 
 @app.route('/')
 def index():
