@@ -5,10 +5,11 @@ import logging
 app = Flask(__name__)
 app.config.from_object('config')
 db = SQLAlchemy(app)
+app.debug = True
 
-handler = logging.FileHandler('/tmp/app.log')
-handler.setLevel(logging.DEBUG)
-app.logger.addHandler(handler)
+#handler = logging.FileHandler('/tmp/app.log')
+#handler.setLevel(logging.DEBUG)
+#app.logger.addHandler(handler)
 
 from api import models, views
 
