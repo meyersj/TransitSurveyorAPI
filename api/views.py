@@ -21,7 +21,9 @@ def index():
 #api route for on off locations from scanner
 @app.route('/insertScan', methods=['POST'])
 def insertScan():
-    success = False
+    valid = False
+    insertID = -1
+
     if request.method == 'POST':
         uuid = request.form[UUID]
         date = datetime.datetime.strptime(request.form[DATE], "%Y-%m-%d %H:%M:%S")
@@ -33,14 +35,15 @@ def insertScan():
 
         #insert data into database
         insert = InsertScan(uuid,date,line,dir,lon,lat,mode)
-        success = insert.isSuccessful()
+        valid, insertID, match = insert.isSuccessful()
 
-    return jsonify(success=success)
+    return jsonify(success=valid, insertID=insertID, match=match)
 
 #api route for boarding and alighting locations selected from map
 @app.route('/insertPair', methods=['POST'])
 def insertPair():
-    success = False
+    valid = False
+    insertID = -1
     if request.method == 'POST':
         date = datetime.datetime.strptime(request.form[DATE], "%Y-%m-%d %H:%M:%S")
         line = request.form[LINE]
@@ -50,8 +53,8 @@ def insertPair():
 
         #insert data into database
         insert = InsertPair(date,line,dir,on_stop,off_stop)
-        success = insert.isSuccessful()
+        valid, insertID = insert.isSuccessful()
 
     
-    return jsonify(success=success)
+    return jsonify(success=valid, insertID=insertID)
 

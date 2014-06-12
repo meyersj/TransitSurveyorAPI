@@ -18,6 +18,8 @@ class InsertScan():
     #created params
     geom = None
     valid = True
+    insertID = None
+    match = None
 
     def __init__(self,uuid,date,line,dir,lon,lat,mode):
         self.uuid = uuid
@@ -32,9 +34,9 @@ class InsertScan():
         self.__getGeom()
         if self.isValid:
             if self.mode == ON:
-                self.isValid = self.__insertOn()
+                self.isValid, self.insertID = self.__insertOn()
             elif self.mode == OFF:
-                self.isValid = self.__insertOff()
+                self.isValid, self.insertID, self.match = self.__insertOff()
             else:
                 self.isValid = False
 
@@ -54,13 +56,16 @@ class InsertScan():
     """insert into temp ON table
     """
     def __insertOn(self):
+        insertID = -1
         insert = models.OnTemp(uuid=self.uuid, date=self.date, 
                                line=self.line, dir=self.dir,
                                geom=self.geom)
         
         db.session.add(insert)
         db.session.commit()
-        return True
+        insertID = insert.id
+
+        return True, insertID
 
     """match OFF scan with most recent ON scan with same UUID
     if a match is found insert ON and OFF pairs into Scans table
@@ -68,6 +73,7 @@ class InsertScan():
     """
     def __insertOff(self):
         match = False
+        insertID = -1
         on = None
         on = models.OnTemp.query.filter_by(uuid=self.uuid,
                                            line=self.line,
@@ -85,7 +91,8 @@ class InsertScan():
             db.session.add(insertOn)
             db.session.add(insertOff)
             db.session.commit()    
-            
+            insertID = insertOff.id
+            match = on.match
             #insert on and off ids into OnOffPairs
             insertPair = models.OnOffPairs_Scans(insertOn.id, insertOff.id)
             db.session.add(insertPair)
@@ -104,10 +111,10 @@ class InsertScan():
         db.session.add(insertOffTemp)
         db.session.commit()
 
-        return True
+        return True, insertID, match
 
     def isSuccessful(self):
-        return self.isValid
+        return self.isValid, self.insertID, self.match
             
     """
     ************************************
@@ -149,6 +156,7 @@ class InsertPair():
     off_stop = None 
     #created params
     valid = True
+    insertID = -1
 
     def __init__(self,date,line,dir,on_stop,off_stop):
         self.date = date
@@ -174,15 +182,16 @@ class InsertPair():
         if on_stop and off_stop:
             insert = models.OnOffPairs_Stops(self.date,self.line,self.dir,on_stop.gid,off_stop.gid)
             db.session.add(insert)
-            db.session.commit()    
+            db.session.commit()
+            self.insertID = insert.id 
  
         else:
-            self.isValid = False
+            self.valid = False
             if not on_stop:
                 app.logger.error("On stop_id did not match have match in tm_route_stops table")
             else:
                 app.logger.error("Off stop_id did not match have match in tm_route_stops table")
 
     def isSuccessful(self):
-        return self.isValid
+        return self.valid, self.insertID
     
