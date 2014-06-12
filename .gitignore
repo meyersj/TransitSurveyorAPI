@@ -3,4 +3,5 @@
 *.swp
 data/
 flask/
+keys/
 virtualenv.py

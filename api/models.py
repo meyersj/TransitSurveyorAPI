@@ -108,6 +108,24 @@ class OnOffPairs_Stops(db.Model):
             (self.id, self.on_stop, self.off_stop)
 
 
+class Users(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    first = db.Column(db.Text)
+    last = db.Column(db.Text)
+    username = db.Column(db.Text)
+    password_hash = db.Column(db.Text)
+
+    def __init__(self, first, last, username, password_hash):
+        self.first = first
+        self.last = last
+        self.username = username
+        self.password_hash = password_hash
+
+    def __repr__(self):
+        return '<User: Name: %r %r, Username:%r >' %\
+            (self.first, self.last, self.username)
+
+
 #NOTE
 """
 there are 9 records where rte+dir+stop_id is not distinct
