@@ -3,6 +3,13 @@ import random
 import urlparse
 import datetime
 import csv
+import os
+import sys
+import json
+
+sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "../api")))
+
+from crypter import Crypter
 
 UUID = 'uuid'
 DATE = 'date'
@@ -17,6 +24,7 @@ URL = 'url'
 TYPE = 'type'
 INSERT_SCAN = 'insertScan'
 INSERT_PAIR = 'insertPair'
+USER = "user"
 
 LAT_LOW = 44.5
 LAT_HIGH = 45.5
@@ -24,7 +32,7 @@ LON_LOW = -122.5
 LON_HIGH = -121.5
 
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
-TEST_MAX = 5
+TEST_MAX = 100
 
 """
 Takes dictionary of parameters, builds up the HTTP POST request.
@@ -35,12 +43,17 @@ class Test(object):
     test_type = None
     url = None
     params = {}
-   
-    def __init__(self, data):
+    crypter = None
+    data_encrypt = None
+
+    def __init__(self, data, crypter):
         self.test_type = data[TYPE]
+        self.crypter = crypter
         self.params = self.build_params(data) 
         self.url = self.build_url(data[URL])
-    
+        self.encrypt()
+       
+        
     def build_params(self, data):
         params = {}
         params[DATE] = data[DATE]
@@ -59,6 +72,10 @@ class Test(object):
   
         return params
  
+
+    def encrypt(self):
+        self.data_encrypt = self.crypter.Encrypt(json.dumps(self.params)) 
+
     def build_url(self, url):
         if self.test_type == "scan":
             path = INSERT_SCAN
@@ -71,7 +88,8 @@ class Test(object):
          
 
     def run(self):
-        response = requests.post(self.url, data=self.params)
+        data = {"data":self.data_encrypt}
+        response = requests.post(self.url, data=data)
         return response
 
 class TestRunner(object):
@@ -83,11 +101,12 @@ class TestRunner(object):
     #pair_routes = {rte:{inbound:[stop1, stop2, ... ], outbound:[stop1, stop2, ... ]}}
     pair_routes = None
     tests = []
+    crypter = None
 
-    def __init__(self, url, scan_routes, pair_routes):
+    def __init__(self, keys, url, scan_routes, pair_routes):
         self.url = url
         self.scan_routes, self.pair_routes = self.open_routes(scan_routes, pair_routes)
-
+        self.crypter = Crypter(keys)
         self.build_pair_tests()
         self.build_scan_tests()
         self.run_tests()
@@ -134,13 +153,13 @@ class TestRunner(object):
         params = {}
         d = datetime.datetime.now()
         params[URL] = self.url
-        params[LINE] = line
-        params[DIR] = dir
-        params[UUID] = uuid
+        params[LINE] = str(line)
+        params[DIR] = str(dir)
+        params[UUID] = str(uuid)
         params[MODE] = mode
         params[DATE] = d.strftime(DATE_FORMAT)
-        params[LAT] = random.uniform(LAT_LOW, LAT_HIGH)
-        params[LON] = random.uniform(LON_LOW, LON_HIGH)
+        params[LAT] = str(random.uniform(LAT_LOW, LAT_HIGH))
+        params[LON] = str(random.uniform(LON_LOW, LON_HIGH))
         params[TYPE] = "scan"
         return params
 
@@ -172,8 +191,8 @@ class TestRunner(object):
         params = {}
         d = datetime.datetime.now()
         params[URL] = self.url
-        params[LINE] = line
-        params[DIR] = dir
+        params[LINE] = str(line)
+        params[DIR] = str(dir)
         params[DATE] = d.strftime(DATE_FORMAT)
         params[ON_STOP] = on_stop
         params[OFF_STOP] = off_stop
@@ -204,34 +223,62 @@ class TestRunner(object):
                 params = self.pair_params(route, dir,  on_stop, off_stop)
                 self.tests.append(params)
 
-
-
-
     def run_tests(self):
         
         for params in self.tests:
-            test = Test(params)
+            test = Test(params, self.crypter)
             response = test.run()
-            print response.status_code
-            print response.text
+            #print response.status_code
+            #print response.text
             #TODO logging if tests fail
             if response.status_code == 200:
                 self.success += 1
             else:
+                print response.status_code
+                print response.text
                 self.fail += 1
 
     def get_results(self):
         return self.success, self.fail            
 
-if __name__ == '__main__':
-    
-    scan_routes = "../data/scan_routes.csv"
-    pair_routes = "../data/pair_routes.csv"
 
-    url = "http://127.0.0.1:5000"
+def single_scan_test(url, keys):
+    d = datetime.datetime.now()
+    params = {}
+    params[URL] = url
+    params[LINE] = "9"
+    params[DIR] = "1"
+    params[UUID] = "1"
+    params[MODE] = "on"
+    params[DATE] = d.strftime(DATE_FORMAT)
+    params[LAT] = str(random.uniform(LAT_LOW, LAT_HIGH))
+    params[LON] = str(random.uniform(LON_LOW, LON_HIGH))
+    params[TYPE] = "scan"
 
-    test_runner = TestRunner(url, scan_routes, pair_routes)
+    crypter = Crypter(keys)
+    test = Test(params, crypter)
+    response = test.run()
+
+    if response.status_code == 200:
+        print "test passed"
+    else:
+        print response.status_code
+        print response.text
+
+def all_tests(url, keys, scan_routes, pair_routes):
+    test_runner = TestRunner(keys, url, scan_routes, pair_routes)
     success, fail = test_runner.get_results()
 
     print "Passing tests: " + str(success)
     print "Failing tests: " + str(fail)
+
+if __name__ == '__main__':
+    url = "http://127.0.0.1:5000"
+    keys = os.path.abspath(os.path.join(os.getcwd(), "../keys"))
+    scan_routes = "../data/scan_routes.csv"
+    pair_routes = "../data/pair_routes.csv"
+
+    #single_scan_test(url, keys)
+    all_tests(url, keys, scan_routes, pair_routes)
+
+

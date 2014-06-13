@@ -10,14 +10,17 @@ class OnTemp(db.Model):
     dir = db.Column(db.Text)
     match = db.Column(db.Boolean)
     geom = db.Column(Geometry(geometry_type='POINT', srid=2913))
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user = orm.relationship("Users", foreign_keys=user_id)
    
-    def __init__(self, uuid, date, line, dir, geom):
+    def __init__(self, uuid, date, line, dir, geom, user_id):
         self.uuid = uuid
         self.date = date
         self.line = line
         self.dir = dir
         self.match = False
         self.geom = geom
+        self.user_id = user_id
 
     def __repr__(self):
         return '<OnTemp: %r, %r, %r, %r, %r >' %\
@@ -36,14 +39,17 @@ class OffTemp(db.Model):
     dir = db.Column(db.Text)
     match = db.Column(db.Boolean)
     geom = db.Column(Geometry(geometry_type='POINT', srid=2913))
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user = orm.relationship("Users", foreign_keys=user_id)
    
-    def __init__(self, uuid, date, line, dir, geom):
+    def __init__(self, uuid, date, line, dir, geom, user_id):
         self.uuid = uuid
         self.date = date
         self.line = line
         self.dir = dir
         self.match = False
         self.geom = geom
+        self.user_id = user_id
 
     def __repr__(self):
         return '<OnTemp: %r, %r, %r, %r, %r >' %\
@@ -58,12 +64,15 @@ class Scans(db.Model):
     line = db.Column(db.Text)
     dir = db.Column(db.Text)
     geom = db.Column(Geometry(geometry_type='POINT', srid=2913))
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user = orm.relationship("Users", foreign_keys=user_id)
 
-    def __init__(self, date, line, dir, geom):
+    def __init__(self, date, line, dir, geom, user_id):
         self.date = date
         self.line = line
         self.dir = dir
         self.geom = geom
+        self.user_id = user_id
 
     def __repr__(self):
         return '<OnTemp: %r, %r, %r, %r >' %\
@@ -95,13 +104,17 @@ class OnOffPairs_Stops(db.Model):
     off_stop = db.Column(db.Integer, db.ForeignKey("tm_route_stops.gid"), nullable=False)
     on = orm.relationship("Stops", foreign_keys=on_stop)
     off = orm.relationship("Stops", foreign_keys=off_stop)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user = orm.relationship("Users", foreign_keys=user_id)
 
-    def __init__(self, date, line, dir, on_stop, off_stop):
+
+    def __init__(self, date, line, dir, on_stop, off_stop, user_id):
         self.date = date
         self.line = line
         self.dir = dir
         self.on_stop = on_stop
         self.off_stop = off_stop
+        self.user_id = user_id
 
     def __repr__(self):
         return '<OnOffPairs: id:%r, on_id:%r, off_id:%r >' %\

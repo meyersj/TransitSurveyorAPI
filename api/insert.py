@@ -14,14 +14,15 @@ class InsertScan():
     lon = None
     lat = None
     mode = None
-    
+    user = None
+
     #created params
     geom = None
     valid = True
     insertID = None
     match = None
 
-    def __init__(self,uuid,date,line,dir,lon,lat,mode):
+    def __init__(self,uuid,date,line,dir,lon,lat,mode,user):
         self.uuid = uuid
         self.date = date
         self.line = line
@@ -30,6 +31,7 @@ class InsertScan():
         self.lat = lat
         self.mode = mode
         self.isValid = True
+        self.user = user
         
         self.__getGeom()
         if self.isValid:
@@ -59,7 +61,7 @@ class InsertScan():
         insertID = -1
         insert = models.OnTemp(uuid=self.uuid, date=self.date, 
                                line=self.line, dir=self.dir,
-                               geom=self.geom)
+                               geom=self.geom, user_id=self.user)
         
         db.session.add(insert)
         db.session.commit()
@@ -86,8 +88,8 @@ class InsertScan():
             on.match = True
           
             #insert on off records into Scans
-            insertOn = models.Scans(on.date, on.line, on.dir, on.geom)
-            insertOff = models.Scans(self.date, self.line, self.dir, self.geom)
+            insertOn = models.Scans(on.date, on.line, on.dir, on.geom, on.user_id)
+            insertOff = models.Scans(self.date, self.line, self.dir, self.geom, self.user)
             db.session.add(insertOn)
             db.session.add(insertOff)
             db.session.commit()    
@@ -106,7 +108,7 @@ class InsertScan():
         #in production this will not be needed
         insertOffTemp = models.OffTemp(uuid=self.uuid, date=self.date, 
                                 line=self.line, dir=self.dir,
-                                geom=self.geom)
+                                geom=self.geom, user_id=self.user)
         
         db.session.add(insertOffTemp)
         db.session.commit()
@@ -154,16 +156,18 @@ class InsertPair():
     dir = None
     on_stop = None
     off_stop = None 
+    user = None
     #created params
     valid = True
     insertID = -1
 
-    def __init__(self,date,line,dir,on_stop,off_stop):
+    def __init__(self,date,line,dir,on_stop,off_stop, user):
         self.date = date
         self.line = line
         self.dir = dir
         self.on_stop = on_stop
         self.off_stop = off_stop
+        self.user = user
         self.isValid = True
         self.__insertPair()      
 
@@ -180,7 +184,12 @@ class InsertPair():
         app.logger.debug(off_stop.gid)
 
         if on_stop and off_stop:
-            insert = models.OnOffPairs_Stops(self.date,self.line,self.dir,on_stop.gid,off_stop.gid)
+            insert = models.OnOffPairs_Stops(self.date,
+                                             self.line,
+                                             self.dir,
+                                             on_stop.gid,
+                                             off_stop.gid,
+                                             self.user)
             db.session.add(insert)
             db.session.commit()
             self.insertID = insert.id 

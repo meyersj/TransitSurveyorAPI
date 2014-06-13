@@ -11,9 +11,9 @@ curl --data \
 $url/insertScan
 '
 
-curl --data \
-"date=2014-12-12 12:00:00&rte=200&dir=1&on_stop=8347&off_stop=13134" \
-$url/insertPair
+#curl --data \
+#"date=2014-12-12 12:00:00&rte=200&dir=1&on_stop=8347&off_stop=13134" \
+#$url/insertPair
 
 
 #user=APRj1YZdQ0A8kiESQlqW7jsETptnG8FPA4iXv-SZAQibWIQcC4kyMX-ttBdp5GALHs1tHLxL_6XR
@@ -24,13 +24,13 @@ data=APRj1YZ91cMXugQjSxyRD5mrwr8XkMWKOVQ_rdfIQ_Twb_gw3z_IDDBgGY4pGVDMBQgfsceJkb-
 
 
 
-curl --data \
-"credentials=$data" \
-$url/verifyUser
-
 #curl --data \
-#"first=Jeff&last=Meyers&username=meyersj&password=123456" \
-#http://127.0.0.1:5000/createUser
+#"credentials=$data" \
+#$url/verifyUser
+
+curl --data \
+"first=Test&last=User&username=testuser&password=123456" \
+http://127.0.0.1:5000/createUser
 
 
 

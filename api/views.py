@@ -6,16 +6,13 @@ from models import Users
 from crypter import Crypter
 import datetime
 import json
-
 import logging
-
 
 CRED = "credentials"
 USERNAME = "username"
 PASSWORD = "password"
-KEYS = "KEYS"
+KEYS = "keys"
 DATA = "data"
-
 UUID = "uuid"
 DATE = "date"
 LINE = "rte"
@@ -25,11 +22,11 @@ LAT = "lat"
 MODE = "mode"
 ON_STOP = "on_stop"
 OFF_STOP = "off_stop"
-
+USER = "user"
 
 @app.route('/')
 def index():
-    return "hi"    
+    return "Test"
 
 
 @app.route('/createUser', methods=['POST'])
@@ -64,28 +61,26 @@ def verify_user(username, password):
             user_id = user.id
     else:
         pass
-        #app.logger.error("user name did not match") 
+        logger.debug("user name did not match") 
 
     return user_match, password_match, user_id
 
 
 @app.route('/verifyUser', methods=['POST'])
 def verifyUser():
-    logging.error("test verify user")
+    app.logger.debug("test verify user")
 
     crypter = Crypter(app.config[KEYS])
     cred_encrypt = request.form[CRED]
-    
-    print cred_encrypt
     cred_decrypt = json.loads(crypter.Decrypt(cred_encrypt))
-    print cred_decrypt
-    
  
     username = cred_decrypt[USERNAME]
     password = cred_decrypt[PASSWORD]
     
     user_match, password_match,user_id = verify_user(username, password)  
-    data = json.dumps({"user_match":user_match, "password_match":password_match, "user_id":user_id})
+    data = json.dumps({"user_match":user_match,
+                       "password_match":password_match,
+                       "user_id":user_id})
     data_encrypt = crypter.Encrypt(data)
 
     return data_encrypt
@@ -100,6 +95,8 @@ def insertScan():
     data_encrypt = request.form[DATA]
     data_decrypt = json.loads(crypter.Decrypt(data_encrypt))
 
+    app.logger.debug(data_decrypt)
+
     valid = False
     insertID = -1
 
@@ -111,8 +108,20 @@ def insertScan():
     lat = data_decrypt[LAT]
     mode = data_decrypt[MODE]
 
+    
+    if USER in data_decrypt.keys():
+        user = data_decrypt[USER]
+    #for testing api
+    else:
+        test_user = Users.query.filter_by(username = "testuser").first()
+        app.logger.debug(test_user)
+        user = test_user.id
+
+
+
+
         #insert data into database
-    insert = InsertScan(uuid,date,line,dir,lon,lat,mode)
+    insert = InsertScan(uuid,date,line,dir,lon,lat,mode,user)
     valid, insertID, match = insert.isSuccessful()
 
     return jsonify(success=valid, insertID=insertID, match=match)
@@ -132,8 +141,16 @@ def insertPair():
     on_stop = data_decrypt[ON_STOP]
     off_stop = data_decrypt[OFF_STOP]
 
+    if USER in data_decrypt.keys():
+        user = data_decrypt[USER]
+    #for testing api
+    else:
+        test_user = Users.query.filter_by(username = "testuser").first()
+        app.logger.debug(test_user)
+        user = test_user.id
+
     #insert data into database
-    insert = InsertPair(date,line,dir,on_stop,off_stop)
+    insert = InsertPair(date,line,dir,on_stop,off_stop, user)
     valid, insertID = insert.isSuccessful()
 
     #data = json.dumps({"user_match":user_match, "password_match":password_match, "user_id":user_id})
