@@ -32,7 +32,7 @@ LON_LOW = -122.5
 LON_HIGH = -121.5
 
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
-TEST_MAX = 5
+TEST_MAX = 1
 
 """
 Takes dictionary of parameters, builds up the HTTP POST request.
@@ -104,7 +104,6 @@ class TestRunner(object):
     crypter = None
 
     def __init__(self, keys, url, scan_routes, pair_routes):
-        print "test runner"
         self.url = url
         self.scan_routes, self.pair_routes = self.open_routes(scan_routes, pair_routes)
         self.crypter = Crypter(keys)
