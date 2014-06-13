@@ -31,6 +31,8 @@ def index():
 
 @app.route('/createUser', methods=['POST'])
 def createUser():    
+    app.logger.debug(app.config[KEYS])
+
     crypter = Crypter(app.config[KEYS])
     first = request.form['first']
     last = request.form['last']

@@ -30,7 +30,7 @@ data=APRj1YZ91cMXugQjSxyRD5mrwr8XkMWKOVQ_rdfIQ_Twb_gw3z_IDDBgGY4pGVDMBQgfsceJkb-
 
 curl --data \
 "first=Test&last=User&username=testuser&password=123456" \
-http://127.0.0.1:5000/createUser
+$url/createUser
 
 
 

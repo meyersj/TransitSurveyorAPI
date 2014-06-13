@@ -32,7 +32,7 @@ LON_LOW = -122.5
 LON_HIGH = -121.5
 
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
-TEST_MAX = 100
+TEST_MAX = 5
 
 """
 Takes dictionary of parameters, builds up the HTTP POST request.
@@ -104,6 +104,7 @@ class TestRunner(object):
     crypter = None
 
     def __init__(self, keys, url, scan_routes, pair_routes):
+        print "test runner"
         self.url = url
         self.scan_routes, self.pair_routes = self.open_routes(scan_routes, pair_routes)
         self.crypter = Crypter(keys)
@@ -273,7 +274,8 @@ def all_tests(url, keys, scan_routes, pair_routes):
     print "Failing tests: " + str(fail)
 
 if __name__ == '__main__':
-    url = "http://127.0.0.1:5000"
+    #url = "http://127.0.0.1:5000"
+    url = "http://54.245.105.70:8493"
     keys = os.path.abspath(os.path.join(os.getcwd(), "../keys"))
     scan_routes = "../data/scan_routes.csv"
     pair_routes = "../data/pair_routes.csv"
