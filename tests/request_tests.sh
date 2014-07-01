@@ -1,5 +1,5 @@
-url=http://54.245.105.70:8493
-#url=http://127.0.0.1:5000
+#url=http://54.245.105.70:8493
+url=http://127.0.0.1:5000
 
 :'
 curl --data \
@@ -23,14 +23,13 @@ $url/insertScan
 data=APRj1YZ91cMXugQjSxyRD5mrwr8XkMWKOVQ_rdfIQ_Twb_gw3z_IDDBgGY4pGVDMBQgfsceJkb-G9gMRVS--WU356kGPg5ae3QlbqoAvEV32wWtClQdDlGQ
 
 
+curl --data \
+"credentials=$data" \
+$url/verifyUser
 
 #curl --data \
-#"credentials=$data" \
-#$url/verifyUser
-
-curl --data \
-"first=Test&last=User&username=testuser&password=123456" \
-$url/createUser
+#"first=Test&last=User&username=testuser&password=123456" \
+#$url/createUser
 
 
 

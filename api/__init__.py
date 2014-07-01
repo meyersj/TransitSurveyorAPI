@@ -11,7 +11,7 @@ db = SQLAlchemy(app)
 
 app.debug = True
 
-app.config[KEYS] = os.path.abspath(os.path.join(os.getcwd(), '../keys'))
+app.config[KEYS] = '/home/ubuntu/api/keys'
 
 #handler = logging.FileHandler('/tmp/app.log')
 #handler.setLevel(logging.DEBUG)

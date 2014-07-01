@@ -273,9 +273,10 @@ def all_tests(url, keys, scan_routes, pair_routes):
     print "Failing tests: " + str(fail)
 
 if __name__ == '__main__':
-    #url = "http://127.0.0.1:5000"
-    url = "http://54.245.105.70:8493"
-    keys = os.path.abspath(os.path.join(os.getcwd(), "../keys"))
+    url = "http://127.0.0.1:5000"
+    #url = "http://54.245.105.70:8493"
+    keys = "/home/ubuntu/api/keys"
+    #keys = os.path.abspath(os.path.join(os.getcwd(), "../../keys"))
     scan_routes = "../data/scan_routes.csv"
     pair_routes = "../data/pair_routes.csv"
 

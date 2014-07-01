@@ -53,7 +53,6 @@ def verify_user(username, password):
     user_id = -1
 
     crypter = Crypter(app.config[KEYS])
-   
     user = Users.query.filter_by(username=username).first()
    
     if user:
@@ -70,8 +69,6 @@ def verify_user(username, password):
 
 @app.route('/verifyUser', methods=['POST'])
 def verifyUser():
-    app.logger.debug("test verify user")
-
     crypter = Crypter(app.config[KEYS])
     cred_encrypt = request.form[CRED]
     cred_decrypt = json.loads(crypter.Decrypt(cred_encrypt))
