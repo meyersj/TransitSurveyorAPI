@@ -26,7 +26,7 @@ USER = "user"
 
 @app.route('/')
 def index():
-    return "Test"
+    return "Testing"
 
 
 @app.route('/createUser', methods=['POST'])
@@ -61,8 +61,7 @@ def verify_user(username, password):
             password_match = True
             user_id = user.id
     else:
-        pass
-        logger.debug("user name did not match") 
+        app.logger.debug("User name did not match") 
 
     return user_match, password_match, user_id
 
@@ -80,12 +79,13 @@ def verifyUser():
     data = json.dumps({"user_match":user_match,
                        "password_match":password_match,
                        "user_id":user_id})
-    data_encrypt = crypter.Encrypt(data)
 
-    return data_encrypt
-   
-
-
+    
+    if app.debug == True:
+        return data
+    else:
+        data_encrypt = crypter.Encrypt(data)
+        return data_encrypt
 
 #api route for on off locations from scanner
 @app.route('/insertScan', methods=['POST'])
@@ -110,16 +110,14 @@ def insertScan():
     
     if USER in data_decrypt.keys():
         user = data_decrypt[USER]
+
     #for testing api
     else:
         test_user = Users.query.filter_by(username = "testuser").first()
         app.logger.debug(test_user)
         user = test_user.id
 
-
-
-
-        #insert data into database
+    #insert data into database
     insert = InsertScan(uuid,date,line,dir,lon,lat,mode,user)
     valid, insertID, match = insert.isSuccessful()
 
@@ -155,7 +153,4 @@ def insertPair():
     #data = json.dumps({"user_match":user_match, "password_match":password_match, "user_id":user_id})
    
     return jsonify(success=valid, insertID=insertID)
-
-
-
 
