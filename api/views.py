@@ -8,7 +8,7 @@ import datetime
 import json
 import logging
 
-CRED = "credentials"
+CREDENTIALS = "credentials"
 USERNAME = "username"
 PASSWORD = "password"
 KEYS = "keys"
@@ -27,24 +27,6 @@ USER = "user"
 @app.route('/')
 def index():
     return "Testing"
-
-
-@app.route('/createUser', methods=['POST'])
-def createUser():    
-    app.logger.debug(app.config[KEYS])
-
-    crypter = Crypter(app.config[KEYS])
-    first = request.form['first']
-    last = request.form['last']
-    username = request.form['username']
-    password = request.form['password']
-    password_hash = crypter.Encrypt(password)
-
-    new_user = Users(first, last, username, password_hash)
-    db.session.add(new_user)
-    db.session.commit()
-
-    return jsonify(success=True)
 
 
 def verify_user(username, password):
@@ -69,7 +51,7 @@ def verify_user(username, password):
 @app.route('/verifyUser', methods=['POST'])
 def verifyUser():
     crypter = Crypter(app.config[KEYS])
-    cred_encrypt = request.form[CRED]
+    cred_encrypt = request.form[CREDENTIALS]
     cred_decrypt = json.loads(crypter.Decrypt(cred_encrypt))
  
     username = cred_decrypt[USERNAME]

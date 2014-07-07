@@ -6,6 +6,7 @@ import csv
 import os
 import sys
 import json
+import time
 
 sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "../api")))
 
@@ -32,7 +33,10 @@ LON_LOW = -122.5
 LON_HIGH = -121.5
 
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+# number of tests for each line
 TEST_MAX = 1
+# pause between tests
+SLEEP = 0.1
 
 """
 Takes dictionary of parameters, builds up the HTTP POST request.
@@ -237,6 +241,7 @@ class TestRunner(object):
                 print response.status_code
                 print response.text
                 self.fail += 1
+            time.sleep(SLEEP)
 
     def get_results(self):
         return self.success, self.fail            
@@ -273,8 +278,8 @@ def all_tests(url, keys, scan_routes, pair_routes):
     print "Failing tests: " + str(fail)
 
 if __name__ == '__main__':
-    url = "http://127.0.0.1:5000"
-    #url = "http://54.245.105.70:8493"
+    #url = "http://127.0.0.1:5000"
+    url = "http://54.245.105.70:8493"
     keys = "/home/ubuntu/api/keys"
     #keys = os.path.abspath(os.path.join(os.getcwd(), "../../keys"))
     scan_routes = "../data/scan_routes.csv"

@@ -23,13 +23,13 @@ url=http://54.245.105.70:8493
 data=APRj1YZ91cMXugQjSxyRD5mrwr8XkMWKOVQ_rdfIQ_Twb_gw3z_IDDBgGY4pGVDMBQgfsceJkb-G9gMRVS--WU356kGPg5ae3QlbqoAvEV32wWtClQdDlGQ
 
 
-curl --data \
-"credentials=$data" \
-$url/verifyUser
-
 #curl --data \
-#"first=Test&last=User&username=testuser&password=123456" \
-#$url/createUser
+#"credentials=$data" \
+#$url/verifyUser
+
+curl --data \
+"first=Test&last=User&username=testuser2&password=123456" \
+$url/createUser
 
 
 
