@@ -7,10 +7,20 @@ import os
 import sys
 import json
 import time
+from keyczar import keyczar
 
-sys.path.append(os.path.abspath(os.path.join(os.getcwd(), "../api")))
+class Crypter(object):
+    crypter = None
+    
+    def __init__(self, keys):
+        #TODO verify keys file exist and handle errors with reading keys
+        self.crypter = keyczar.Crypter.Read(keys)
 
-from crypter import Crypter
+    def Encrypt(self, message):
+        return self.crypter.Encrypt(message)
+
+    def Decrypt(self, cipher):
+        return self.crypter.Decrypt(cipher)
 
 UUID = 'uuid'
 DATE = 'date'
@@ -260,7 +270,9 @@ def single_scan_test(url, keys):
     params[LON] = str(random.uniform(LON_LOW, LON_HIGH))
     params[TYPE] = "scan"
 
+    
     crypter = Crypter(keys)
+    print "created crypter"
     test = Test(params, crypter)
     response = test.run()
 
@@ -278,14 +290,14 @@ def all_tests(url, keys, scan_routes, pair_routes):
     print "Failing tests: " + str(fail)
 
 if __name__ == '__main__':
-    #url = "http://127.0.0.1:5000"
-    url = "http://54.245.105.70:8493"
-    keys = "/home/ubuntu/api/keys"
-    #keys = os.path.abspath(os.path.join(os.getcwd(), "../../keys"))
+    url = "http://127.0.0.1:5000"
+    #url = "http://54.245.105.70:8493"
+
+    keys = '/home/meyersj/api/keys'
+    #single_scan_test(url, keys)
     scan_routes = "../data/scan_routes.csv"
     pair_routes = "../data/pair_routes.csv"
 
-    #single_scan_test(url, keys)
     all_tests(url, keys, scan_routes, pair_routes)
 
 

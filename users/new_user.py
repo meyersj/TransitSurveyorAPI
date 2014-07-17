@@ -7,7 +7,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from keyczar import keyczar
 
-PG_CONFIG = 'postgres://flask_admin:admin_pass@localhost:5432/od_pilot2'
+PG_CONFIG = 'postgres://flask_admin:admin_pass@localhost:5432/od_survey'
 KEYS = os.path.join(os.getenv('HOME'), 'api/keys')
 
 
@@ -55,9 +55,11 @@ if __name__ == '__main__':
     Session = sessionmaker(bind=engine)
     session = Session()
 
+
     first = sys.argv[1]
     last = sys.argv[2]
-    username = re.sub(r'[\W]+', '', last + first[0]) 
+    username = 'testuser'
+    #username = re.sub(r'[\W]+', '', last + first[0]) 
     password = sys.argv[3]
   
     new_user = Users(first, last, username, crypter.Encrypt(password))
