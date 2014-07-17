@@ -7,7 +7,7 @@ from crypter import Crypter
 import datetime
 import json
 import logging
-
+import hashlib
 
 
 CREDENTIALS = "credentials"
@@ -25,6 +25,8 @@ MODE = "mode"
 ON_STOP = "on_stop"
 OFF_STOP = "off_stop"
 USER = "user"
+SALT = "SALT"
+
 
 @app.route('/')
 def index():
@@ -41,7 +43,9 @@ def verify_user(username, password):
    
     if user:
         user_match = True
-        if password == crypter.Decrypt(user.password_hash):
+        password_hash = hashlib.sha256(password + app.config[SALT]).hexdigest()
+        app.logger.debug(password_hash) 
+        if password_hash == user.password_hash:
             password_match = True
             user_id = user.id
     else:

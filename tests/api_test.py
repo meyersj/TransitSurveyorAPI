@@ -29,12 +29,15 @@ DIR = 'dir'
 MODE = 'mode'
 LAT = 'lat'
 LON = 'lon'
+USERNAME = 'username'
+PASSWORD = 'password'
 ON_STOP = 'on_stop'
 OFF_STOP = 'off_stop'
 URL = 'url'
 TYPE = 'type'
 INSERT_SCAN = 'insertScan'
 INSERT_PAIR = 'insertPair'
+VERIFY_USER = 'verifyUser'
 USER = "user"
 
 LAT_LOW = 44.5
@@ -99,7 +102,6 @@ class Test(object):
         
         url = urlparse.urljoin(url, path)
         return url
-         
 
     def run(self):
         data = {"data":self.data_encrypt}
@@ -282,6 +284,23 @@ def single_scan_test(url, keys):
         print response.status_code
         print response.text
 
+def login_test(url, keys):
+    crypter = Crypter(keys)
+    print "created crypter"
+
+    url = urlparse.urljoin(url, VERIFY_USER)
+
+    params = {}
+    params[USERNAME] = 'testuser'
+    params[PASSWORD] = '123456'
+
+    data_encrypt = crypter.Encrypt(json.dumps(params)) 
+    data = {"credentials":data_encrypt}
+    response = requests.post(url, data=data)
+    print response.status_code
+    print response.text
+
+
 def all_tests(url, keys, scan_routes, pair_routes):
     test_runner = TestRunner(keys, url, scan_routes, pair_routes)
     success, fail = test_runner.get_results()
@@ -290,7 +309,8 @@ def all_tests(url, keys, scan_routes, pair_routes):
     print "Failing tests: " + str(fail)
 
 if __name__ == '__main__':
-    url = "http://127.0.0.1:5000"
+    url = "http://cssurvey1:8493"
+    #url = "http://127.0.0.1:5000"
     #url = "http://54.245.105.70:8493"
 
     keys = '/home/meyersj/api/keys'
@@ -298,6 +318,7 @@ if __name__ == '__main__':
     scan_routes = "../data/scan_routes.csv"
     pair_routes = "../data/pair_routes.csv"
 
-    all_tests(url, keys, scan_routes, pair_routes)
-
+    login_test(url, keys)
+    #all_tests(url, keys, scan_routes, pair_routes)
+    #single_scan_test(url, keys)
 

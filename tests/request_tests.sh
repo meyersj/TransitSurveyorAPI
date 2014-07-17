@@ -22,14 +22,13 @@ url=http://54.245.105.70:8493
 
 data=APRj1YZ91cMXugQjSxyRD5mrwr8XkMWKOVQ_rdfIQ_Twb_gw3z_IDDBgGY4pGVDMBQgfsceJkb-G9gMRVS--WU356kGPg5ae3QlbqoAvEV32wWtClQdDlGQ
 
+data=APRj1YZoo6A0248lCU0qW48BSna_7f9sPQrz3JEkTF9OkABqPbfmQiH5hCdOJOu0SSLv4u1eZ-TQMINpJhv-0YuFah2XUTumX6TorpX_Zv0c240MJkbn8XI
+
+wget --post-data="credentials=$data" $url/verifyUser
 
 #curl --data \
-#"credentials=$data" \
-#$url/verifyUser
-
-curl --data \
-"first=Test&last=User&username=testuser2&password=123456" \
-$url/createUser
+#"first=Test&last=User&username=testuser2&password=123456" \
+#$url/createUser
 
 
 
