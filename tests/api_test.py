@@ -279,7 +279,8 @@ def single_scan_test(url, keys):
     response = test.run()
 
     if response.status_code == 200:
-        print "test passed"
+       print response.text 
+       print "test passed"
     else:
         print response.status_code
         print response.text
@@ -320,5 +321,5 @@ if __name__ == '__main__':
 
     login_test(url, keys)
     #all_tests(url, keys, scan_routes, pair_routes)
-    #single_scan_test(url, keys)
+    single_scan_test(url, keys)
 

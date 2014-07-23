@@ -5,3 +5,4 @@ data/
 flask/
 keys/
 virtualenv.py
+users_config.py
