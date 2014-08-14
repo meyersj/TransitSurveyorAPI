@@ -42,12 +42,12 @@ class OffTemp(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     user = orm.relationship("Users", foreign_keys=user_id)
    
-    def __init__(self, uuid, date, line, dir, geom, user_id):
+    def __init__(self, uuid, date, line, dir, geom, user_id, match):
         self.uuid = uuid
         self.date = date
         self.line = line
         self.dir = dir
-        self.match = False
+        self.match = match
         self.geom = geom
         self.user_id = user_id
 
@@ -67,12 +67,18 @@ class Scans(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     user = orm.relationship("Users", foreign_keys=user_id)
 
-    def __init__(self, date, line, dir, geom, user_id):
+    stop = db.Column(db.Integer, db.ForeignKey("tm_route_stops.gid"), nullable=False)
+    stop_key = orm.relationship("Stops", foreign_keys=stop)
+
+
+
+    def __init__(self, date, line, dir, geom, user_id, stop):
         self.date = date
         self.line = line
         self.dir = dir
         self.geom = geom
         self.user_id = user_id
+        self.stop = stop
 
     def __repr__(self):
         return '<OnTemp: %r, %r, %r, %r >' %\

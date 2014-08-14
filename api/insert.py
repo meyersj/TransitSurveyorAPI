@@ -53,7 +53,7 @@ class InsertScan():
             self.isValid = False
             msg = "failed to convert lat {0} lon {1} to geom: "\
                 .format(self.lat,self.lon) + e
-            app.logger.debug(e)
+            app.logger.warn(e)
 
     """insert into temp ON table
     """
@@ -77,19 +77,32 @@ class InsertScan():
         match = False
         insertID = -1
         on = None
+
+        # fetch all records
+        # grab first to match up and delete the rest if they exist
         on = models.OnTemp.query.filter_by(uuid=self.uuid,
                                            line=self.line,
                                            dir=self.dir,
                                            match=False)\
-                                .order_by(models.OnTemp.date.desc()).first()
+                                .order_by(models.OnTemp.date.desc())#.first()
 
-        if on:
+        if on.count() > 0:
+            iter_on = iter(on)
+            # grab first 
+            on = next(iter_on)
+            # delete the rest
+            for record in iter_on:
+                db.session.delete(record)
+
             match = True
             on.match = True
+
+            on_stop = self.findNearStop(on.geom)
+            off_stop = self.findNearStop(self.geom)
           
             #insert on off records into Scans
-            insertOn = models.Scans(on.date, on.line, on.dir, on.geom, on.user_id)
-            insertOff = models.Scans(self.date, self.line, self.dir, self.geom, self.user)
+            insertOn = models.Scans(on.date, on.line, on.dir, on.geom, on.user_id, on_stop)
+            insertOff = models.Scans(self.date, self.line, self.dir, self.geom, self.user, off_stop)
             db.session.add(insertOn)
             db.session.add(insertOff)
             db.session.commit()    
@@ -101,14 +114,13 @@ class InsertScan():
             db.session.commit()
 
         else:
-            app.logger.error("Did not find matching ON scan")
-
+            app.logger.warn("did not find matching ON scan")
 
         #for initial testing insert into OffTemp
         #in production this will not be needed
         insertOffTemp = models.OffTemp(uuid=self.uuid, date=self.date, 
                                 line=self.line, dir=self.dir,
-                                geom=self.geom, user_id=self.user)
+                                geom=self.geom, user_id=self.user, match=match)
         
         db.session.add(insertOffTemp)
         db.session.commit()
@@ -118,6 +130,26 @@ class InsertScan():
     def isSuccessful(self):
         return self.isValid, self.insertID, self.match
             
+
+    def findNearStop(self, geom):
+        stop_id = None
+
+        try:
+            near_stop = db.session.query(models.Stops.gid,
+                func.ST_Distance(models.Stops.geom, geom).label("dist"))\
+                    .filter_by(rte=int(self.line), dir=int(self.dir))\
+                    .order_by(models.Stops.geom.distance_centroid(geom))\
+                    .first()
+
+            if near_stop:
+                stop_id = near_stop.gid
+        
+        except Exception as e:
+            app.logger.warn("Exception thrown in findNearStop: " + str(e))
+
+        return stop_id
+
+
     """
     ************************************
     Do this in post processing instead??
@@ -179,9 +211,6 @@ class InsertPair():
         off_stop = models.Stops.query.filter_by(rte=self.line,
                                                     dir=self.dir,
                                                     stop_id=self.off_stop).first()
-
-        app.logger.debug(on_stop.gid)
-        app.logger.debug(off_stop.gid)
 
         if on_stop and off_stop:
             insert = models.OnOffPairs_Stops(self.date,
