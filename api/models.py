@@ -10,7 +10,7 @@ class OnTemp(db.Model):
     dir = db.Column(db.Text)
     match = db.Column(db.Boolean)
     geom = db.Column(Geometry(geometry_type='POINT', srid=2913))
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user_id = db.Column(db.Text, db.ForeignKey("users.username"), nullable=False)
     user = orm.relationship("Users", foreign_keys=user_id)
    
     def __init__(self, uuid, date, line, dir, geom, user_id):
@@ -39,7 +39,7 @@ class OffTemp(db.Model):
     dir = db.Column(db.Text)
     match = db.Column(db.Boolean)
     geom = db.Column(Geometry(geometry_type='POINT', srid=2913))
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user_id = db.Column(db.Text, db.ForeignKey("users.username"), nullable=False)
     user = orm.relationship("Users", foreign_keys=user_id)
    
     def __init__(self, uuid, date, line, dir, geom, user_id, match):
@@ -64,7 +64,7 @@ class Scans(db.Model):
     line = db.Column(db.Text)
     dir = db.Column(db.Text)
     geom = db.Column(Geometry(geometry_type='POINT', srid=2913))
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user_id = db.Column(db.Text, db.ForeignKey("users.username"), nullable=False)
     user = orm.relationship("Users", foreign_keys=user_id)
 
     stop = db.Column(db.Integer, db.ForeignKey("tm_route_stops.gid"), nullable=False)
@@ -110,7 +110,7 @@ class OnOffPairs_Stops(db.Model):
     off_stop = db.Column(db.Integer, db.ForeignKey("tm_route_stops.gid"), nullable=False)
     on = orm.relationship("Stops", foreign_keys=on_stop)
     off = orm.relationship("Stops", foreign_keys=off_stop)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    user_id = db.Column(db.Text, db.ForeignKey("users.username"), nullable=False)
     user = orm.relationship("Users", foreign_keys=user_id)
 
 
@@ -157,17 +157,17 @@ using the above conditions
 we will take first gid as for our purposes stop sequence does not matter
 """ 
 class Stops(db.Model):
-   __tablename__ = 'tm_route_stops'
-   gid = db.Column(db.Integer, primary_key = True)
-   rte = db.Column(db.SmallInteger)
-   rte_desc = db.Column(db.Text)
-   dir = db.Column(db.SmallInteger)
-   dir_desc = db.Column(db.Text)
-   stop_name = db.Column(db.Text)
-   stop_seq = db.Column(db.Integer)
-   stop_id = db.Column(db.Integer)
-   geom = db.Column(Geometry(geometry_type='POINT', srid=2913))
+    __tablename__ = 'tm_route_stops'
+    gid = db.Column(db.Integer, primary_key = True)
+    rte = db.Column(db.SmallInteger)
+    rte_desc = db.Column(db.Text)
+    dir = db.Column(db.SmallInteger)
+    dir_desc = db.Column(db.Text)
+    stop_name = db.Column(db.Text)
+    stop_seq = db.Column(db.Integer)
+    stop_id = db.Column(db.Integer)
+    geom = db.Column(Geometry(geometry_type='POINT', srid=2913))
 
-   def __repr__(self):
-       return '<Stops: %r>' % (self.stop_id)
+    def __repr__(self):
+        return '<Stops: %r>' % (self.stop_id)
 

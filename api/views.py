@@ -24,6 +24,7 @@ ON_STOP = "on_stop"
 OFF_STOP = "off_stop"
 USER = "user_id"
 SALT = "SALT"
+TESTUSER = "testuser"
 
 @app.route('/')
 def index():
@@ -40,7 +41,7 @@ def verify_user(username, password):
         password_hash = hashlib.sha256(password + app.config[SALT]).hexdigest()
         if password_hash == user.password_hash:
             password_match = True
-            user_id = user.id
+            user_id = user.username
     else:
         app.logger.warn("user name " + str(username) + " did not match") 
 
@@ -53,10 +54,6 @@ def verifyUser():
     username = cred[USERNAME]
     password = cred[PASSWORD]
     user_match, password_match,user_id = verify_user(username, password)  
-    #response = json.dumps({"user_match":user_match,
-    #                   "password_match":password_match,
-    #                   "user_id":user_id})
-
     return jsonify(user_match=user_match, password_match=password_match, user_id=user_id)
 
 
@@ -79,8 +76,7 @@ def insertScan():
 
     #for testing api
     else:
-        test_user = Users.query.filter_by(username = "testuser").first()
-        user = test_user.id
+        user = TESTUSER
 
     #insert data into database
     insert = InsertScan(uuid,date,line,dir,lon,lat,mode,user)
@@ -104,8 +100,7 @@ def insertPair():
         user = data[USER]
     #for testing api
     else:
-        test_user = Users.query.filter_by(username = "testuser").first()
-        user = test_user.id
+        user = TESTUSER
 
     #insert data into database
     insert = InsertPair(date,line,dir,on_stop,off_stop, user)
