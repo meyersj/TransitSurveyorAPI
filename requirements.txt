@@ -1,6 +1,7 @@
 flask
 sqlalchemy
 flask-sqlalchemy
+flask-bootstrap
 geoalchemy2
 psycopg2
 requests

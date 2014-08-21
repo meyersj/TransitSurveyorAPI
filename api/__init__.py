@@ -9,12 +9,12 @@ db = SQLAlchemy(app)
 #modifed to False if deploying with wsgi
 app.debug = True
 
-from app.mod_api.views import mod_api as api_module
-from app.mod_onoff.views import mod_onoff as onoff_module
+from api.mod_api.views import mod_api as api_module
+from api.mod_onoff.views import mod_onoff as onoff_module
 
 app.register_blueprint(api_module)
 app.register_blueprint(onoff_module)
 
-from app import views
+from api import views
 
 

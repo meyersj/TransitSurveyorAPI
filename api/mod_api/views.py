@@ -3,8 +3,9 @@ import json
 import logging
 import hashlib
 
-from flask import request, jsonify
+from flask import Blueprint, request, jsonify
 from api import app, db
+
 
 from insert import InsertScan, InsertPair
 from models import Users
@@ -32,7 +33,7 @@ mod_api = Blueprint('api', __name__, url_prefix='/api')
 
 @mod_api.route('/')
 def index():
-    return "Testing"
+    return "API"
 
 def verify_user(username, password):
     user_match = False

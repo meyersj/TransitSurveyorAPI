@@ -1,5 +1,7 @@
-from app import app
+from api import app
 
 @app.route('/')
 def index():
-    return "testing"
+    return "Index"
+
+

@@ -1,4 +1,5 @@
-from api import app, db, models
+from api import app, db
+import models
 from geoalchemy2.elements import WKTElement
 from geoalchemy2 import functions as func
 

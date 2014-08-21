@@ -1,12 +1,14 @@
 import os
 import sys
 
-from flask import Blueprint, render_template, jsonify, request
+from flask import Blueprint, redirect, render_template, jsonify, request
 from sqlalchemy import func
+
+
 
 from models import Scans, OnOffPairs_Scans, OnOffPairs_Stops
 from helper import Count, Chart, Query
-from app import db
+from api import db
 
 
 STATIC_DIR = '/onoff'
@@ -42,6 +44,16 @@ mod_onoff = Blueprint('onoff', __name__, url_prefix='/onoff')
 def static(html, static=STATIC_DIR):
     """returns correct path to static directory"""
     return os.path.join(static, html)
+
+@mod_onoff.route('/')
+def index():
+    return redirect(static('overview.html'))
+
+#@mod_onoff.route('/overview')
+#def mod_onoff_overview():
+#    results = Count.complete()
+#    return render_template(static('overview.html'), results=results)
+
 
 
 @mod_onoff.route('/overview')

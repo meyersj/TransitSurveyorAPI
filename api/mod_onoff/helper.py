@@ -1,7 +1,7 @@
 from sqlalchemy import func
 
 from models import Scans, OnOffPairs_Scans, OnOffPairs_Stops
-from app import db
+from api import db
 
 
 GREEN_STATUS = '#76DB55'

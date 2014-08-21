@@ -1,11 +1,11 @@
-from flask import Flask
-from flask.ext.sqlalchemy import SQLAlchemy
+#from flask import Flask
+#from flask.ext.sqlalchemy import SQLAlchemy
 
-app = Flask(__name__)
-app.config.from_object('config')
-db = SQLAlchemy(app)
+#app = Flask(__name__)
+#app.config.from_object('config')
+#db = SQLAlchemy(app)
 
 #modifed to False if deploying with wsgi
-app.debug = True
+#app.debug = True
 
-from api import models, views
+#from api import models, views
