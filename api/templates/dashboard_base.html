@@ -21,9 +21,9 @@
     </div>
     <div class="navbar-collapse collapse">
       <ul class="nav navbar-nav navbar-right">
-        <li><a href="/">Project</a></li>
-        <li><a href="/onoff/overview">On and Off</a></li>
-        <li><a href="#">Long Survey</a></li>
+        <li><a href="/onoff/overview">Overview</a></li>
+        <li><a href="/onoff/status">Status</a></li>
+        <li><a href="/onoff/data">Data</a></li>
       </ul>
     </div>
   </div>
@@ -33,11 +33,12 @@
 {% block content %}
 <div class="container-fluid">
   <div class="row">
-    <div class="col-sm-1 col-md-2 sidebar">
+    <div class="col-sx-1 col-sm-1 col-md-2 sidebar">
       {% block sidebar %}
       {% endblock %}
     </div>
-    <div class="col-sm-11 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+    <div class="col-xs-11 col-sm-11 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+    <!--div class="col-xs-11 col-sm-11 col-md-10 main"-->
       {% block dashboard %}
       {% endblock %}
     </div>
