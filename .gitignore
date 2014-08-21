@@ -6,3 +6,4 @@ flask/
 keys/
 virtualenv.py
 users_config.py
+config.py
