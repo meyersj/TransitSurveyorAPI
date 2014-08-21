@@ -1,4 +1,4 @@
-from sqlalchemy import func
+from sqlalchemy import func, desc
 
 from models import Scans, OnOffPairs_Scans, OnOffPairs_Stops
 from api import db
@@ -107,7 +107,7 @@ class Chart(object):
 
 
 TIME = "%H:%M"
-DATE = "%d-%m-%y"
+DATE = "%m-%d-%y"
 
 def date_time(on_date, off_date):
     date = on_date.strftime(DATE)
@@ -123,7 +123,7 @@ class Query(object):
         # fetch bus records
         records = db.session.query(OnOffPairs_Scans)\
             .join(OnOffPairs_Scans.off).filter_by(**kwargs)\
-            .order_by(Scans.date, "line", "dir")\
+            .order_by(desc(Scans.date), "line", "dir")\
             .all()
         
         for r in records:
@@ -145,7 +145,7 @@ class Query(object):
 
         # fetch train records 
         records = db.session.query(OnOffPairs_Stops).filter_by(**kwargs)\
-            .order_by("date", "line", "dir")\
+            .order_by("date desc", "line", "dir")\
             .all()
         
         for r in records:
