@@ -15,6 +15,8 @@ from api.mod_onoff.views import mod_onoff as onoff_module
 app.register_blueprint(api_module)
 app.register_blueprint(onoff_module)
 
+Bootstrap(app)
+
 from api import views
 
 

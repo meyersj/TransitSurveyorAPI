@@ -1,7 +1,7 @@
 import os
 import sys
 
-from flask import Blueprint, redirect, render_template, jsonify, request
+from flask import Blueprint, redirect, url_for,render_template, jsonify, request
 from sqlalchemy import func
 
 
@@ -47,7 +47,8 @@ def static(html, static=STATIC_DIR):
 
 @mod_onoff.route('/')
 def index():
-    return redirect(static('overview.html'))
+    #print url_for('onoff/overview')
+    return redirect(url_for('.onoff_overview'))
 
 #@mod_onoff.route('/overview')
 #def mod_onoff_overview():
