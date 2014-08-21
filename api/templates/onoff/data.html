@@ -1,0 +1,121 @@
+{% extends "onoff/base.html" %}
+
+
+{% block dashboard %}
+{{ super() }}
+
+
+<!-- dropdowns that trigger ajax call to update table based on selection -->
+
+<table>
+  <tr>
+    <td style="padding-right:1em">
+      <strong>Route:</strong>
+    </td>
+    <td>
+      <div class="btn-group" role="form">
+        <button id="line_btn" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+        All    <span class="caret"></span>
+        </button>
+        <ul id="filter_line" class="dropdown-menu scrollable-menu" role="menu">
+          <li role="presentation" class="dropdown-header">Route</li>
+          <li role="presentation"><a href="#">All</a></li>
+          <li role="presentation" class="divider"></li>    
+          {% for route in routes %}
+          <li><a href="#">{{ route }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <td style="padding-right:1em">
+      <strong>Direction:</strong>
+    </td>
+    <td>
+      <div class="btn-group">
+        <button id="dir_btn" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+        All    <span class="caret"></span>
+        </button>
+        <ul id="filter_dir" class="dropdown-menu" role="menu">
+          <li role="presentation" class="dropdown-header">Direction</li>
+          <li role="presentation"><a href="#">All</a></li>
+          <li role="presentation" class="divider"></li>    
+          <li><a href="#">Inbound</a></li>
+          <li><a href="#">Outbound</a></li>
+        </ul>
+      </div>
+    </td>
+  </tr>
+</table>
+
+<br>
+
+<!-- table that has body populated by ajax call -->
+<div class="table-responsive">
+  <table class="table table-striped">
+    <thead id="thead">
+      <tr>
+        {% for header in headers %}
+        <th>{{ header }}</th>
+        {% endfor %}
+      </tr>
+  </thead>
+    <tbody id="tbody">  
+    </tbody>
+  </table>
+</div>
+
+</form>
+<script>
+
+    //set when a route or direction is selected from dropdowns
+    var sel_line = null;
+    var sel_dir = null;
+
+    function rebuild(args) {
+        $.getJSON('data/_query', args, function(data) {
+            //clear table and rebuild with fetched json
+            $("#tbody").empty();
+            $(data.records).each(function(index, item) {
+                var line = '<td>'+item.line+'</td>';
+                var dir = '<td>'+item.dir+'</td>';
+                var on = '<td>'+item.on+'</td>';
+                var off = '<td>'+item.off+'</td>';
+                var row = '<tr>'+line+dir+on+off+'</tr>';
+                $("#tbody").append(row);
+            });
+        });
+    }
+
+    //build table on initial page load with no filter params
+    rebuild({});
+
+    function build_params(line, dir) {
+        var dir_lookup = {Inbound:'1',Outbound:'0'}
+        ret_val = {};
+        if(line != null && line != 'All') {
+            ret_val['line'] = line;
+        }
+        if(dir != null && dir != 'All') {
+            ret_val['dir'] = dir_lookup[dir];
+        }
+        return ret_val;
+    }
+
+    $('#filter_line a').on('click', function() {
+        sel_line = this.text;
+        $("#line_btn").text(this.text+' ').append('<span class="caret"></span>');
+        rebuild(build_params(sel_line, sel_dir));
+    });
+
+    $('#filter_dir a').on('click', function() {
+        sel_dir = this.text;
+        $("#dir_btn").text(this.text+' ').append('<span class="caret"></span>');
+        rebuild(build_params(sel_line, sel_dir));
+    });
+
+</script>
+
+{% endblock %}
+

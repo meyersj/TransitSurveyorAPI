@@ -1,0 +1,12 @@
+Status
+* Show chart for each line with percentage complete
+* Filter by line to show more info such as percentage by direction and segment
+
+Data
+* Show all data
+* Filter and sort by line/direction/user/date
+
+Map
+* Display all survey lines
+* Filter by route/status
+

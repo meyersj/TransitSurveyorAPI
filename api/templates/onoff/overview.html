@@ -1,0 +1,78 @@
+{% extends "onoff/base.html" %}
+
+
+{% block head %}
+{{ super() }}
+<script src="http://code.highcharts.com/highcharts.js"></script>
+{% endblock %}
+
+
+{% block dashboard %}
+{{ super() }}
+
+<!-- add three columns to insert pie charts -->
+<div id="my_row" class="row placeholders">
+  <div class="col-xs-12 col-sm-4 placeholder">
+    <div id="complete_records"></div>
+  </div>
+  <div class="col-xs-12 col-sm-4 placeholder">
+    <div id="complete_lines"></div>
+  </div>
+  <div class="col-xs-12 col-sm-4 placeholder">
+    <div id="complete_blah"></div>
+  </div>
+</div>
+
+<script>
+    var results = {{ results|tojson|safe }};
+
+    function pie_options(label, count, total) {
+        var options = {
+            chart: {
+                type: 'pie',
+            },
+            title: {
+                text: label
+            },
+            plotOptions: {
+                pie: {
+                    cursor: 'pointer',
+                    dataLabels: {
+                        distance:-50,
+                        color:'black'
+                    }
+                }
+            },
+            series: [{
+                name: 'Count',
+                data: [
+                    ['Complete', count],
+                    ['Remaining', total]
+                ]
+            }]
+        };
+        return options
+    }
+
+    var options = pie_options(
+        'Completed Routes', 
+        results.complete.count,
+        results.complete.rem);
+
+    $('#complete_lines').highcharts(options);
+       
+    options = pie_options(
+        'Remaining Records',
+        results.remaining.count,
+        results.remaining.rem);
+
+    $('#complete_records').highcharts(options);
+
+    options = pie_options(
+        'Blah',
+        1200,
+        1500);
+
+    $('#complete_blah').highcharts(options);
+</script>
+{% endblock %}
