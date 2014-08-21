@@ -88,7 +88,7 @@ def map():
 @mod_onoff.route('/data')
 def data():
     """Sets up table headers and dropdowns in template"""
-    headers = ['Route', 'Direction', 'On Stop', 'Off Stop']
+    headers = ['Date', 'Time', 'User', 'Route', 'Direction', 'On Stop', 'Off Stop']
     routes = Query.routes()
     return render_template(static('data.html'), routes=routes, headers=headers)
 

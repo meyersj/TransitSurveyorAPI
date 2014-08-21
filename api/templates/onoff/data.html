@@ -78,11 +78,14 @@
             //clear table and rebuild with fetched json
             $("#tbody").empty();
             $(data.records).each(function(index, item) {
+                var date = '<td>'+item.date+'</td>';
+                var time = '<td>'+item.time+'</td>';
+                var user = '<td>'+item.user+'</td>';
                 var line = '<td>'+item.line+'</td>';
                 var dir = '<td>'+item.dir+'</td>';
                 var on = '<td>'+item.on+'</td>';
                 var off = '<td>'+item.off+'</td>';
-                var row = '<tr>'+line+dir+on+off+'</tr>';
+                var row = '<tr>'+date+time+user+line+dir+on+off+'</tr>';
                 $("#tbody").append(row);
             });
         });

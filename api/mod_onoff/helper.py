@@ -11,25 +11,25 @@ OUTBOUND = '0'
 DIRECTION = {'1':'Inbound', '0':'Outbound'}
 TRAINS = ['190','193','194','200']
 QUOTA = {
-    '9':17,
-    '17':12,
-    '19':8,
-    '28':6,
-    '29':15,
-    '30':6,
-    '31':16,
-    '32':15,
-    '33':15,
-    '34':7,
-    '35':20,
-    '70':15,
-    '75':3,
-    '99':18,
-    '152':19,
-    '190':14,
-    '193':22,
-    '194':9,
-    '200':8}
+    '9':150,
+    '17':150,
+    '19':150,
+    '28':150,
+    '29':150,
+    '30':150,
+    '31':150,
+    '32':150,
+    '33':150,
+    '34':150,
+    '35':150,
+    '70':150,
+    '75':150,
+    '99':150,
+    '152':150,
+    '190':150,
+    '193':150,
+    '194':150,
+    '200':150}
 
 
 def percent(amount, total):
@@ -104,6 +104,16 @@ class Chart(object):
             {'data': complete,'name':'Complete', 'color':GREEN_STATUS}]
         return {'series':series, 'categories':categories}
 
+
+
+TIME = "%H:%M"
+DATE = "%d-%m-%y"
+
+def date_time(on_date, off_date):
+    date = on_date.strftime(DATE)
+    time = on_date.strftime(TIME) + '-' + off_date.strftime(TIME)
+    return date, time
+
 class Query(object):
     
     @staticmethod
@@ -113,27 +123,48 @@ class Query(object):
         # fetch bus records
         records = db.session.query(OnOffPairs_Scans)\
             .join(OnOffPairs_Scans.off).filter_by(**kwargs)\
-            .order_by("line", "dir")\
+            .order_by(Scans.date, "line", "dir")\
             .all()
+        
         for r in records:
             line = r.on.line
             dir = r.on.dir
             on_stop = r.on.stop_key.stop_name
             off_stop = r.off.stop_key.stop_name
+            date, time = date_time(r.on.date, r.off.date)
+            user =  r.on.user_id + '/' + r.off.user_id
             rows.append(
-                {'line': line, 'dir': DIRECTION[str(dir)], 'on': on_stop, 'off': off_stop})
-       
+                {'date':date,
+                 'time':time,
+                 'user':user,
+                 'line': line,
+                 'dir': DIRECTION[str(dir)],
+                 'on': on_stop,
+                 'off': off_stop})
+
+
         # fetch train records 
         records = db.session.query(OnOffPairs_Stops).filter_by(**kwargs)\
-            .order_by("line", "dir")\
-             .all()
+            .order_by("date", "line", "dir")\
+            .all()
+        
         for r in records:
             line = r.line
             dir = r.dir
             on_stop = r.on.stop_name
             off_stop = r.off.stop_name
+            date = r.date.strftime(DATE)
+            time = r.date.strftime(TIME)
+            user = r.user_id
             rows.append(
-                {'line': line, 'dir': DIRECTION[str(dir)], 'on': on_stop, 'off': off_stop})
+                {'date':date,
+                 'time':time,
+                 'user':user,
+                 'line': line,
+                 'dir': DIRECTION[str(dir)],
+                 'on': on_stop,
+                 'off': off_stop})
+
         return rows
 
     @staticmethod
