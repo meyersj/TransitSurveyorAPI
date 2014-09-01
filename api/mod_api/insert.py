@@ -81,11 +81,9 @@ class InsertScan():
 
         # fetch all records
         # grab first to match up and delete the rest if they exist
-        on = models.OnTemp.query.filter_by(uuid=self.uuid,
-                                           line=self.line,
-                                           dir=self.dir,
-                                           match=False)\
-                                .order_by(models.OnTemp.date.desc())#.first()
+        on = models.OnTemp.query.filter_by(
+            uuid=self.uuid, line=self.line, dir=self.dir, match=False)\
+            .order_by(models.OnTemp.date.desc())
 
         if on.count() > 0:
             iter_on = iter(on)
@@ -102,8 +100,11 @@ class InsertScan():
             off_stop = self.findNearStop(self.geom)
           
             #insert on off records into Scans
-            insertOn = models.Scans(on.date, on.line, on.dir, on.geom, on.user_id, on_stop)
-            insertOff = models.Scans(self.date, self.line, self.dir, self.geom, self.user, off_stop)
+            insertOn = models.Scans(
+                on.date, on.line, on.dir, on.geom, on.user_id, on_stop)
+            insertOff = models.Scans(
+                self.date, self.line, self.dir, self.geom, self.user, off_stop)
+            
             db.session.add(insertOn)
             db.session.add(insertOff)
             db.session.commit()    
@@ -119,9 +120,9 @@ class InsertScan():
 
         #for initial testing insert into OffTemp
         #in production this will not be needed
-        insertOffTemp = models.OffTemp(uuid=self.uuid, date=self.date, 
-                                line=self.line, dir=self.dir,
-                                geom=self.geom, user_id=self.user, match=match)
+        insertOffTemp = models.OffTemp(
+            uuid=self.uuid, date=self.date, line=self.line, dir=self.dir,
+            geom=self.geom, user_id=self.user, match=match)
         
         db.session.add(insertOffTemp)
         db.session.commit()
@@ -138,9 +139,9 @@ class InsertScan():
         try:
             near_stop = db.session.query(models.Stops.gid,
                 func.ST_Distance(models.Stops.geom, geom).label("dist"))\
-                    .filter_by(rte=int(self.line), dir=int(self.dir))\
-                    .order_by(models.Stops.geom.distance_centroid(geom))\
-                    .first()
+                .filter_by(rte=int(self.line), dir=int(self.dir))\
+                .order_by(models.Stops.geom.distance_centroid(geom))\
+                .first()
 
             if near_stop:
                 stop_id = near_stop.gid
@@ -149,37 +150,6 @@ class InsertScan():
             app.logger.warn("Exception thrown in findNearStop: " + str(e))
 
         return stop_id
-
-
-    """
-    ************************************
-    Do this in post processing instead??
-    ************************************
-    """    
-
-    """
-    def findNearStop(self):
-        wkt = 'POINT('+self.lon+' '+self.lat+')'
-        
-        try:
-            self.geom = func.ST_Transform(WKTElement(wkt,srid=4326),2913)
-            near_stop = db.session.query(models.Stops.gid,
-                func.ST_Distance(models.Stops.geom, self.geom).label("dist"))\
-                    .filter_by(rte=int(self.line), dir=int(self.dir))\
-                    .order_by(models.Stops.geom.distance_centroid(self.geom))\
-                    .first()
-
-            if near_stop:
-                self.stop_id = near_stop.gid
-                self.dist = near_stop.dist
-            else:
-                self.isValid = False
-        
-        except Exception as e:
-            self.isValid = False
-            app.logger.error("Exception thrown in findNearStop: "+str(e))
-            app.logger.error(e)
-    """
 
 
 class InsertPair():
@@ -205,21 +175,15 @@ class InsertPair():
         self.__insertPair()      
 
     def __insertPair(self):
-        on_stop = models.Stops.query.filter_by(rte=self.line,
-                                               dir=self.dir,
-                                                   stop_id=self.on_stop).first()
+        on_stop = models.Stops.query.filter_by(
+            rte=self.line, dir=self.dir, stop_id=self.on_stop).first()
 
-        off_stop = models.Stops.query.filter_by(rte=self.line,
-                                                    dir=self.dir,
-                                                    stop_id=self.off_stop).first()
+        off_stop = models.Stops.query.filter_by(
+            rte=self.line, dir=self.dir, stop_id=self.off_stop).first()
 
         if on_stop and off_stop:
-            insert = models.OnOffPairs_Stops(self.date,
-                                             self.line,
-                                             self.dir,
-                                             on_stop.gid,
-                                             off_stop.gid,
-                                             self.user)
+            insert = models.OnOffPairs_Stops(
+                self.date, self.line, self.dir, on_stop.gid, off_stop.gid, self.user)
             db.session.add(insert)
             db.session.commit()
             self.insertID = insert.id 
@@ -227,9 +191,11 @@ class InsertPair():
         else:
             self.valid = False
             if not on_stop:
-                app.logger.error("On stop_id did not match have match in tm_route_stops table")
+                app.logger.error(
+                    "On stop_id did not match have match in tm_route_stops table")
             else:
-                app.logger.error("Off stop_id did not match have match in tm_route_stops table")
+                app.logger.error(
+                    "Off stop_id did not match have match in tm_route_stops table")
 
     def isSuccessful(self):
         return self.valid, self.insertID
