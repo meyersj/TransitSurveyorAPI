@@ -1,4 +1,4 @@
-import csv, os
+import csv
 
 from sqlalchemy import func, desc
 
@@ -13,28 +13,6 @@ OUTBOUND = '0'
 DIRECTION = {'1':'Inbound', '0':'Outbound'}
 TRAINS = ['190','193','194','200']
 QUOTAS = 'data/route_quotas.csv'
-"""
-QUOTA = {
-    '9':100,
-    '17':100,
-    '19':100,
-    '28':100,
-    '29':100,
-    '30':100,
-    '31':100,
-    '32':100,
-    '33':100,
-    '34':100,
-    '35':100,
-    '70':100,
-    '75':100,
-    '99':100,
-    '152':100,
-    '190':100,
-    '193':100,
-    '194':100,
-    '200':100}
-"""
 
 
 def quota(quotas_csv, route, target):
@@ -42,7 +20,6 @@ def quota(quotas_csv, route, target):
     with open(quotas_csv, 'rb') as csv_file:
         rows = csv.DictReader(csv_file)
         for row in rows:
-            #if row[target] != '0':
             data[row[route]] = int(row[target]) 
         return data
 
@@ -51,8 +28,6 @@ class Quota(object):
 
     @staticmethod
     def onoff(quotas_csv):
-        print os.getcwd()
-        
         return quota(quotas_csv, 'route_num', 'onoff_target')
 
     @staticmethod
@@ -87,7 +62,6 @@ class Count(object):
     @staticmethod
     def complete():
         routes = Query.routes()
-        print routes
         
         complete = 0
         rem_count = 0
