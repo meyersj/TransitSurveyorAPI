@@ -1,0 +1,57 @@
+{% extends "long/base.html" %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+<script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+<script src="../static/js/map.js"></script>
+
+
+{% endblock %}
+
+
+{% block dashboard %}
+
+{{ super() }}
+
+<div id="map" style="width:100%; height:70vh"></div>
+
+<script>
+
+    var data = {{ data|tojson|safe }};
+    console.log(data);
+
+    var map = initmap('map');
+
+    var options = {
+        radius: 8,
+        color: "#000",
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 0.8
+    };
+
+    var red = '#D62020';
+    var green = '#26D620';
+    var blue = '#2035D6';
+    var orange = '#D69020';
+
+    function addMarker(geojson, color) {
+        L.geoJson(geojson, {
+            pointToLayer: function (feature, latlng) {
+                options.fillColor = color;
+                return L.circleMarker(latlng, options);
+            }
+        }).addTo(map);
+    }
+
+    addMarker(data.orig, blue);
+    addMarker(data.dest, orange);
+    addMarker(data.on.geom, green);
+    addMarker(data.off.geom, red);   
+
+
+</script>
+
+
+{% endblock %}
