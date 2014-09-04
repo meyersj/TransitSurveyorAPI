@@ -13,12 +13,12 @@ from geoalchemy2 import Geometry
 
 import constants as cons
 
+
 """
 Database Models
 """
 Base = declarative_base()
 
-"""
 class Scans(Base):
     __tablename__ = 'scans'
     id = Column(Integer, primary_key = True)
@@ -40,7 +40,7 @@ class Scans(Base):
         self.stop = kwargs[cons.STOP]
 
     def __repr__(self):
-        return '<Scans: %r, %r, %r, %r >' %\
+        return '<OnTemp: %r, %r, %r, %r >' %\
             (self.id, self.date, self.line, self.dir)
 
 
@@ -58,7 +58,7 @@ class OnOffPairs_Scans(Base):
         self.off_id = kwargs[cons.OFF_ID]
 
     def __repr__(self):
-        return '<OnOffPairs_Scans: id:%r, on_id:%r, off_id:%r >' %\
+        return '<OnOffPairs: id:%r, on_id:%r, off_id:%r >' %\
             (self.id, self.on_id, self.off_id)
 
 
@@ -86,9 +86,9 @@ class OnOffPairs_Stops(Base):
 
 
     def __repr__(self):
-        return '<OnOffPairs_Stops: id:%r, on_id:%r, off_id:%r >' %\
+        return '<OnOffPairs: id:%r, on_id:%r, off_id:%r >' %\
             (self.id, self.on_stop, self.off_stop)
-"""
+
 
 class Stops(Base):
     __tablename__ = 'tm_route_stops'
@@ -103,7 +103,23 @@ class Stops(Base):
     geom = Column(Geometry(geometry_type='POINT', srid=2913))
 
     def __repr__(self):
-        return '<Stops: %r>' % (self.stop_id)
+        return '<Stops: %r %r>' % (self.stop_id, self.stop_name)
+
+
+class Routes(Base):
+    __tablename__ = 'tm_routes'
+    gid = Column(Integer, primary_key = True)
+    rte = Column(SmallInteger)
+    dir = Column(SmallInteger)
+    rte_desc = Column(Text)
+    public_rte = Column(Text)
+    dir_desc = Column(Text)
+    frequent = Column(Text) 
+    type = Column(Text)
+    geom = Column(Geometry(geometry_type='MULTILINESTRING', srid=2913))
+
+    def __repr__(self):
+        return '<Routes: %r %r>' % (self.rte, self.rte_desc)
 
 
 class SurveysCore(Base):
@@ -151,8 +167,6 @@ class SurveysCore(Base):
     ta_1 = Column(Text)
     ta_2 = Column(Text)
     ta_3 = Column(Text)
-    stcar_fare = Column(Text)
-    stcar_fare_other = Column(Text)
     churn = Column(Text)
     churn_other = Column(Text)
     reason = Column(Text)
@@ -210,8 +224,6 @@ class SurveysCore(Base):
         self.ta_1 = kwargs[cons.TA_1]
         self.ta_2 = kwargs[cons.TA_2]
         self.ta_3 = kwargs[cons.TA_3]
-        self.stcar_fare = kwargs[cons.STCAR_FARE]
-        self.stcar_fare_other = kwargs[cons.STCAR_FARE_OTHER]
         self.churn = kwargs[cons.CHURN]
         self.churn_other = kwargs[cons.CHURN_OTHER]
         self.reason = kwargs[cons.REASON]
@@ -238,6 +250,5 @@ class SurveysLng(Base):
         self.uri = kwargs[cons.URI]
         self.parent_uri = kwargs[cons.PARENT_URI]
         self.value = kwargs[cons.VALUE]
-
 
 

@@ -10,19 +10,19 @@ STOP = 'stop'
 
 """ Pairs - Scans
 """
-ID = 'id'
+#ID = 'id'
 ON_ID = 'on_id'
 OFF_ID = 'off_id'
 
 """ Pairs - Stops
 """
-ID = 'id'
-DATE = 'date'
-LINE = 'line'
-DIR = 'dir'
+#ID = 'id'
+#DATE = 'date'
+#LINE = 'line'
+#DIR = 'dir'
 ON_STOP = 'on_stop'
 OFF_STOP = 'off_stop'
-USER_ID = 'user_id'
+#USER_ID = 'user_id'
 
 """ Surveys - Core
 """
@@ -36,7 +36,7 @@ END = 'end'
 ENGLISH = 'english'
 OTHER_LNG = 'other_lng'
 RTE = 'rte'
-DIR = 'dir'
+#DIR = 'dir'
 ORIG_PURPOSE = 'orig_purpose'
 ORIG_PURPOSE_OTHER = 'orig_purpose_other'
 ORIG_LAT = 'orig_lat'
@@ -67,8 +67,6 @@ TRANSFERS_AFTER = 'transfers_after'
 TA_1 = 'ta_1'
 TA_2 = 'ta_2'
 TA_3 = 'ta_3'
-STCAR_FARE = 'stcar_fare'
-STCAR_FARE_OTHER = 'stcar_fare_other'
 CHURN = 'churn'
 CHURN_OTHER = 'churn_other'
 REASON = 'reason'
@@ -86,7 +84,7 @@ VALID = 'valid'
 
 """ Survey - Lng
 """
-URI = 'uri'
+#URI = 'uri'
 PARENT_URI = 'parent_uri'
 VALUE = 'value'
 
