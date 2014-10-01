@@ -1,9 +1,8 @@
 *.pyc
 *.*~
 *.swp
-data/
 flask/
-keys/
+env/
 virtualenv.py
 users_config.py
 config.py

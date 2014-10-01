@@ -1,3 +1,5 @@
+import csv
+
 from sqlalchemy import func, desc
 
 from models import Scans, OnOffPairs_Scans, OnOffPairs_Stops
@@ -10,30 +12,34 @@ INBOUND = '1'
 OUTBOUND = '0'
 DIRECTION = {'1':'Inbound', '0':'Outbound'}
 TRAINS = ['190','193','194','200']
-QUOTA = {
-    '9':100,
-    '17':100,
-    '19':100,
-    '28':100,
-    '29':100,
-    '30':100,
-    '31':100,
-    '32':100,
-    '33':100,
-    '34':100,
-    '35':100,
-    '70':100,
-    '75':100,
-    '99':100,
-    '152':100,
-    '190':100,
-    '193':100,
-    '194':100,
-    '200':100}
+QUOTAS = 'data/route_quotas.csv'
+
+
+def quota(quotas_csv, route, target):
+    data = {}
+    with open(quotas_csv, 'rb') as csv_file:
+        rows = csv.DictReader(csv_file)
+        for row in rows:
+            data[row[route]] = int(row[target]) 
+        return data
+
+
+class Quota(object):
+
+    @staticmethod
+    def onoff(quotas_csv):
+        return quota(quotas_csv, 'route_num', 'onoff_target')
+
+    @staticmethod
+    def long(quotas_csv):
+        return quota(quotas_csv, 'route_num', 'long_target')
 
 
 def percent(amount, total):
-    return round((float(amount) / total) * 100, 1)
+    if total == 0:
+        return 100
+    else:
+        return round((float(amount) / total) * 100, 1)
 
 
 class Count(object):
@@ -56,15 +62,18 @@ class Count(object):
     @staticmethod
     def complete():
         routes = Query.routes()
+        
         complete = 0
         rem_count = 0
         rem_total = 0
         results = {}
 
+        quotas = Quota.onoff(QUOTAS)
+
         for route in routes:
             data = {}
             count = Count.records(line=route)
-            quota = QUOTA[str(route)]
+            quota = quotas[str(route)]
 
             if count >= quota:
                 complete += 1
@@ -81,21 +90,30 @@ class Chart(object):
 
     @staticmethod
     def single_route(line):
-        in_pct = percent(Count.records(line=line, dir=INBOUND), QUOTA[str(line)])
-        out_pct = percent(Count.records(line=line, dir=OUTBOUND), QUOTA[str(line)])
+        quotas = Quota.onoff(QUOTAS)
+
+        
+        in_total = quotas[str(line)]
+        in_count = Count.records(line=line, dir=INBOUND)
+        out_total = quotas[str(line)]
+        out_count = Count.records(line=line, dir=OUTBOUND)
+        #in_pct = percent(Count.records(line=line, dir=INBOUND), quotas[str(line)])
+        #out_pct = percent(Count.records(line=line, dir=OUTBOUND), quotas[str(line)])
         categories = ['Inbound', 'Outbound']
         series =  [
-            {'data':[100 - in_pct, 100 - out_pct], 'name':'Remaining','color':RED_STATUS},
-            {'data':[in_pct, out_pct], 'name':'Complete', 'color':GREEN_STATUS}]
+            {'data':[in_total, out_total], 'name':'Remaining','color':RED_STATUS},
+            {'data':[in_count, out_count], 'name':'Complete', 'color':GREEN_STATUS}]
         return {'series':series, 'categories':categories}
 
     @staticmethod
     def all_routes(routes):
         complete = []
     
+        quotas = Quota.onoff(QUOTAS)
+        
         for route in routes:
             #TODO fetch total from table instead of hard coded
-            pct = percent(Count.records(line=route), QUOTA[str(route)] * 2)
+            pct = percent(Count.records(line=route), quotas[str(route)] * 2)
             complete.append(pct)
 
         categories = ['Route ' + str(route) for route in routes]

@@ -1,0 +1,21 @@
+route_name,route_num,ridership,onoff_target,long_target
+Yellow Line,190,15430,3086,1543
+Green Line,200,21230,0,2123
+Orange Line,999,0,0,0
+Streetcar - CL,194,3830,766,383
+Streetcar - NS,193,10910,2182,1091
+Line 9 - Powell Blvd.,9,9050,1810,905
+Line 17 - Holgate/Broadway,17,6470,1294,647
+Line 19 - Woodstock/Glisan,19,6260,1252,626
+Line 28 - Linwood,28,170,34,17
+Line 29 - Lake/Webster Rd,29,280,56,28
+Line 30 - Estacada,30,490,98,49
+Line 31 - King Rd,31,1280,256,128
+Line 32 - Oatfield,32,910,182,91
+Line 33 - McLoughlin,33,5240,1048,524
+Line 34 - River Road,34,230,46,23
+Line 35 - Macadam/Greeley,35,3980,796,398
+Line 70 - 12th/NE 33rd Ave,70,3340,668,334
+Line 75 - Cesar Chavez/Lombard,75,10080,2016,1008
+Line 99 - McLoughlin Express,99,730,146,73
+Line 152 - Milwaukie,152,240,48,24

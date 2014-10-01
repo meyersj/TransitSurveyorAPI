@@ -6,23 +6,6 @@
 {% endblock %}
 
 
-{% block sidebar %}
-{{ super() }}
-<ul class="nav nav-sidebar">
-  <li class="dropdown">
-    <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-      Routes <span class="caret"></span>
-    </a>
-    <ul id="lines" class="dropdown-menu" role="menu">
-      {% for route in routes %}
-      <li><a href="#">{{ route }}</a></li>
-      {% endfor %}
-    </ul>
-  </li>
-</ul>
-{% endblock %}
-
-
 {% block dashboard %}
 {{ super() }}
 

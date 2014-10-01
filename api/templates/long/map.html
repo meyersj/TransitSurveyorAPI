@@ -1,0 +1,88 @@
+{% extends "long/base.html" %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+<script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+<script src="../static/js/map.js"></script>
+{% endblock %}
+
+
+{% block dashboard %}
+
+{{ super() }}
+<button type="submit" id="get_survey" class="btn btn-default">Get Survey</button>
+<br>
+<br>
+<div id="map" style="width:100%; height:70vh"></div>
+
+<script>
+    var keys = {{ keys|tojson|safe }};
+    var map = initmap('map');
+    
+    //var points = new L.LayerGroup();
+    var points = new L.geoJson().addTo(map);
+    var lines = new L.geoJson().addTo(map);
+
+
+    $("#get_survey").on("click", function() {
+        var uri = keys.pop();
+        points.clearLayers();
+        lines.clearLayers();
+        
+        if(uri) {
+            console.log(uri);
+            var url = '_geoquery'; 
+            var args = {uri:uri};
+            $.getJSON(url, args, function (data) {
+                console.log(data.lines);
+                if(data.points !== null) {
+                    addMarkers(data.points, data.lines);
+                }
+                if(data.lines !== null) {
+                    console.log(data.lines.length);
+                    lines.addLayer(L.geoJson(data.lines)); 
+                }
+            });
+        } 
+        else {
+           alert("no more keys");
+        }       
+    });
+
+    var options = {
+        radius: 8,
+        color: "#000",
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 0.8
+    };
+
+    var red = '#D62020';
+    var green = '#26D620';
+    var blue = '#2035D6';
+    var orange = '#D69020';
+
+
+
+    function addMarker(geojson, color) {
+        points.addLayer(L.geoJson(geojson, {
+            pointToLayer: function (feature, latlng) {
+                options.fillColor = color;
+                return L.circleMarker(latlng, options);
+            }
+        }));
+    }
+
+    function addMarkers(points, lines) {
+        addMarker(points.orig, blue);
+        addMarker(points.dest, orange);
+        addMarker(points.on.geom, green);
+        addMarker(points.off.geom, red);   
+    }
+
+
+</script>
+
+
+{% endblock %}

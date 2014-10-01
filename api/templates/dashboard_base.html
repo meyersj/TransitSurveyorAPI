@@ -17,13 +17,14 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="#">Orange Line Before O&D</a>
+      <a class="navbar-brand" href="/">Orange Line Before O&D</a>
     </div>
     <div class="navbar-collapse collapse">
       <ul class="nav navbar-nav navbar-right">
-        <li><a href="/onoff/overview">Overview</a></li>
-        <li><a href="/onoff/status">Status</a></li>
-        <li><a href="/onoff/data">Data</a></li>
+        {% block nav_links %}
+        <li><a href="/onoff">On and Off</a></li>
+        <li><a href="/long">Intercept</a></li>
+        {% endblock %}
       </ul>
     </div>
   </div>
@@ -33,12 +34,7 @@
 {% block content %}
 <div class="container-fluid">
   <div class="row">
-    <div class="col-sx-1 col-sm-1 col-md-2 sidebar">
-      {% block sidebar %}
-      {% endblock %}
-    </div>
-    <div class="col-xs-11 col-sm-11 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-    <!--div class="col-xs-11 col-sm-11 col-md-10 main"-->
+    <div class="col-xs-12 col-sm-12 col-md-12 main">
       {% block dashboard %}
       {% endblock %}
     </div>
