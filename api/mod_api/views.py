@@ -24,6 +24,8 @@ LAT = "lat"
 MODE = "mode"
 ON_STOP = "on_stop"
 OFF_STOP = "off_stop"
+ON_REVERSED = "on_reversed"
+OFF_REVERSED = "off_reversed"
 USER = "user_id"
 SALT = "SALT"
 TESTUSER = "testuser"
@@ -100,6 +102,8 @@ def insertPair():
     dir = data[DIR]
     on_stop = data[ON_STOP]
     off_stop = data[OFF_STOP]
+    on_reversed = data[ON_REVERSED]
+    off_reversed = data[OFF_REVERSED]
 
     if USER in data.keys():
         user = data[USER]
@@ -108,7 +112,7 @@ def insertPair():
         user = TESTUSER
 
     #insert data into database
-    insert = InsertPair(date,line,dir,on_stop,off_stop, user)
+    insert = InsertPair(date, line, dir, on_stop, off_stop, user, on_reversed, off_reversed)
     valid, insertID = insert.isSuccessful()
    
     return jsonify(success=valid, insertID=insertID)
