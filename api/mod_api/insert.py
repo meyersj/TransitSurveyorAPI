@@ -46,15 +46,18 @@ class InsertScan():
     """convert latitude-longitude coordinates to geometry in Oregon State Plane North
     """
     def __getGeom(self):
-        wkt = 'POINT('+self.lon+' '+self.lat+')'
         
-        try:
-            self.geom = func.ST_Transform(WKTElement(wkt,srid=4326),2913)
-        except Exception as e:
-            self.isValid = False
-            msg = "failed to convert lat {0} lon {1} to geom: "\
-                .format(self.lat,self.lon) + e
-            app.logger.warn(e)
+        if self.lon and self.lat:
+            try:
+                wkt = 'POINT('+self.lon+' '+self.lat+')'
+                self.geom = func.ST_Transform(WKTElement(wkt,srid=4326),2913)
+            except Exception as e:
+                self.isValid = False
+                msg = "failed to convert lat {0} lon {1} to geom: "\
+                    .format(self.lat,self.lon) + e
+                app.logger.warn(e)
+        else:
+            app.logger.warn("lat or lon does not exist, user=" + self.user)
 
     """insert into temp ON table
     """
