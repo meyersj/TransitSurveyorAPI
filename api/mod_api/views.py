@@ -6,6 +6,9 @@ import hashlib
 from flask import Blueprint, request, jsonify
 from api import app, db
 
+from geoalchemy2.elements import WKTElement
+from geoalchemy2 import functions as func
+import models
 
 from insert import InsertScan, InsertPair
 from models import Users
@@ -117,3 +120,39 @@ def insertPair():
    
     return jsonify(success=valid, insertID=insertID)
 
+@mod_api.route('/stopLookup', methods=['POST'])
+def stopLookup():
+    data = json.loads(request.form[DATA])
+    app.logger.debug(data)
+    geom = getGeom(data[LAT], data[LON])
+    stop_name, error = findNearStop(geom, data[LINE], data[DIR]) 
+    return jsonify(error=error, stop_name=stop_name)
+
+def getGeom(lat, lon):
+    geom = None
+    try:
+        wkt = 'POINT('+lon+' '+lat+')'
+        geom = func.ST_Transform(WKTElement(wkt,srid=4326),2913)
+    except Exception as e:
+        app.logger.warn(e)
+    return geom
+
+def findNearStop(geom, line, dir):
+    stop_name = None
+    error = True
+    if geom is None:
+        return stop_name, error
+    try:
+        near_stop = db.session.query(models.Stops.gid, models.Stops.stop_name,
+            func.ST_Distance(models.Stops.geom, geom).label("dist"))\
+            .filter_by(rte=int(line), dir=int(dir))\
+            .order_by(models.Stops.geom.distance_centroid(geom))\
+            .first()
+        if near_stop:
+            stop_name = near_stop.stop_name
+            error = False
+
+    except Exception as e:
+        app.logger.warn("Exception thrown in findNearStop: " + str(e))
+
+    return stop_name, error
