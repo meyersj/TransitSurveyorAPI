@@ -21,7 +21,7 @@ class InsertScan():
     geom = None
     valid = True
     insertID = None
-    match = None
+    match = False
 
     def __init__(self,uuid,date,line,dir,lon,lat,mode,user):
         self.uuid = uuid
@@ -111,8 +111,7 @@ class InsertScan():
             db.session.add(insertOn)
             db.session.add(insertOff)
             db.session.commit()    
-            insertID = insertOff.id
-            match = on.match
+            
             #insert on and off ids into OnOffPairs
             insertPair = models.OnOffPairs_Scans(insertOn.id, insertOff.id)
             db.session.add(insertPair)
@@ -129,6 +128,7 @@ class InsertScan():
         
         db.session.add(insertOffTemp)
         db.session.commit()
+        insertID = insertOffTemp.id
 
         return True, insertID, match
 

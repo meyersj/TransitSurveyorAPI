@@ -1,12 +1,5 @@
-from sqlalchemy import Column
-from sqlalchemy import Integer
-from sqlalchemy import Numeric
-from sqlalchemy import SmallInteger
-from sqlalchemy import Text
-from sqlalchemy import String
-from sqlalchemy import DateTime
-from sqlalchemy import ForeignKey
-from sqlalchemy import create_engine
+from sqlalchemy import Column, Integer, Numeric, SmallInteger, Text, String
+from sqlalchemy import DateTime, Boolean, ForeignKey, create_engine
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from geoalchemy2 import Geometry
@@ -18,6 +11,77 @@ import constants as cons
 Database Models
 """
 Base = declarative_base()
+
+class Users(Base):
+    __tablename__ = "users"    
+    id = Column(Integer, primary_key = True)
+    first = Column(Text)
+    last = Column(Text)
+    username = Column(Text)
+    password_hash = Column(Text)
+
+    def __init__(self, first, last, username, password_hash):
+        self.first = first
+        self.last = last
+        self.username = username
+        self.password_hash = password_hash
+
+    def __repr__(self):
+        return '<User: Name: %r %r, Username:%r >' %\
+            (self.first, self.last, self.username)
+
+
+
+class OnTemp(Base):
+    __tablename__ = 'on_temp'
+    id = Column(Integer, primary_key = True)
+    uuid = Column(Text)
+    date = Column(DateTime)
+    line = Column(Text)
+    dir = Column(Text)
+    match = Column(Boolean)
+    geom = Column(Geometry(geometry_type='POINT', srid=2913))
+    user_id = Column(Text, ForeignKey("users.username"), nullable=False)
+    user = relationship("Users", foreign_keys=user_id)
+
+    def __init__(self, uuid, date, line, dir, geom, user_id):
+        self.uuid = uuid
+        self.date = date
+        self.line = line
+        self.dir = dir
+        self.match = False
+        self.geom = geom
+        self.user_id = user_id
+
+    def __repr__(self):
+        return '<OnTemp: %r, %r, %r, %r, %r >' %\
+            (self.id, self.uuid, self.date, self.line, self.dir)
+
+class OffTemp(Base):
+    __tablename__ = 'off_temp'
+    id = Column(Integer, primary_key = True)
+    uuid = Column(Text)
+    date = Column(DateTime)
+    line = Column(Text)
+    dir = Column(Text)
+    match = Column(Boolean)
+    geom = Column(Geometry(geometry_type='POINT', srid=2913))
+    user_id = Column(Text, ForeignKey("users.username"), nullable=False)
+    user = relationship("Users", foreign_keys=user_id)
+
+    def __init__(self, uuid, date, line, dir, geom, user_id, match):
+        self.uuid = uuid
+        self.date = date
+        self.line = line
+        self.dir = dir
+        self.match = match
+        self.geom = geom
+        self.user_id = user_id
+
+    def __repr__(self):
+        return '<OnTemp: %r, %r, %r, %r, %r >' %\
+            (self.id, self.uuid, self.date, self.line, self.dir)
+
 
 class Scans(Base):
     __tablename__ = 'scans'

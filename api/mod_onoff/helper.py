@@ -2,6 +2,8 @@ import csv
 
 from sqlalchemy import func, desc
 
+from flask import current_app
+
 from models import Scans, OnOffPairs_Scans, OnOffPairs_Stops
 from api import db
 
@@ -12,11 +14,11 @@ INBOUND = '1'
 OUTBOUND = '0'
 DIRECTION = {'1':'Inbound', '0':'Outbound'}
 TRAINS = ['190','193','194','200']
-QUOTAS = 'data/route_quotas.csv'
-
+QUOTAS = "/home/meyersj/api/app/data/route_quotas.csv"
 
 def quota(quotas_csv, route, target):
     data = {}
+
     with open(quotas_csv, 'rb') as csv_file:
         rows = csv.DictReader(csv_file)
         for row in rows:
@@ -28,6 +30,7 @@ class Quota(object):
 
     @staticmethod
     def onoff(quotas_csv):
+        
         return quota(quotas_csv, 'route_num', 'onoff_target')
 
     @staticmethod

@@ -60,6 +60,7 @@ def verify_user(username, password):
 
 @mod_api.route('/verifyUser', methods=['POST'])
 def verifyUser():
+    app.logger.debug('verify')
     cred = json.loads(request.form[CREDENTIALS])
     username = cred[USERNAME]
     password = cred[PASSWORD]
@@ -123,7 +124,6 @@ def insertPair():
 @mod_api.route('/stopLookup', methods=['POST'])
 def stopLookup():
     data = json.loads(request.form[DATA])
-    app.logger.debug(data)
     geom = getGeom(data[LAT], data[LON])
     stop_name, error = findNearStop(geom, data[LINE], data[DIR]) 
     return jsonify(error=error, stop_name=stop_name)
