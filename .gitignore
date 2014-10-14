@@ -4,5 +4,6 @@
 flask/
 env/
 virtualenv.py
+downloads
 users_config.py
 config.py
