@@ -7,3 +7,4 @@ virtualenv.py
 downloads
 users_config.py
 config.py
+api/templates/report.html

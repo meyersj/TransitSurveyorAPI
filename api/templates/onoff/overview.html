@@ -24,6 +24,8 @@
 </div>
 
 <script>
+    // create some piecharts about project status
+    // func onoff_overview in mod_onoff/views.py
     var results = {{ results|tojson|safe }};
 
     function pie_options(label, count, total) {
