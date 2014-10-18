@@ -194,13 +194,13 @@ class Query(object):
     def routes():
         """returns sorted list of route numbers in database"""
         routes = []
-        scans = db.session.query(Scans.line)\
-            .group_by(Scans.line)\
-            .order_by(Scans.line)\
-            .all()
         stops = db.session.query(OnOffPairs_Stops.line)\
             .group_by(OnOffPairs_Stops.line)\
             .order_by(OnOffPairs_Stops.line)\
+            .all()
+        scans = db.session.query(Scans.line)\
+            .group_by(Scans.line)\
+            .order_by(Scans.line)\
             .all()
 
         for s in scans:

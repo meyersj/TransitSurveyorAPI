@@ -6,7 +6,7 @@ from sqlalchemy import func
 
 from models import Scans, OnOffPairs_Scans, OnOffPairs_Stops
 from helper import Count, Chart, Query
-from api import db
+from api import app, db
 
 
 STATIC_DIR = '/onoff'
@@ -39,6 +39,7 @@ def onoff_overview():
 @mod_onoff.route('/status')
 def status():
     routes = Query.routes()
+    app.logger.debug(routes)
     return render_template(static('status.html'), routes=routes)
 
 

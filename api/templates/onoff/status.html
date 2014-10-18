@@ -3,6 +3,9 @@
 {% block head %}
 {{ super() }}
 <script src="//code.highcharts.com/highcharts.js"></script>
+<!--script src="../static/js/charts.js"></script-->
+
+
 {% endblock %}
 
 
@@ -24,6 +27,11 @@
           <li role="presentation" class="dropdown-header">Route</li>
           <li role="presentation"><a href="#">All</a></li>
           <li role="presentation" class="divider"></li>
+
+          <!-- func views.py::status()
+                 func results from helper.py::Query.routes()
+
+               returns a list of all routes that are queryable -->
           {% for route in routes %}
           <li><a href="#">{{ route }}</a></li>
           {% endfor %}
@@ -37,10 +45,16 @@
 <div id="status_chart" style="margin: 0 auto"></div>
 
 <script>
+    console.log("chart");
+    
+    /*
     var chart;
 
     function build_options(container, title, categories, series) {
-        var pointWidth = 30;
+        
+        //size of columns in chart
+        var pointWidth = 150; //30
+        //set height of chart dynamically
         var h = (pointWidth + 10) * 1 * categories.length + 50 + 70;
         // + 10- distance between bars
         // * 2 - number of series
@@ -77,6 +91,7 @@
         }
     }
 
+    console.log("main");
     function draw_chart(args) {
         var url = "status/_details";
         
@@ -89,7 +104,7 @@
                 'status_chart', label, data.categories, data.series);
             chart = new Highcharts.Chart(options);
         });
-    }
+    console.log("after function def");
 
 
     $('#filter_line a').on('click', function() {
@@ -102,6 +117,7 @@
     });
 
     draw_chart({});
+    */
 </script>
 {% endblock %}
 
