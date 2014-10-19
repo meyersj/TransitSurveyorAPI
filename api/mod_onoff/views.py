@@ -5,7 +5,7 @@ from flask import Blueprint, redirect, url_for,render_template, jsonify, request
 from sqlalchemy import func
 
 from models import Scans, OnOffPairs_Scans, OnOffPairs_Stops
-from helper import Count, Chart, Query
+from helper import Helper, Count, Chart, Query
 from api import app, db
 
 
@@ -30,19 +30,34 @@ def index():
     return redirect(url_for('.onoff_overview'))
 
 
+@mod_onoff.route('/test')
+def test():
+     quotas_file = os.path.join(app.config["ROOT_DIR"], "data/pmlr_targets.csv")
+     helper = Helper(quota_file=quotas_file)
+     return ""
+
+
 @mod_onoff.route('/overview')
 def onoff_overview():
     results = Count.complete()
     return render_template(static('overview.html'), results=results)
 
-
 @mod_onoff.route('/status')
 def status():
-    routes = Query.routes()
-    app.logger.debug(routes)
-    return render_template(static('status.html'), routes=routes)
+    helper = Helper()
+    count = Helper.get_count()
+    app.logger.debug(count)
+    return render_template(
+        static('status.html'), routes=helper.routes, targets=helper.targets)
 
 
+@mod_onoff.route('/status/_details', methods=['GET'])
+def status_details():
+     helper = Helper()
+     return jsonify(data=helper.targets)
+
+
+"""
 @mod_onoff.route('/status/_details', methods=['GET'])
 def status_details():
      if 'line' in request.args.keys():
@@ -51,8 +66,10 @@ def status_details():
      else:
          routes = Query.routes()
          response = Chart.all_routes(routes)
+     app.logger.debug(response)
+     
      return jsonify(**response)
-
+"""
 
 @mod_onoff.route('/map')
 def map():

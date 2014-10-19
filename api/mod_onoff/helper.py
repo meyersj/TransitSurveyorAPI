@@ -1,10 +1,10 @@
 import csv, os
 
-from sqlalchemy import func, desc
+from sqlalchemy import func, desc, distinct
 
 from flask import current_app
 
-from models import Scans, OnOffPairs_Scans, OnOffPairs_Stops
+from models import Quotas as QuotasT, Scans, OnOffPairs_Scans, OnOffPairs_Stops
 from api import db, app
 
 
@@ -14,30 +14,106 @@ INBOUND = '1'
 OUTBOUND = '0'
 DIRECTION = {'1':'Inbound', '0':'Outbound'}
 TRAINS = ['190','193','194','200']
-QUOTAS = "/home/meyersj/api/app/data/route_quotas.csv"
-#QUOTAS = os.path.join(app.config["ROOT_DIR"], "data/route_quotas.csv")
+#QUOTAS = "/home/meyersj/api/app/data/route_quotas.csv"
+
+TARGETS = "data/pmlr_targets.csv"
+QUOTAS = os.path.join(app.config["ROOT_DIR"], "data/pmlr_targets.csv")
 
 
-def quota(quotas_csv, route, target):
+
+def quota(quota_file=None, route_field=None, target_field=None):
     data = {}
+    if quota_file and route_field and target_field:
+        with open(quota_file, 'rb') as csv_file:
+            rows = csv.DictReader(csv_file)
+            for row in rows:
+                data[row[route_field]] = int(row[target_field])
+                #data[row[target_field]] = iint(row[target_field]) 
+    return data
 
-    with open(quotas_csv, 'rb') as csv_file:
-        rows = csv.DictReader(csv_file)
-        for row in rows:
-            data[row[route]] = int(row[target]) 
-        return data
 
+class Helper(object):
+    targets = None
+    routes = None
 
-class Quota(object):
+    def __init__(self, quota_file=None):
+        self.targets = self.get_targets()
+        self.routes = self.get_routes()
+        #self.status = self.get_status(self.targets)        
+        #if quota_file:
+        #self.targets = self.get_targets()
 
     @staticmethod
+    def get_count(**kwargs):
+        count = 0
+        #if 'line' in kwargs:
+            #if kwargs['line'] in TRAINS:
+        count += db.session.query(OnOffPairs_Stops)\
+            .filter_by(**kwargs)\
+            .count()
+            #else:
+        count += db.session.query(OnOffPairs_Scans)\
+            .join(OnOffPairs_Scans.on)\
+            .filter_by(**kwargs)\
+            .count()
+        return count
+
+    @staticmethod
+    def get_targets():
+        query = db.session.query(QuotasT)
+        ret_val = []
+        total = 0
+        for row in query:            
+            count = Helper.get_count(line=row.rte, dir=row.dir)
+            total += count
+            data = {
+                'rte_desc':row.rte_desc,
+                'dir_desc':row.dir_desc,
+                'target':row.onoff_target,
+                'complete':int(count)
+            }
+            ret_val.append(data) 
+        app.logger.debug("total: " + str(total))
+        return ret_val
+
+    @staticmethod
+    def get_routes():
+        routes = db.session.query(distinct(QuotasT.rte))
+        ret_val = [route[0] for route in routes]
+        return ret_val
+
+class Quota(Helper):
+
+    #def __init__(self, quota_file=None)
+    #    super(Helper, self).__init__(quota_file=quota_file)
+
+    #def onoff(quot):
+    #    return quota(
+    #        quota_file=quotas_csv, route_field='rte',target_field='onoff_target')
+  
+    @staticmethod
     def onoff(quotas_csv):
-        
-        return quota(quotas_csv, 'route_num', 'onoff_target')
+        return quota(
+            quota_file=quotas_csv, route_field='rte',target_field='onoff_target')
+
+ 
+    @staticmethod
+    def onoff(quotas_csv):
+        return quota(
+            quota_file=quotas_csv, route_field='rte',target_field='onoff_target')
+
+
+    #@staticmethod
+    #def onoff_targets(quotas_csv):
+    #    targets = target(quotas_csv, 'rte', 'onoff_target')
+    #    app.logger.debug(tarets) 
+    #    return targets
+
 
     @staticmethod
     def long(quotas_csv):
-        return quota(quotas_csv, 'route_num', 'long_target')
+        return quota(
+            quota_file=quotas_csv, route_field='rte',target_field='main_target')
 
 
 def percent(amount, total):

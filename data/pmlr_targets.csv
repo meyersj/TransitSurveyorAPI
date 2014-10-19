@@ -1,0 +1,43 @@
+rte,dir,rte_desc,dir_simple,dir_desc,ridership,onoff_target,main_target
+190,0,Yellow Line,Outbound,To Expo Center,8176,1635,818
+190,1,Yellow Line,Inbound,To Portland City Center/PSU,8184,1637,818
+200,0,Green Line,Outbound,To Clackamas Town Center,10154,2031,1015
+200,1,Green Line,Inbound,To Portland City Center/PSU,11282,2256,1128
+210,0,Orange Line,Outbound,To Milwaukie,1000,200,100
+210,1,Orange Line,Inbound,To Portland City Center/PSU,1000,200,100
+193,0,Streetcar - NS Line,Outbound,To NW 23rd and Marshall,1000,200,100
+193,1,Streetcar - NS Line,Inbound,To South Waterfront,1000,200,100
+194,0,Streetcar - CL Line,Outbound,To OMSI,1000,200,100
+194,1,Streetcar - CL Line,Inbound,To SW Market,1000,200,100
+4,0,4 - Division/Fessenden,Outbound,To Gresham Transit Center,9427,1885,943
+4,1,4 - Division/Fessenden,Inbound,To St Johns,9283,1857,928
+9,0,9 - Powell Blvd,Outbound,To Powell & 98th or Gresham Transit Center,4900,980,490
+9,1,9 - Powell Blvd,Inbound,To Portland,4645,929,465
+17,0,17 - Holgate/Broadway,Outbound,To Holgate & 134th,3318,664,332
+17,1,17 - Holgate/Broadway,Inbound,To Saratoga & 27th,3522,704,352
+19,0,19 - Woodstock/Glisan,Outbound,To Mt. Scott & 112th,3461,692,346
+19,1,19 - Woodstock/Glisan,Inbound,To Gateway Transit Center,3296,659,330
+28,0,28 - Linwood,Outbound,To Clackamas Town Center,86,17,9
+28,1,28 - Linwood,Inbound,To Milwaukie,99,20,10
+29,0,29 - Lake/Webster Rd,Outbound,To Clackamas Town Center,146,29,15
+29,1,29 - Lake/Webster Rd,Inbound,To Milwaukie,146,29,15
+30,0,30 - Estacada,Outbound,To Estacada,240,48,24
+30,1,30 - Estacada,Inbound,To Clackamas Town Center,323,65,32
+31,0,31 - King Rd,Outbound,To Clackamas Town Center,733,147,73
+31,1,31 - King Rd,Inbound,To Milwaukie or Portland City Center,623,125,62
+32,0,32 - Oatfield,Outbound,To Clackamas CC,435,87,44
+32,1,32 - Oatfield,Inbound,To Milwaukie or Portland,535,107,54
+33,0,33 - McLoughlin,Outbound,To Oregon City TC or Clackamas Community College,2928,586,293
+33,1,33 - McLoughlin,Inbound,To Portland City Center,2865,573,287
+34,0,34 - River Rd,Outbound,To Oregon City TC,101,20,10
+34,1,34 - River Rd,Inbound,To Milwaukie,110,22,11
+35,0,35 - Macadam/Greeley,Outbound,To Oregon City TC,2175,435,218
+35,1,35 - Macadam/Greeley,Inbound,To University of Portland,2088,418,209
+70,0,70 - 12th/NE 33rd Ave,Outbound,To 33rd & Sunderland,1835,367,184
+70,1,70 - 12th/NE 33rd Ave,Inbound,To Milwaukie,1791,358,179
+75,0,75 - Cesar Chavez/Lombard,Outbound,To St. Johns,5503,1101,550
+75,1,75 - Cesar Chavez/Lombard,Inbound,To Milwaukie,5390,1078,539
+99,0,99 - McLoughlin Express,Outbound,To Clackamas Community College,413,83,41
+99,1,99 - McLoughlin Express,Inbound,To Portland City Center,328,66,33
+152,0,152 - Milwaukie,Outbound,To Clackamas Town Center,117,23,12
+152,1,152 - Milwaukie,Inbound,To Milwaukie,141,28,14
