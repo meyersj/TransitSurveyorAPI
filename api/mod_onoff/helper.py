@@ -1,11 +1,11 @@
-import csv
+import csv, os
 
 from sqlalchemy import func, desc
 
 from flask import current_app
 
 from models import Scans, OnOffPairs_Scans, OnOffPairs_Stops
-from api import db
+from api import db, app
 
 
 GREEN_STATUS = '#76DB55'
@@ -15,7 +15,7 @@ OUTBOUND = '0'
 DIRECTION = {'1':'Inbound', '0':'Outbound'}
 TRAINS = ['190','193','194','200']
 QUOTAS = "/home/meyersj/api/app/data/route_quotas.csv"
-
+#QUOTAS = os.path.join(app.config["ROOT_DIR"], "data/route_quotas.csv")
 
 
 def quota(quotas_csv, route, target):
