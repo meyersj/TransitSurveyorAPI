@@ -67,31 +67,31 @@
 </div>
 
 <script>
-   console.log("test");
+    console.log("test");
     //set when a route or direction is selected from dropdowns
     var sel_line = null;
     var sel_dir = null;
 
     function rebuild(args) {
-        //$.getJSON('data/_query', args, function(data) {
+        $.getJSON('data/_query', args, function(data) {
             //clear table and rebuild with fetched json
-            //$("#tbody").empty();
-        $(data.records).each(function(index, item) {
-            var date = '<td>'+item.date+'</td>';
-            var time = '<td>'+item.time+'</td>';
-            var user = '<td>'+item.user+'</td>';
-            var line = '<td>'+item.line+'</td>';
-            var dir = '<td>'+item.dir+'</td>';
-            var on = '<td>'+item.on+'</td>';
-            var off = '<td>'+item.off+'</td>';
-            var row = '<tr>'+date+time+user+line+dir+on+off+'</tr>';
-            $("#tbody").append(row);
+            $("#tbody").empty();
+            $(data.records).each(function(index, item) {
+                var date = '<td>'+item.date+'</td>';
+                var time = '<td>'+item.time+'</td>';
+                var user = '<td>'+item.user+'</td>';
+                var line = '<td>'+item.line+'</td>';
+                var dir = '<td>'+item.dir+'</td>';
+                var on = '<td>'+item.on+'</td>';
+                var off = '<td>'+item.off+'</td>';
+                var row = '<tr>'+date+time+user+line+dir+on+off+'</tr>';
+                $("#tbody").append(row);
             });
         });
     }
 
     //build table on initial page load with no filter params
-    rebuild({});
+    //rebuild({});
 
     function build_params(line, dir) {
         var dir_lookup = {Inbound:'1',Outbound:'0'}
@@ -117,6 +117,7 @@
         rebuild(build_params(sel_line, sel_dir));
     });
 
+    console.log("end");
 </script>
 
 {% endblock %}

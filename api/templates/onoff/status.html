@@ -41,33 +41,30 @@
   </tr>
 </table>
 
-<div class="table-responsive">
+<!--div class="table-responsive">
   <table class="table table-striped">
     <thead id="thead">
       <tr>
         <th>Route</th>
-        <th>Direction</th>
-        <th>Target</th>
         <th>Complete</th>
+        <th>Target</th>
+        <th>Percent</th>
       </tr>
     </thead> 
     <tbody id="status_table">
     </tbody>
   </table>
-</div>
+</div-->
 
 
 <!-- container for chart -->
 <div id="status_chart" style="margin: 0 auto"></div>
 
 <script>
-    
-    var chart;
 
     function build_options(container, title, categories, series) {
-        
         //size of columns in chart
-        var pointWidth = 30;//150; //30
+        var pointWidth = 50;
         //set height of chart dynamically
         var h = (pointWidth + 10) * 1 * categories.length + 50 + 70;
         // + 10- distance between bars
@@ -105,71 +102,41 @@
         }
     }
     
+
+    function build_cell(data) {
+        return '<td>' + data +'</td>';
+    }
+
+    function pct_complete(complete, target) {
+        var pct = Math.round((complete / target) * 100)
+        return build_cell(String(pct)+'%');
+    }
+
+    function build_status_row(item) {
+        var rte_desc = build_cell(item.rte_desc);
+        var complete = build_cell(item.count);
+        var target = build_cell(item.target);
+        var pct = pct_complete(item.count, item.target);
+        return '<tr>'+rte_desc+complete+target+pct+'</tr>';
+    }
+    
     function build_targets_table(data) {
         $(data).each(function(index, item) {
-            var rte = '<td>'+item.rte_desc+'</td>';
-            var dir = '<td>'+item.dir_desc+'</td>';
-            var target = '<td>'+item.target+'</td>';
-            var complete = '<td>'+item.complete+'</td>';
-            console.log(item.complete);
-            var row = '<tr>'+rte+dir+target+complete+'</tr>';
+            var row = build_status_row(item);
+            console.log(item);
             $("#status_table").append(row);
         });
     }
 
     var targets = {{ targets|tojson|safe }};
-    build_targets_table(targets)
+    //build_targets_table(targets)
+    
+    var chart;
+    var chart_data = {{ chart|tojson|safe }};
+    var options = build_options(
+        'status_chart', "This is a label", chart_data.categories, chart_data.series);
+    chart = new Highcharts.Chart(options);
 
-       /*
-       $.getJSON('data/_query', args, function(data) {
-            //clear table and rebuild with fetched json
-            $("#status_table").empty();
-            $(data.records).each(function(index, item) {
-                var date = '<td>'+item.date+'</td>';
-                var time = '<td>'+item.time+'</td>';
-                var user = '<td>'+item.user+'</td>';
-                var line = '<td>'+item.line+'</td>';
-                var dir = '<td>'+item.dir+'</td>';
-                var on = '<td>'+item.on+'</td>';
-                var off = '<td>'+item.off+'</td>';
-                var row = '<tr>'+date+time+user+line+dir+on+off+'</tr>';
-                $("#status_table").append(row);
-            });
-        });
-        */
-
-
-
-    /*
-    function draw_chart(args) {
-        var url = "status/_details";
-        
-        $.getJSON(url, args, function (data) {
-            //console.log(data);
-            for(var i=0; i < data.data.length; i++) {
-                console.log(data.data[i]);
-            }
-            //var label = 'Current Status';
-            //if (args.hasOwnProperty('line')) {
-            //    label = 'Route ' + args.line;
-            //}
-            //var options = build_options(
-            //    'status_chart', label, data.categories, data.series);
-            //chart = new Highcharts.Chart(options);
-        });
-    }
-
-    $('#filter_line a').on('click', function() {
-        $("#line_btn").text(this.text+' ').append('<span class="caret"></span>');
-        args = {};
-        if (this.text != 'All') {
-            args['line'] = this.text;
-        }
-        draw_chart(args);
-    });
-
-    draw_chart({});
-    */
 </script>
 {% endblock %}
 
