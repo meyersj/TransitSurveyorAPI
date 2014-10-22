@@ -5,7 +5,7 @@ from flask import Blueprint, redirect, url_for,render_template, jsonify, request
 from sqlalchemy import func
 
 from models import Scans, OnOffPairs_Scans, OnOffPairs_Stops
-from helper import Helper, Count, Chart, Query
+from helper import Helper, Count, Chart, Query, summary_status_query
 from api import app, db
 
 
@@ -32,8 +32,9 @@ def index():
 
 @mod_onoff.route('/test')
 def test():
-     quotas_file = os.path.join(app.config["ROOT_DIR"], "data/pmlr_targets.csv")
-     helper = Helper(quota_file=quotas_file)
+     Helper.summary_status_query()
+     #quotas_file = os.path.join(app.config["ROOT_DIR"], "data/pmlr_targets.csv")
+     #helper = Helper(quota_file=quotas_file)
      return ""
 
 
@@ -42,13 +43,63 @@ def onoff_overview():
     results = Count.complete()
     return render_template(static('overview.html'), results=results)
 
+
+def sort_targets(targets):
+    grouped = {}
+
+    for stats in targets:
+        rte = stats['rte']
+        rte_desc = stats['rte_desc']
+
+        data = {}
+        data['target'] = stats['target']
+        data['complete'] = stats['complete']
+        data['dir_desc'] = stats['dir_desc']
+
+        if rte not in grouped:
+            grouped[rte] = {}
+            grouped[rte]['rte_desc'] = stats['rte_desc']
+            grouped[rte]['data'] = {} 
+        grouped[rte]['data'][stats['dir']] = data
+        
+    sorted_rtes = sorted([int(key) for key in grouped.keys()])
+    targets_list = []
+    for rte in sorted_rtes:
+        rte = str(rte)
+        data = {
+            'rte':rte,
+            'rte_desc':grouped[rte]['rte_desc'],
+            '0':grouped[rte]['data']['0'],
+            '1':grouped[rte]['data']['1']
+        }
+        targets_list.append(data) 
+    
+    return targets_list
+
+
 @mod_onoff.route('/status')
 def status():
     helper = Helper()
-    count = Helper.get_count()
-    app.logger.debug(count)
+    #count = Helper.get_count()
+    #summary_status = Helper.summary_status_query()
+    chart = Helper.summary_chart()
+    print helper.routes
+    
+    #print chart
+    #print helper.routes
+    #print summary_status
+    # convert all route numbers to integer
+    # sort list then convert route numbers
+    # back to strings
+    #routes = [ int(rte) for rte in helper.routes ]
+    #routes = [ str(rte) for rte in sorted(set(route)) ]
+
+    #targets = sort_targets(helper.targets)
+
     return render_template(
-        static('status.html'), routes=helper.routes, targets=helper.targets)
+        static('status.html'), routes=helper.routes,
+        chart=chart
+    )
 
 
 @mod_onoff.route('/status/_details', methods=['GET'])

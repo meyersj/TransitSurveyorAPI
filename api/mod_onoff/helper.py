@@ -1,6 +1,6 @@
 import csv, os
 
-from sqlalchemy import func, desc, distinct
+from sqlalchemy import func, desc, distinct, cast, Integer
 
 from flask import current_app
 
@@ -21,6 +21,25 @@ QUOTAS = os.path.join(app.config["ROOT_DIR"], "data/pmlr_targets.csv")
 
 
 
+# return total number of records for each route being surveyed
+def summary_status_query():
+    stops_status = db.session.query(
+        cast(OnOffPairs_Stops.line, Integer).label('rte'),
+        func.count(OnOffPairs_Stops.id).label('count')
+    ).group_by(OnOffPairs_Stops.line)
+    
+    scans_status = db.session.query(
+        cast(Scans.line, Integer).label('rte'),
+        func.count(Scans.id).label('count')
+    ).join(OnOffPairs_Scans.on).group_by(Scans.line)
+    
+    # create ordered ordered list of dictories
+    status = [ 
+        {'rte':str(record.rte), 'count':int(record.count) } 
+        for record in scans_status.union(stops_status).order_by('rte')
+    ]
+    return status
+
 def quota(quota_file=None, route_field=None, target_field=None):
     data = {}
     if quota_file and route_field and target_field:
@@ -37,26 +56,82 @@ class Helper(object):
     routes = None
 
     def __init__(self, quota_file=None):
-        self.targets = self.get_targets()
-        self.routes = self.get_routes()
-        #self.status = self.get_status(self.targets)        
-        #if quota_file:
         #self.targets = self.get_targets()
+        self.routes = self.get_routes()
 
     @staticmethod
     def get_count(**kwargs):
         count = 0
-        #if 'line' in kwargs:
-            #if kwargs['line'] in TRAINS:
+        
         count += db.session.query(OnOffPairs_Stops)\
             .filter_by(**kwargs)\
             .count()
             #else:
+        
         count += db.session.query(OnOffPairs_Scans)\
             .join(OnOffPairs_Scans.on)\
             .filter_by(**kwargs)\
             .count()
         return count
+
+    # return total number of records for each route being surveyed
+    @staticmethod
+    def summary_status_query():
+        stops_status = db.session.query(
+            cast(OnOffPairs_Stops.line, Integer).label('rte'),
+            func.count(OnOffPairs_Stops.id).label('count')
+        ).group_by(OnOffPairs_Stops.line)
+        
+        scans_status = db.session.query(
+            cast(Scans.line, Integer).label('rte'),
+            func.count(Scans.id).label('count')
+        ).join(OnOffPairs_Scans.on).group_by(Scans.line)
+
+        # create ordered ordered list of dictories
+        quotas = db.session.query(
+            QuotasT.rte.label('rte'),
+            QuotasT.rte_desc.label('rte_desc'),
+            func.sum(QuotasT.onoff_target).label('target')
+        ).group_by(QuotasT.rte, QuotasT.rte_desc)
+
+        targets = {}  
+        for target in quotas:
+            rte = int(target.rte)
+            targets[rte] = {}
+            targets[rte]['rte_desc'] = str(target.rte_desc)
+            targets[rte]['target'] = int(target.target)
+
+        status = [ 
+            {'rte':str(record.rte),
+            'rte_desc':targets[record.rte]['rte_desc'],
+            'count':int(record.count),
+            'target':targets[record.rte]['target']}
+            for record in scans_status.union(stops_status).order_by('rte')
+        ]
+        
+        return status
+
+    @staticmethod
+    def summary_chart():
+        status = Helper.summary_status_query() 
+        
+        categories = []
+        remaining = []
+        complete = []
+        
+        for record in status:
+            pct = round((float(record['count']) / float(record['target'])) * 100)
+            categories.append(record['rte_desc'])
+            remaining.append(100 - pct) #record['target'] - record['count'])
+            complete.append(pct)
+
+        series = [
+            {'data':remaining, 'name':'remaining', 'color':RED_STATUS},
+            {'data':complete, 'name':'complete', 'color':GREEN_STATUS}
+        ]
+        
+        return {'series':series, 'categories':categories}
+
 
     @staticmethod
     def get_targets():
@@ -67,19 +142,21 @@ class Helper(object):
             count = Helper.get_count(line=row.rte, dir=row.dir)
             total += count
             data = {
+                'rte':row.rte,
+                'dir':row.dir,
                 'rte_desc':row.rte_desc,
                 'dir_desc':row.dir_desc,
                 'target':row.onoff_target,
                 'complete':int(count)
             }
             ret_val.append(data) 
-        app.logger.debug("total: " + str(total))
         return ret_val
 
     @staticmethod
     def get_routes():
         routes = db.session.query(distinct(QuotasT.rte))
-        ret_val = [route[0] for route in routes]
+        ret_val = [ route[0] for route in routes ]
+        #ret_val = [ str(rte) for rte in sorted(ret_val) ]
         return ret_val
 
 class Quota(Helper):
