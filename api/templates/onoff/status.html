@@ -20,17 +20,15 @@
     </td>
     <td>
       <div class="btn-group">
-        <button id="line_btn" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+        <button id="line-btn" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
         All    <span class="caret"></span>
         </button>
-        <ul id="filter_line" class="dropdown-menu scrollable-menu" role="menu">
+        <ul id="filter-line" class="dropdown-menu scrollable-menu" role="menu">
           <li role="presentation" class="dropdown-header">Route</li>
           <li role="presentation"><a href="#">All</a></li>
           <li role="presentation" class="divider"></li>
-
           <!-- func views.py::status()
                  func results from helper.py::Query.routes()
-
                returns a list of all routes that are queryable -->
           {% for route in routes %}
           <li><a href="#">{{ route }}</a></li>
@@ -98,7 +96,10 @@
                     stacking: 'Percent'
                 }
             },
-            series:series
+            series:series,
+            credits: {
+                enabled: false
+            }
         }
     }
     
@@ -128,14 +129,41 @@
         });
     }
 
-    //var targets = {{ targets|tojson|safe }};
+    //var targets = {targets|tojson|safe };
     //build_targets_table(targets)
-    
+   
+
+    function build_chart(variable, chart_data) {
+        var options = build_options(
+            'status_chart',
+            "Percent Complete by Route",
+            chart_data.categories, chart_data.series
+        );
+        variable = new Highcharts.Chart(options);
+    }
+
     var chart;
     var chart_data = {{ chart|tojson|safe }};
-    var options = build_options(
-        'status_chart', "This is a label", chart_data.categories, chart_data.series);
-    chart = new Highcharts.Chart(options);
+    build_chart(chart, chart_data);
+
+    function setSelection(selector, text) {
+        $(selector).text(text+' ').append('<span class="caret"></span>');
+    }
+
+    $('#filter-line a').on('click', function() {
+        var text = this.text;
+        setSelection('#line-btn', text);
+        console.log(text);
+       
+        var url = "{{ url_for('onoff.status_details') }}";
+        console.log(url);
+        var params = {'rte_desc':text};
+        $.getJSON(url, params ,function(data) {
+            console.log(data);
+        });
+    
+    });
+
 
 </script>
 {% endblock %}

@@ -1,0 +1,78 @@
+<html>
+
+
+<body>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script src="http://code.highcharts.com/highcharts.js"></script>
+
+
+
+<!-- container for chart -->
+<div id="status_chart" style="margin: 0 auto"></div>
+
+<script>
+    function build_options(container, title, categories, series) {
+        //size of columns in chart
+        var pointWidth = 50;
+        //set height of chart dynamically
+        var h = (pointWidth + 10) * 1 * categories.length + 50 + 70;
+        // + 10- distance between bars
+        // * 2 - number of series
+        // +50+70 - margins top + bottom
+        // n - number of points
+        return {
+            chart: {
+                type: 'bar',
+                renderTo: container,
+                height:h
+            },
+            title: {
+                text: title
+            },
+            xAxis: {
+                categories:categories
+            },
+            yAxis: {
+                min: 0,
+                max: 100,
+                title: {
+                    text: 'Percentage'
+                }
+            },
+            legend: {
+                reversed: true
+            },
+            plotOptions: {
+                series: {
+                    stacking: 'Percent'
+                }
+            },
+            series:series,
+            credits: {
+                enabled: false
+            }
+        }
+    }
+ 
+    var categories = ['one', 'two', 'three'];
+    var series = [
+        {'data':[
+            {y:50, url:"www.google.com"},
+            {y:40, url:"www.googel.com"},
+            {y:60, url:"www.googel.com"}
+        ], 'name':'remaining'},
+        {'data':[50, 60, 40], 'name':'complete'}
+    ];
+
+    var chart_data = {'categories':categories, 'series':series};
+    var options = build_options(
+        'status_chart', "This is a label", chart_data.categories, chart_data.series);
+    var chart = new Highcharts.Chart(options);
+
+
+</script>
+
+
+
+</body>
+</html>
