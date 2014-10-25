@@ -10,12 +10,6 @@ from api import app, db
 
 
 STATIC_DIR = '/onoff'
-#INBOUND = '1'
-#OUTBOUND = '0'
-#DIRECTION = {'1':'Inbound', '0':'Outbound'}
-#TRAINS = ['190','193','194','200']
-
-
 mod_onoff = Blueprint('onoff', __name__, url_prefix='/onoff')
 
 
@@ -29,15 +23,13 @@ def index():
 
 @mod_onoff.route('/test')
 def test():
-    #Helper.summary_status_query()
-    #quotas_file = os.path.join(app.config["ROOT_DIR"], "data/pmlr_targets.csv")
-    #helper = Helper(quota_file=quotas_file)
     return ""
 
 @mod_onoff.route('/overview')
 def overview():
     #results = Count.complete()
-    return "overview"#render_template(static('overview.html'), results=results)
+    return render_template(static('base.html'))
+    #return "overview"#render_template(static('overview.html'), results=results)
 
 @mod_onoff.route('/status')
 def status():
@@ -46,7 +38,6 @@ def status():
     
     return render_template(
         static('status.html'), routes=routes,chart=chart)
-
 
 #@mod_onoff.route('/status/_details', methods=['GET'])
 #def status_details():
@@ -60,9 +51,7 @@ def status_details():
      if 'rte_desc' in request.args.keys():
          app.logger.debug(request.args['rte_desc'])
          response = Helper.query_route(request.args['rte_desc'])
-
-         #line = request.args.get('line')
-         #response = Chart.single_route(line)
+     
      else:
          pass
          #routes = Query.routes()
@@ -71,11 +60,9 @@ def status_details():
      
      return jsonify(response)
 
-
-@mod_onoff.route('/map')
-def map():
-    return render_template(static('map.html'))
-
+#@mod_onoff.route('/map')
+#def map():
+#    return render_template(static('map.html'))
 
 @mod_onoff.route('/data')
 def data():
@@ -87,11 +74,7 @@ def data():
 
 @mod_onoff.route('/data/_query', methods=['GET'])
 def data_query():
-    #kwargs = {}
-    #for key, value in request.args.iteritems():
-    #    kwargs[key] = value
-    #records = Query.records(**kwargs)
-    return jsonify({})#{'records':records})
+    return jsonify({})
 
 
 

@@ -71,7 +71,6 @@ class Helper(object):
             if quota.rte in counts: data['count'] = counts[quota.rte]
             else: data['count'] = 0
             status.append(data)
-        
         return status
 
     @staticmethod
