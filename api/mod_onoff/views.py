@@ -48,15 +48,14 @@ def status():
 
 @mod_onoff.route('/status/_details', methods=['GET'])
 def status_details():
-     if 'rte_desc' in request.args.keys():
-         app.logger.debug(request.args['rte_desc'])
-         response = Helper.query_route(request.args['rte_desc'])
+     response = {'success':False}
      
-     else:
-         pass
-         #routes = Query.routes()
-         #response = Chart.all_routes(routes)
-     #app.logger.debug(response)
+     if 'rte_desc' in request.args.keys():
+         data = Helper.query_route(request.args['rte_desc'])
+         chart = Helper.single_chart(data)
+         response['success'] = True
+         response['data'] = data
+         response['chart'] = chart
      
      return jsonify(response)
 

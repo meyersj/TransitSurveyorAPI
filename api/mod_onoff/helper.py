@@ -93,6 +93,42 @@ class Helper(object):
         
         return {'series':series, 'categories':categories}
 
+    @staticmethod
+    def single_chart(data):
+        app.logger.debug(data)
+        
+        categories = []
+        remaining = []
+        complete = []
+
+        categories.append(data['0']['dir_desc'])
+        categories.append(data['1']['dir_desc'])
+        categories.append('Total')
+
+        count_total = 0
+        target_total = 0
+        for i in ['0', '1']:
+            count = float(data[i]['count'])
+            count_total += count
+            target = float(data[i]['target'])
+            target_total += target
+            pct = round( (count / target) * 100.0 )
+            remaining.append(100 - pct)
+            complete.append(pct)
+       
+        pct_total = round( (count_total / target_total) * 100.0 )
+        remaining.append(100 - pct_total)
+        complete.append(pct_total)
+
+        series = [
+            {'data':remaining, 'name':'remaining', 'color':RED_STATUS},
+            {'data':complete, 'name':'complete', 'color':GREEN_STATUS}
+        ]
+        
+        return {'series':series, 'categories':categories}
+
+
+
 
     @staticmethod
     def get_targets():
@@ -126,16 +162,45 @@ class Helper(object):
  
     @staticmethod
     def query_route(rte_desc):
-        targets = Helper.get_targets()
-        response = {}
-        for target in targets:
-            if target['rte_desc'] == rte_desc:
-                response[target['dir']] = {
-                    'dir_desc':target['dir_desc'],
-                    'target':target['target'],
-                    'complete':target['complete']
-                }
+        quotas = db.session.query(
+            cast(Quotas.rte, Integer).label('rte'),
+            Quotas.rte_desc.label('rte_desc'),
+            Quotas.dir.label('dir'),
+            Quotas.dir_desc.label('dir_desc'),
+            func.sum(Quotas.onoff_target).label('target')
+        ).filter(Quotas.rte_desc==rte_desc)\
+        .group_by(Quotas.rte, Quotas.rte_desc, Quotas.dir, Quotas.dir_desc).order_by('rte')
 
+        rte = str(quotas[0].rte)
+        targets = {}
+        for r in quotas:
+            data = {}
+            data['dir_desc'] = r.dir_desc
+            data['target'] = int(r.target)
+            targets[r.dir] = data
+
+        if rte in TRAINS:
+            status = db.session.query(
+                cast(OnOffPairs_Stops.line, Integer).label('rte'),
+                OnOffPairs_Stops.dir.label('dir'),
+                func.count(OnOffPairs_Stops.id).label('count')
+            ).filter(OnOffPairs_Stops.line == rte)\
+            .group_by(OnOffPairs_Stops.line, OnOffPairs_Stops.dir)
+
+        else:
+            status = db.session.query(
+                cast(Scans.line, Integer).label('rte'),
+                Scans.dir.label('dir'),
+                func.count(Scans.id).label('count')
+            ).join(OnOffPairs_Scans.on)\
+            .filter(Scans.line == rte).group_by(Scans.line, Scans.dir)
+       
+        response = {}
+        response['rte_desc'] = rte_desc
+        for s in status:
+            response[s.dir] = targets[s.dir]
+            response[s.dir]['count'] = int(s.count)
+        
         return response
 
 
