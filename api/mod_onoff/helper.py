@@ -178,7 +178,7 @@ class Helper(object):
             data['dir_desc'] = r.dir_desc
             data['target'] = int(r.target)
             targets[r.dir] = data
-
+        
         if rte in TRAINS:
             status = db.session.query(
                 cast(OnOffPairs_Stops.line, Integer).label('rte'),
@@ -197,10 +197,17 @@ class Helper(object):
        
         response = {}
         response['rte_desc'] = rte_desc
-        for s in status:
-            response[s.dir] = targets[s.dir]
-            response[s.dir]['count'] = int(s.count)
-        
+
+        if status.count() > 0:
+            for s in status:
+                response[s.dir] = targets[s.dir]
+                response[s.dir]['count'] = int(s.count)
+        else:
+            response['0'] = targets['0']
+            response['0']['count'] = 0
+            response['1'] = targets['1']
+            response['1']['count'] = 0
+
         return response
 
 
