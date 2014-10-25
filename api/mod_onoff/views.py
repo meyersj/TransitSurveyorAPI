@@ -35,15 +35,15 @@ def test():
     return ""
 
 @mod_onoff.route('/overview')
-def onoff_overview():
+def overview():
     #results = Count.complete()
-    return ""#render_template(static('overview.html'), results=results)
+    return "overview"#render_template(static('overview.html'), results=results)
 
 @mod_onoff.route('/status')
 def status():
     routes = [ route['rte_desc'] for route in Helper.get_routes() ]
     chart = Helper.summary_chart()
-
+    
     return render_template(
         static('status.html'), routes=routes,chart=chart)
 
