@@ -39,24 +39,20 @@
   </tr>
 </table>
 
-<!--div class="table-responsive">
+<!-- container for summary chart -->
+<div id="status_summary_chart" style="margin: 0 auto"></div>
+<!-- container for single chart -->
+<div id="status_route_chart" style="margin: 0 auto"></div>
+<!-- table for single status numbers -->
+<br>
+<div id="status_table" class="table-responsive">
   <table class="table table-striped">
-    <thead id="thead">
-      <tr>
-        <th>Route</th>
-        <th>Complete</th>
-        <th>Target</th>
-        <th>Percent</th>
-      </tr>
+    <thead id="status_thead">
     </thead> 
-    <tbody id="status_table">
+    <tbody id="status_tbody">
     </tbody>
   </table>
-</div-->
-
-
-<!-- container for chart -->
-<div id="status_chart" style="margin: 0 auto"></div>
+</div>
 
 <script>
 
@@ -85,7 +81,7 @@
                 min: 0,
                 max: 100,
                 title: {
-                    text: 'Percentage'
+                    text: 'Percent Complete'
                 }
             },
             legend: {
@@ -102,12 +98,16 @@
             }
         }
     }
-    
 
-    function build_cell(data) {
+    function bcell(data) {
         return '<td>' + data +'</td>';
     }
 
+    function hcell(data) {
+        return '<th>' + data +'</th>';
+    }
+
+    /*
     function pct_complete(complete, target) {
         var pct = Math.round((complete / target) * 100)
         return build_cell(String(pct)+'%');
@@ -120,7 +120,7 @@
         var pct = pct_complete(item.count, item.target);
         return '<tr>'+rte_desc+complete+target+pct+'</tr>';
     }
-    
+   
     function build_targets_table(data) {
         $(data).each(function(index, item) {
             var row = build_status_row(item);
@@ -128,24 +128,21 @@
             $("#status_table").append(row);
         });
     }
+    */
 
-    //var targets = {targets|tojson|safe };
-    //build_targets_table(targets)
-   
-
-    function build_chart(variable, chart_data) {
+    function build_chart(id, title, data) {
         var options = build_options(
-            'status_chart',
-            "Percent Complete by Route",
-            chart_data.categories, chart_data.series
+            id, title, data.categories, data.series
         );
-        variable = new Highcharts.Chart(options);
+        return new Highcharts.Chart(options);
     }
 
-    var chart;
     var chart_data = {{ chart|tojson|safe }};
-    build_chart(chart, chart_data);
-
+    var summary_chart = build_chart(
+        "status_summary_chart", "Percent Complete by Route", chart_data
+    );
+    var single_chart;
+ 
     function setSelection(selector, text) {
         $(selector).text(text+' ').append('<span class="caret"></span>');
     }
@@ -153,15 +150,62 @@
     $('#filter-line a').on('click', function() {
         var text = this.text;
         setSelection('#line-btn', text);
-        console.log(text);
-       
-        var url = "{{ url_for('onoff.status_details') }}";
-        console.log(url);
-        var params = {'rte_desc':text};
-        $.getJSON(url, params ,function(data) {
-            console.log(data);
-        });
-    
+        
+        if(text == 'All') {
+            $('#status_table').hide();
+            $('#status_route_chart').hide();
+            $('#status_summary_chart').show();
+        }
+        else {
+            var url = "{{ url_for('onoff.status_details') }}";
+            var params = {'rte_desc':text};
+            $.getJSON(url, params ,function(data) {
+                if(data.success == true) {
+                    $('#status_summary_chart').hide();
+                    
+                    var desc_0 = data.data['0'].dir_desc;
+                    var count_0 = data.data['0'].count;
+                    var target_0 = data.data['0'].target;
+                    var pct_0 = Math.round((count_0 / target_0) * 100).toString() + '%';
+                    var desc_1 = data.data['1'].dir_desc;
+                    var count_1 = data.data['1'].count;
+                    var target_1 = data.data['1'].target;
+                    var pct_1 = Math.round((count_1 / target_1) * 100).toString() + '%';
+                    var count_total = count_0 + count_1;
+                    var target_total = target_0 + target_1;
+                    var pct_total = Math.round((count_total / target_total) * 100).toString() + '%';
+
+                    function new_trow(header, zero, one, total) {
+                        return '<tr>'+hcell(header)+
+                            bcell(zero)+bcell(one)+bcell(total)+'</tr>';
+                    }
+
+                    function new_thead(zero, one) {
+                        return '<tr>'+hcell('&nbsp;')+
+                            hcell(zero)+hcell(one)+hcell('Total')+'</tr>';
+                    }
+
+                    var header_row = new_thead(desc_0, desc_1)+'</tr>';
+                    var complete_row = new_trow("Complete", count_0, count_1, count_total);
+                    var target_row = new_trow("Target", target_0, target_1, target_total);
+                    var pct_row = new_trow("Percent Complete", pct_0, pct_1, pct_total);
+
+                    $("#status_thead").empty().append(header_row);
+                    $("#status_tbody").empty().
+                        append(complete_row).
+                        append(target_row).
+                        append(pct_row);
+                    $('#status_table').show();
+                    
+                    single_chart = build_chart(
+                        "status_route_chart",
+                        "Percent Complete - Route: " + data.data.rte_desc,
+                        data.chart
+                    );
+                    $('#status_route_chart').show();
+                }
+            });
+        }
     });
 
 
