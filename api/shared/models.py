@@ -169,7 +169,22 @@ class Stops(Base):
     def __repr__(self):
         return '<Stops: %r %r>' % (self.stop_id, self.stop_name)
 
+class Quotas(Base):
+    __tablename__ = 'quota'
+    id = Column(Integer, primary_key = True)
+    rte = Column(Text)
+    rte_desc = Column(Text)
+    dir = Column(Text)
+    dir_desc = Column(Text)
+    ridership = Column(Integer)
+    onoff_target = Column(Integer)
+    main_target = Column(Integer)
 
+    def __repr__(self):
+        return '<Quota ID: %r>' % (self.id)
+
+
+"""
 class Routes(Base):
     __tablename__ = 'tm_routes'
     gid = Column(Integer, primary_key = True)
@@ -314,5 +329,5 @@ class SurveysLng(Base):
         self.uri = kwargs[cons.URI]
         self.parent_uri = kwargs[cons.PARENT_URI]
         self.value = kwargs[cons.VALUE]
-
+"""
 
