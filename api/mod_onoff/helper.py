@@ -163,10 +163,12 @@ class Helper(object):
     @staticmethod
     def query_route_data(rte_desc):
         response = []
+        # fetch route number from route description
         rte = db.session.query(Quotas.rte)\
                 .filter(Quotas.rte_desc == rte_desc).first().rte
-        app.logger.debug(rte)
         
+        # grab most recent 100 records for route
+        # and build list with data about each record
         if rte in TRAINS:
             data = db.session.query(OnOffPairs_Stops)\
                 .filter(OnOffPairs_Stops.line == rte)\
@@ -203,7 +205,6 @@ class Helper(object):
                     r['off_stop'] = d.off.stop_key.stop_name
                     response.append(r)
             
-        print response
         return response
     
     @staticmethod
