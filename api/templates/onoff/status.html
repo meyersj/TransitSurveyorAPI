@@ -107,29 +107,6 @@
         return '<th>' + data +'</th>';
     }
 
-    /*
-    function pct_complete(complete, target) {
-        var pct = Math.round((complete / target) * 100)
-        return build_cell(String(pct)+'%');
-    }
-
-    function build_status_row(item) {
-        var rte_desc = build_cell(item.rte_desc);
-        var complete = build_cell(item.count);
-        var target = build_cell(item.target);
-        var pct = pct_complete(item.count, item.target);
-        return '<tr>'+rte_desc+complete+target+pct+'</tr>';
-    }
-   
-    function build_targets_table(data) {
-        $(data).each(function(index, item) {
-            var row = build_status_row(item);
-            console.log(item);
-            $("#status_table").append(row);
-        });
-    }
-    */
-
     function build_chart(id, title, data) {
         var options = build_options(
             id, title, data.categories, data.series
@@ -141,6 +118,7 @@
     var summary_chart = build_chart(
         "status_summary_chart", "Percent Complete by Route", chart_data
     );
+
     var single_chart;
  
     function setSelection(selector, text) {
