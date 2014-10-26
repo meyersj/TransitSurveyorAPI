@@ -180,7 +180,7 @@ class Helper(object):
                     r = {}
                     r['date'] = str(d.date.date())
                     r['time'] = str(d.date.time())
-                    r['user_id'] = d.user_id
+                    r['user'] = d.user_id
                     r['rte_desc'] = d.on.rte_desc
                     r['dir_desc'] = d.on.dir_desc
                     r['on_stop'] = d.on.stop_name
@@ -198,7 +198,7 @@ class Helper(object):
                     r = {}
                     r['date'] = str(d.on.date.date())
                     r['time'] = str(d.on.date.time()) + '/' + str(d.off.date.time())
-                    r['user_id'] = d.on.user_id + '/' + d.off.user_id
+                    r['user'] = d.on.user_id + '/' + d.off.user_id
                     r['rte_desc'] = d.on.stop_key.rte_desc
                     r['dir_desc'] = d.on.stop_key.dir_desc
                     r['on_stop'] = d.on.stop_key.stop_name
