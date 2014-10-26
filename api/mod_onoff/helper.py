@@ -159,9 +159,55 @@ class Helper(object):
         ret_val = [ {'rte':str(route.rte), 'rte_desc':route.rte_desc}
             for route in routes ]
         return ret_val
- 
+
     @staticmethod
-    def query_route(rte_desc):
+    def query_route_data(rte_desc):
+        response = []
+        rte = db.session.query(Quotas.rte)\
+                .filter(Quotas.rte_desc == rte_desc).first().rte
+        app.logger.debug(rte)
+        
+        if rte in TRAINS:
+            data = db.session.query(OnOffPairs_Stops)\
+                .filter(OnOffPairs_Stops.line == rte)\
+                .order_by(OnOffPairs_Stops.date.desc())\
+                .limit(100).all()
+           
+            if data:
+                for d in data:
+                    r = {}
+                    r['date'] = str(d.date.date())
+                    r['time'] = str(d.date.time())
+                    r['user_id'] = d.user_id
+                    r['rte_desc'] = d.on.rte_desc
+                    r['dir_desc'] = d.on.dir_desc
+                    r['on_stop'] = d.on.stop_name
+                    r['off_stop'] = d.off.stop_name
+                    response.append(r)
+        else:
+            data = db.session.query(OnOffPairs_Scans)\
+                .join(OnOffPairs_Scans.on)\
+                .filter_by(line = rte)\
+                .order_by(Scans.date.desc())\
+                .limit(100).all()
+            
+            if data:
+                for d in data:
+                    r = {}
+                    r['date'] = str(d.on.date.date())
+                    r['time'] = str(d.on.date.time()) + '/' + str(d.off.date.time())
+                    r['user_id'] = d.on.user_id + '/' + d.off.user_id
+                    r['rte_desc'] = d.on.stop_key.rte_desc
+                    r['dir_desc'] = d.on.stop_key.dir_desc
+                    r['on_stop'] = d.on.stop_key.stop_name
+                    r['off_stop'] = d.off.stop_key.stop_name
+                    response.append(r)
+            
+        print response
+        return response
+    
+    @staticmethod
+    def query_route_status(rte_desc):
         quotas = db.session.query(
             cast(Quotas.rte, Integer).label('rte'),
             Quotas.rte_desc.label('rte_desc'),
