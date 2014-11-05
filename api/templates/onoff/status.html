@@ -140,7 +140,12 @@
             $.getJSON(url, params ,function(data) {
                 if(data.success == true) {
                     $('#status_summary_chart').hide();
+
+                    // TODO fix table to work with time of day data
+                    //keep table hidden for now
+                    $('#status_table').hide();
                     
+                    /*
                     var desc_0 = data.data['0'].dir_desc;
                     var count_0 = data.data['0'].count;
                     var target_0 = data.data['0'].target;
@@ -174,6 +179,7 @@
                         append(target_row).
                         append(pct_row);
                     $('#status_table').show();
+                    */ 
                     
                     single_chart = build_chart(
                         "status_route_chart",

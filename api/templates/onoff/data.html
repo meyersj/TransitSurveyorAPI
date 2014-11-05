@@ -28,8 +28,9 @@
       </div>
     </td>
   </tr>
+  <!-- TODO get direction to auto populate based on route selected -->
   <!--tr>
-    <td style="padding-right:1em">
+  <td style="padding-right:1em">
       <strong>Direction:</strong>
     </td>
     <td>
@@ -94,7 +95,7 @@
     }
 
     //build table on initial page load with no filter params
-    //rebuild({});
+    rebuild({'rte_desc':null});
 
     function build_params(line, dir) {
         var dir_lookup = {Inbound:'1',Outbound:'0'}
@@ -111,14 +112,18 @@
     $('#filter_line a').on('click', function() {
         sel_line = this.text;
         $("#line_btn").text(this.text+' ').append('<span class="caret"></span>');
-        rebuild(build_params(sel_line, sel_dir));
+        console.log(this.text);
+        rebuild({'rte_desc':this.text});
+        //rebuild(build_params(sel_line, sel_dir));
     });
 
+    /*
     $('#filter_dir a').on('click', function() {
         sel_dir = this.text;
         $("#dir_btn").text(this.text+' ').append('<span class="caret"></span>');
         rebuild(build_params(sel_line, sel_dir));
     });
+    */
 
 </script>
 
