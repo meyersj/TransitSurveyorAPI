@@ -3,7 +3,7 @@ import csv, os
 from sqlalchemy import func, desc, distinct, cast, Integer
 
 from flask import current_app
-from api.shared.models import Quotas, Scans, OnOffPairs_Scans, OnOffPairs_Stops
+#from api.shared.models import Scans, OnOffPairs_Scans, OnOffPairs_Stops
 from api import db
 
 app = current_app
@@ -16,62 +16,42 @@ DIRECTION = {'1':'Inbound', '0':'Outbound'}
 TRAINS = ['190','193','194','200']
 
 class Helper(object):
-    targets = None
-    routes = None
-
-    def __init__(self, quota_file=None):
-        #self.targets = self.get_targets()
-        self.routes = self.get_routes()
-
-    @staticmethod
-    def get_count(**kwargs):
-        count = 0
-        
-        count += db.session.query(OnOffPairs_Stops)\
-            .filter_by(**kwargs)\
-            .count()
-            #else:
-        
-        count += db.session.query(OnOffPairs_Scans)\
-            .join(OnOffPairs_Scans.on)\
-            .filter_by(**kwargs)\
-            .count()
-        return count
 
     # return total number of records for each route being surveyed
     @staticmethod
     def summary_status_query():
-        stops_status = db.session.query(
-            cast(OnOffPairs_Stops.line, Integer).label('rte'),
-            func.count(OnOffPairs_Stops.id).label('count')
-        ).group_by(OnOffPairs_Stops.line)
-       
-
-        scans_status = db.session.query(
-            cast(Scans.line, Integer).label('rte'),
-            func.count(Scans.id).label('count')
-        ).join(OnOffPairs_Scans.on).group_by(Scans.line)
+        # TODO add union for streetcar data
+        ret_val = []
+      
+        # get count and target for each route
+        query = db.session.execute("""
+            SELECT 
+                rte,
+                rte_desc,
+                sum(count) AS count,
+                sum(target) AS target
+            FROM v.summary
+            GROUP BY rte, rte_desc
+            ORDER BY rte;""")
         
-        counts = {}
-        for record in scans_status.union(stops_status):
-            counts[record.rte] = record.count 
+        # indexes for tuples returned by query
+        RTE = 0
+        RTE_DESC = 1
+        COUNT = 2
+        TARGET = 3
 
-        quotas = db.session.query(
-            cast(Quotas.rte, Integer).label('rte'),
-            Quotas.rte_desc.label('rte_desc'),
-            func.sum(Quotas.onoff_target).label('target')
-        ).group_by(Quotas.rte, Quotas.rte_desc).order_by('rte')
-       
-        status = []
-        for quota in quotas:
+        # build data for each route
+        # and add to ret_val list
+        # sorted by route number
+        for record in query:
             data = {}
-            data['rte'] = str(quota.rte)
-            data['rte_desc'] = quota.rte_desc
-            data['target'] = int(quota.target)
-            if quota.rte in counts: data['count'] = counts[quota.rte]
-            else: data['count'] = 0
-            status.append(data)
-        return status
+            data['rte'] = str(record[RTE])
+            data['rte_desc'] = record[RTE_DESC]
+            data['count'] = float(record[COUNT])
+            data['target'] = float(record[TARGET])
+            ret_val.append(data)
+
+        return ret_val
 
     @staticmethod
     def summary_chart():
@@ -81,7 +61,7 @@ class Helper(object):
         complete = []
         
         for record in status:
-            pct = round((float(record['count']) / float(record['target'])) * 100)
+            pct = round((record['count'] / record['target']) * 100)
             categories.append(record['rte_desc'])
             remaining.append(100 - pct)
             complete.append(pct)
@@ -95,31 +75,33 @@ class Helper(object):
 
     @staticmethod
     def single_chart(data):
-        app.logger.debug(data)
+
+        # TODO handle case for streetcar routes 
+        # seperate categories - no time of day?
         
         categories = []
         remaining = []
         complete = []
 
-        categories.append(data['0']['dir_desc'])
-        categories.append(data['1']['dir_desc'])
-        categories.append('Total')
-
-        count_total = 0
-        target_total = 0
-        for i in ['0', '1']:
-            count = float(data[i]['count'])
-            count_total += count
-            target = float(data[i]['target'])
-            target_total += target
-            pct = round( (count / target) * 100.0 )
-            remaining.append(100 - pct)
-            complete.append(pct)
+        times = ("AM Peak", "Midday", "PM Peak", "Evening")
        
-        pct_total = round( (count_total / target_total) * 100.0 )
-        remaining.append(100 - pct_total)
-        complete.append(pct_total)
-
+        # build categories "<Direction> <Time Period>" label
+        for direction in ['0', '1']:
+            for time in times:
+                stats = data[direction][time]
+                # if we have data for that time period
+                # add a record to 
+                if stats:
+                    categories.append(time + ": " + data[direction]['dir_desc'])
+                    pct = 0
+                    if stats['count'] != 0:
+                        count = float(stats['count'])
+                        target = float(stats['target'])
+                        pct = round((count / target) * 100, 2)
+                    
+                    remaining.append(100 - pct)
+                    complete.append(pct)
+        
         series = [
             {'data':remaining, 'name':'remaining', 'color':RED_STATUS},
             {'data':complete, 'name':'complete', 'color':GREEN_STATUS}
@@ -127,134 +109,116 @@ class Helper(object):
         
         return {'series':series, 'categories':categories}
 
-
-
-
-    @staticmethod
-    def get_targets():
-        query = db.session.query(Quotas)
-        ret_val = []
-        total = 0
-        for row in query:            
-            count = Helper.get_count(line=row.rte, dir=row.dir)
-            total += count
-            data = {
-                'rte':row.rte,
-                'dir':row.dir,
-                'rte_desc':row.rte_desc,
-                'dir_desc':row.dir_desc,
-                'target':row.onoff_target,
-                'complete':int(count)
-            }
-            ret_val.append(data) 
-        return ret_val
-
     @staticmethod
     def get_routes():
-        routes = db.session.query(
-            cast(Quotas.rte, Integer).label('rte'),
-            Quotas.rte_desc.label('rte_desc'))\
-            .distinct().order_by('rte')
+        ret_val = []
 
-        ret_val = [ {'rte':str(route.rte), 'rte_desc':route.rte_desc}
+        routes = db.session.execute("""
+            SELECT rte, rte_desc
+            FROM v.lookup_rte
+            ORDER BY rte;""")
+
+        ret_val = [ {'rte':str(route[0]), 'rte_desc':route[1]}
             for route in routes ]
+        
         return ret_val
 
     @staticmethod
     def query_route_data(rte_desc):
-        response = []
-        # fetch route number from route description
-        rte = db.session.query(Quotas.rte)\
-                .filter(Quotas.rte_desc == rte_desc).first().rte
-        
-        # grab most recent 100 records for route
-        # and build list with data about each record
-        if rte in TRAINS:
-            data = db.session.query(OnOffPairs_Stops)\
-                .filter(OnOffPairs_Stops.line == rte)\
-                .order_by(OnOffPairs_Stops.date.desc())\
-                .limit(100).all()
-           
-            if data:
-                for d in data:
-                    r = {}
-                    r['date'] = str(d.date.date())
-                    r['time'] = str(d.date.time())
-                    r['user'] = d.user_id
-                    r['rte_desc'] = d.on.rte_desc
-                    r['dir_desc'] = d.on.dir_desc
-                    r['on_stop'] = d.on.stop_name
-                    r['off_stop'] = d.off.stop_name
-                    response.append(r)
-        else:
-            data = db.session.query(OnOffPairs_Scans)\
-                .join(OnOffPairs_Scans.on)\
-                .filter_by(line = rte)\
-                .order_by(Scans.date.desc())\
-                .limit(100).all()
-            
-            if data:
-                for d in data:
-                    r = {}
-                    r['date'] = str(d.on.date.date())
-                    r['time'] = str(d.on.date.time()) + '/' + str(d.off.date.time())
-                    r['user'] = d.on.user_id + '/' + d.off.user_id
-                    r['rte_desc'] = d.on.stop_key.rte_desc
-                    r['dir_desc'] = d.on.stop_key.dir_desc
-                    r['on_stop'] = d.on.stop_key.stop_name
-                    r['off_stop'] = d.off.stop_key.stop_name
-                    response.append(r)
-            
-        return response
-    
+        ret_val = []
+      
+        # query last 100 most recent
+        # records for route passed in
+        query = db.session.execute("""
+            SELECT rte_desc, dir_desc, date, time, user_id,
+                on_stop_name, off_stop_name
+            FROM v.display_data
+            WHERE rte_desc = :rte_desc
+            ORDER BY date, time DESC
+            LIMIT 100;""", {'rte_desc':rte_desc})
+
+        RTE_DESC = 0
+        DIR_DESC = 1
+        DATE = 2
+        TIME = 3
+        USER = 4
+        ON_STOP = 5
+        OFF_STOP = 6
+
+        # each record will be converted as json
+        # and sent back to page
+        for record in query:
+            data = {}
+            data['date'] = str(record[DATE])
+            data['time'] = str(record[TIME])
+            data['user'] = record[USER]
+            data['rte_desc'] = record[RTE_DESC]
+            data['dir_desc'] = record[DIR_DESC]
+            data['on_stop'] = record[ON_STOP]
+            data['off_stop'] = record[OFF_STOP]
+            ret_val.append(data)
+       
+        return ret_val
+
     @staticmethod
     def query_route_status(rte_desc):
-        quotas = db.session.query(
-            cast(Quotas.rte, Integer).label('rte'),
-            Quotas.rte_desc.label('rte_desc'),
-            Quotas.dir.label('dir'),
-            Quotas.dir_desc.label('dir_desc'),
-            func.sum(Quotas.onoff_target).label('target')
-        ).filter(Quotas.rte_desc==rte_desc)\
-        .group_by(Quotas.rte, Quotas.rte_desc, Quotas.dir, Quotas.dir_desc).order_by('rte')
-
-        rte = str(quotas[0].rte)
-        targets = {}
-        for r in quotas:
-            data = {}
-            data['dir_desc'] = r.dir_desc
-            data['target'] = int(r.target)
-            targets[r.dir] = data
-        
-        if rte in TRAINS:
-            status = db.session.query(
-                cast(OnOffPairs_Stops.line, Integer).label('rte'),
-                OnOffPairs_Stops.dir.label('dir'),
-                func.count(OnOffPairs_Stops.id).label('count')
-            ).filter(OnOffPairs_Stops.line == rte)\
-            .group_by(OnOffPairs_Stops.line, OnOffPairs_Stops.dir)
-
-        else:
-            status = db.session.query(
-                cast(Scans.line, Integer).label('rte'),
-                Scans.dir.label('dir'),
-                func.count(Scans.id).label('count')
-            ).join(OnOffPairs_Scans.on)\
-            .filter(Scans.line == rte).group_by(Scans.line, Scans.dir)
+        ret_val = {}
        
-        response = {}
-        response['rte_desc'] = rte_desc
+        # query web database
+        # using helper views
+        query = db.session.execute("""
+            SELECT rte, rte_desc, dir, dir_desc,
+                time_period, count, target
+            FROM v.summary
+            WHERE rte_desc = :rte_desc
+            ORDER BY rte, dir,
+                CASE time_period
+                    WHEN 'AM Peak' THEN 1
+                    WHEN 'Midday' THEN 2
+                    WHEN 'PM Peak' THEN 3
+                    WHEN 'Evening' THEN 4
+                    WHEN 'Total' THEN 5
+                ELSE 6
+                END;""", {'rte_desc':rte_desc})
+        
+        # index for each tuple in query results
+        RTE = 0
+        RTE_DESC = 1
+        DIR = 2
+        DIR_DESC = 3
+        TIME = 4
+        COUNT = 5
+        TARGET = 6
 
-        if status.count() > 0:
-            for s in status:
-                response[s.dir] = targets[s.dir]
-                response[s.dir]['count'] = int(s.count)
-        else:
-            response['0'] = targets['0']
-            response['0']['count'] = 0
-            response['1'] = targets['1']
-            response['1']['count'] = 0
+        def build_shell(dir_desc):
+            ret_val = {}
+            ret_val['dir_desc'] = dir_desc
+            ret_val['AM Peak'] = {}
+            ret_val['Midday'] = {}
+            ret_val['PM Peak'] = {}
+            ret_val['Evening'] = {}
+            return ret_val
 
-        return response
+        # look through query results
+        # and build response
+        for record in query:
+            str_dir = str(record[DIR])
+            data = {}
+            data['target'] = int(record[TARGET])
+            data['count'] = int(record[COUNT])
 
+            # add route description
+            # only executes in first loop
+            if record[RTE_DESC] not in ret_val:
+                ret_val[RTE_DESC] = record[RTE_DESC]
+            
+            # build dictionary for each time period
+            if str_dir not in ret_val:
+                ret_val[str_dir] = build_shell(record[DIR_DESC])
+            
+            # set target and count data into correct
+            # direction and time period
+            ret_val[str_dir][record[TIME]] = data
+       
+        return ret_val
 

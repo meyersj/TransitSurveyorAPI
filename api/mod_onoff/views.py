@@ -36,7 +36,7 @@ def overview():
 def status():
     routes = [ route['rte_desc'] for route in Helper.get_routes() ]
     chart = Helper.summary_chart()
-    
+
     return render_template(
         static('status.html'), routes=routes,chart=chart)
 
@@ -54,6 +54,8 @@ def status_details():
      if 'rte_desc' in request.args.keys():
          data = Helper.query_route_status(request.args['rte_desc'])
          chart = Helper.single_chart(data)
+         app.logger.debug(data)
+         app.logger.debug(chart)
          response['success'] = True
          response['data'] = data
          response['chart'] = chart
@@ -76,7 +78,7 @@ def data():
 def data_query():
     response = []
     if 'rte_desc' in request.args.keys():
-         response = Helper.query_route_data(request.args['rte_desc'])
+        response = Helper.query_route_data(request.args['rte_desc'])
   
     return jsonify(data=response)
 
