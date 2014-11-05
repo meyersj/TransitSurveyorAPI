@@ -129,13 +129,23 @@ class Helper(object):
       
         # query last 100 most recent
         # records for route passed in
-        query = db.session.execute("""
-            SELECT rte_desc, dir_desc, date, time, user_id,
-                on_stop_name, off_stop_name
-            FROM v.display_data
-            WHERE rte_desc = :rte_desc
-            ORDER BY date, time DESC
-            LIMIT 100;""", {'rte_desc':rte_desc})
+        
+        app.logger.debug(rte_desc)        
+        if rte_desc and rte_desc != 'All': 
+            query = db.session.execute("""
+                SELECT rte_desc, dir_desc, date, time, user_id,
+                    on_stop_name, off_stop_name
+                FROM v.display_data
+                WHERE rte_desc = :rte_desc
+                ORDER BY date, time DESC
+                LIMIT 100;""", {'rte_desc':rte_desc})
+        else:
+            query = db.session.execute("""
+                SELECT rte_desc, dir_desc, date, time, user_id,
+                    on_stop_name, off_stop_name
+                FROM v.display_data
+                ORDER BY date, time DESC
+                LIMIT 100;""")
 
         RTE_DESC = 0
         DIR_DESC = 1
