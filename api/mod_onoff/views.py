@@ -23,7 +23,8 @@ def index():
 
 @mod_onoff.route('/test')
 def test():
-    return ""
+    return "hilogg"
+    
 
 @mod_onoff.route('/overview')
 def overview():
