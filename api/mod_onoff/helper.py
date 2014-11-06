@@ -4,7 +4,7 @@ from sqlalchemy import func, desc, distinct, cast, Integer
 
 from flask import current_app
 #from api.shared.models import Scans, OnOffPairs_Scans, OnOffPairs_Stops
-from api import db
+from api import db, web_session
 
 app = current_app
 
@@ -24,7 +24,7 @@ class Helper(object):
         ret_val = []
       
         # get count and target for each route
-        query = db.session.execute("""
+        query = web_session.execute("""
             SELECT 
                 rte,
                 rte_desc,
@@ -113,7 +113,7 @@ class Helper(object):
     def get_routes():
         ret_val = []
 
-        routes = db.session.execute("""
+        routes = web_session.execute("""
             SELECT rte, rte_desc
             FROM v.lookup_rte
             ORDER BY rte;""")
@@ -132,7 +132,7 @@ class Helper(object):
         
         app.logger.debug(rte_desc)        
         if rte_desc and rte_desc != 'All': 
-            query = db.session.execute("""
+            query = web_session.execute("""
                 SELECT rte_desc, dir_desc, date, time, user_id,
                     on_stop_name, off_stop_name
                 FROM v.display_data
@@ -140,7 +140,7 @@ class Helper(object):
                 ORDER BY date, time DESC
                 LIMIT 100;""", {'rte_desc':rte_desc})
         else:
-            query = db.session.execute("""
+            query = web_session.execute("""
                 SELECT rte_desc, dir_desc, date, time, user_id,
                     on_stop_name, off_stop_name
                 FROM v.display_data
@@ -176,7 +176,7 @@ class Helper(object):
        
         # query web database
         # using helper views
-        query = db.session.execute("""
+        query = web_session.execute("""
             SELECT rte, rte_desc, dir, dir_desc,
                 time_period, count, target
             FROM v.summary
@@ -220,7 +220,7 @@ class Helper(object):
             # add route description
             # only executes in first loop
             if record[RTE_DESC] not in ret_val:
-                ret_val[RTE_DESC] = record[RTE_DESC]
+                ret_val['rte_desc'] = record[RTE_DESC]
             
             # build dictionary for each time period
             if str_dir not in ret_val:

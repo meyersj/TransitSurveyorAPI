@@ -54,8 +54,6 @@ def status_details():
      if 'rte_desc' in request.args.keys():
          data = Helper.query_route_status(request.args['rte_desc'])
          chart = Helper.single_chart(data)
-         app.logger.debug(data)
-         app.logger.debug(chart)
          response['success'] = True
          response['data'] = data
          response['chart'] = chart
@@ -77,10 +75,12 @@ def data():
 @mod_onoff.route('/data/_query', methods=['GET'])
 def data_query():
     response = []
+    rte_desc = ""
     if 'rte_desc' in request.args.keys():
-        response = Helper.query_route_data(request.args['rte_desc'])
-  
-    return jsonify(data=response)
+        rte_desc = request.args['rte_desc']
+        response = Helper.query_route_data(rte_desc)
+        
+    return jsonify(data=response, rte_desc=rte_desc)
 
 
 
