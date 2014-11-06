@@ -130,7 +130,6 @@ class Helper(object):
         # query last 100 most recent
         # records for route passed in
         
-        app.logger.debug(rte_desc)        
         if rte_desc and rte_desc != 'All': 
             query = web_session.execute("""
                 SELECT rte_desc, dir_desc, date, time, user_id,
@@ -158,6 +157,7 @@ class Helper(object):
         # each record will be converted as json
         # and sent back to page
         for record in query:
+            app.logger.debug(record)
             data = {}
             data['date'] = str(record[DATE])
             data['time'] = str(record[TIME])
