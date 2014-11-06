@@ -1,6 +1,8 @@
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_bootstrap import Bootstrap
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
 
 app = Flask(__name__)
 app.config.from_object('config')
@@ -8,6 +10,10 @@ db = SQLAlchemy(app)
 
 #modifed to False if deploying with wsgi
 app.debug = True
+
+engine = create_engine(app.config['WEB_DB_CONFIG'])
+Session = sessionmaker(bind=engine)
+web_session = Session()
 
 from api.mod_api.views import mod_api as api_module
 from api.mod_onoff.views import mod_onoff as onoff_module
