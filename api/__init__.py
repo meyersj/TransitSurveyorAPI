@@ -15,6 +15,11 @@ engine = create_engine(app.config['WEB_DB_CONFIG'])
 Session = sessionmaker(bind=engine)
 web_session = Session()
 
+# assign new function names
+# to make deubg and error logging easier
+debug = app.logger.debug
+error = app.logger.error
+
 from api.mod_api.views import mod_api as api_module
 from api.mod_onoff.views import mod_onoff as onoff_module
 #from api.mod_long.views import mod_long as long_module

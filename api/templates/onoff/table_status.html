@@ -1,0 +1,160 @@
+{% extends "onoff/base.html" %}
+
+
+{% block dashboard %}
+{{ super() }}
+
+
+<br>
+
+<!-- table that has body populated by ajax call -->
+<div class="table-responsive">
+  <table class="table table-bordered">
+    <thead id="thead">
+      <tr>
+        <th rowspan="2"></th>
+        <th colspan="4" class="text-center">Inbound</th>
+        <th colspan="4" class="text-center">Outboud</th>
+      </tr>
+      <tr>
+        <th class="text-center">AM</th>
+        <th class="text-center">Mid</th>
+        <th class="text-center">PM</th>
+        <th class="text-center">Eve</th>
+        <th class="text-center">AM</th>
+        <th class="text-center">Mid</th>
+        <th class="text-center">PM</th>
+        <th class="text-center">Eve</th>
+      </tr>
+    </thead> 
+    <tbody id="tbody">  
+    </tbody>
+  </table>
+</div>
+
+<script>
+    var routes = {{ routes|tojson|safe }};
+    var data = {{ data|tojson|safe }};
+    var streetcar = {{ streetcar|tojson|safe }};
+
+    function build_cell(text, pct) {
+        var td = $('<td>');
+        //td.text(text);
+        if(pct) {
+            if(pct > 100) text = "100%";
+            else text = pct.toString() + "%";
+            td.attr("class", get_status(pct));
+        }
+        if(text == 'N/A') {
+            td.attr("class", "status-none");
+        }
+        td.text(text);
+        td.attr("align", "center");
+        return td;
+    }
+    
+    function get_number(data) {
+        var ret_val = "";
+        if(!$.isEmptyObject(data)) {
+            ret_val = (data['count'].toString() + '/' + data['target'].toString())
+        }
+        return ret_val;
+    }
+
+    function get_pct(data) {
+        var ret_val = 0;
+        if(!$.isEmptyObject(data)) {
+            ret_val= ((data['count'] / data['target']) * 100).toFixed(0);
+        }
+        return ret_val;
+    }
+
+    function get_status(pct_complete) {
+        var num = Math.floor(pct_complete / 25) + 1;
+        var cls = "";
+        switch (num) {
+            case 1:
+                cls = "status-1";
+                break;
+            case 2:
+                cls = "status-2";
+                break;
+            case 3:
+                cls = "status-3";               
+                break;
+            case 4: 
+                cls = "status-4";
+                break;
+            default:
+                cls = "status-complete";
+        }
+        return cls;
+    }
+    
+    function build_stats_row(rte_desc, data) {
+        var times = ['AM Peak', 'Midday', 'PM Peak', 'Evening'];
+        var array = [];
+        var nbsp = "N/A";
+        array[0] = rte_desc
+       
+        var tr = $('<tr>');
+            tr.append($('<th>').text(rte_desc));
+        
+        for(var i = 0; i < 4; i++) {
+            if (!$.isEmptyObject(data['0'][times[i]])) {
+                console.log(data['0'][times[i]]);
+                tr.append(
+                    build_cell(
+                        get_number(data['0'][times[i]]),
+                        get_pct(data['0'][times[i]])
+                    )
+                );
+            }
+            else {
+                tr.append(build_cell(nbsp, null));
+            }   
+        }
+        for(var i = 4; i < 8; i++) {                
+            if (!$.isEmptyObject(data['1'][times[i - 4]])) {
+                tr.append(
+                    build_cell(
+                        get_number(data['1'][times[i - 4]]),
+                        get_pct(data['1'][times[i - 4]])
+                    )
+                );
+            }
+            else {
+                tr.append(build_cell(nbsp, null));
+            }
+        }
+        return tr;
+    }
+
+    console.log(data);
+    $(routes).each(function(index, item) {
+
+        var tr = $('<tr>');
+        if (item.indexOf('Portland Streetcar') < 0) {
+            tr = build_stats_row(item, data[item]);
+        }
+        else {
+            tr.append($('<th>').text(item));
+            tr.append(
+                $('<td>').text(get_pct(streetcar[item]).toString() + '%')
+                    .attr("colspan", "8")
+                    .attr("class", get_status(get_pct(streetcar[item])))
+                    .attr("align", "center")
+            );
+        }
+        $("#tbody").append(tr);
+    
+    });
+ 
+
+
+   
+
+</script>
+
+{% endblock %}
+

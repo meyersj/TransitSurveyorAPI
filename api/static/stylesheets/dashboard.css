@@ -72,3 +72,35 @@ body {
     overflow-x: hidden;
 }
 
+.status-1  {
+    /*background:#DB5555;*/
+    background-color:rgba(219,85,85,0.6);
+
+}
+.status-2  {
+    /*background:#D4A246;*/
+    background-color:rgba(212,162,70,0.6);
+
+}
+.status-3  {
+    /*background:#CCFF33;*/
+    background-color:rgba(204,255,51,0.6);
+
+}
+.status-4  {
+    /*background:#A1ED44;*/
+    background-color:rgba(161,237,68,0.6);
+
+}
+.status-complete  {
+    /*background:#76DB55;*/
+    background-color:rgba(118,219,85,0.6);
+}
+.status-none  {
+    /*background:#76DB55;*/
+    background-color:rgba(219,217,217,0.6);
+}
+
+.table th {
+    text-align:"center"
+}

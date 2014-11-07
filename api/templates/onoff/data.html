@@ -29,11 +29,11 @@
     </td>
   </tr>
   <!-- TODO get direction to auto populate based on route selected -->
-  <!--tr>
-  <td style="padding-right:1em">
+  <tr>
+  <td class="direction_cls" style="padding-right:1em; display:none">
       <strong>Direction:</strong>
-    </td>
-    <td>
+  </td>
+    <td class="direction_cls" style="display: none;">
       <div class="btn-group">
         <button id="dir_btn" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
         All    <span class="caret"></span>
@@ -42,12 +42,12 @@
           <li role="presentation" class="dropdown-header">Direction</li>
           <li role="presentation"><a href="#">All</a></li>
           <li role="presentation" class="divider"></li>    
-          <li><a href="#">Inbound</a></li>
-          <li><a href="#">Outbound</a></li>
+          <li><a href="#" id="inbound_link"></a></li>
+          <li><a href="#" id="outbound_link"></a></li>
         </ul>
       </div>
     </td>
-  </tr-->
+  </tr>
 </table>
 
 <br>
@@ -70,9 +70,22 @@
 <script>
     console.log("test");
     //set when a route or direction is selected from dropdowns
-    var sel_line = null;
-    var sel_dir = null;
+    var sel_line = '';
+    var sel_dir = '';
+
+    //convert ordered directions data by rte and desc
+    //into lookup object
+    //{rte_desc:{0:<outbound dir_desc>, 1:<inbound dir_desc>}, ... }
+    var directions = {{ directions|tojson|safe }};
+    var dir_lookup = {};
     
+    $(directions).each(function(index, item) {
+        if(!dir_lookup.hasOwnProperty(item.rte_desc)) {
+            dir_lookup[item.rte_desc] = {};
+        }
+        dir_lookup[item.rte_desc][item.dir] = item.dir_desc;
+    });
+
     function rebuild(args) {
         console.log(args);
         
@@ -95,35 +108,39 @@
     }
 
     //build table on initial page load with no filter params
-    rebuild({'rte_desc':null});
-
-    function build_params(line, dir) {
-        var dir_lookup = {Inbound:'1',Outbound:'0'}
-        ret_val = {};
-        if(line != null && line != 'All') {
-            ret_val['rte_desc'] = line;
-        }
-        if(dir != null && dir != 'All') {
-            ret_val['dir'] = dir_lookup[dir];
-        }
-        return ret_val;
-    }
+    rebuild({'rte_desc':sel_line, 'dir_desc':sel_dir});
 
     $('#filter_line a').on('click', function() {
-        sel_line = this.text;
+        sel_line = this.text
+        sel_dir = '';
         $("#line_btn").text(this.text+' ').append('<span class="caret"></span>');
-        console.log(this.text);
-        rebuild({'rte_desc':this.text});
-        //rebuild(build_params(sel_line, sel_dir));
+
+        if (this.text == "All") {
+            //resert direction
+            //hide direction dropdown
+            $(".direction_cls").hide();
+        }
+        else {
+            //update direction dropdown with correct names
+            var dir = dir_lookup[this.text];
+            $("#outbound_link").text(dir[0]+' ').show();
+            $("#inbound_link").text(dir[1]+' ').show();
+            $(".direction_cls").show();
+        }
+        
+        $("#dir_btn").text('All ').append('<span class="caret"></span>');
+        
+        if (sel_line == 'All') sel_line = '';
+        rebuild({'rte_desc':sel_line, 'dir_desc':sel_dir});
     });
 
-    /*
     $('#filter_dir a').on('click', function() {
         sel_dir = this.text;
         $("#dir_btn").text(this.text+' ').append('<span class="caret"></span>');
-        rebuild(build_params(sel_line, sel_dir));
+        
+        if (sel_dir == 'All') sel_dir = '';
+        rebuild({'rte_desc':sel_line, 'dir_desc':sel_dir});
     });
-    */
 
 </script>
 
