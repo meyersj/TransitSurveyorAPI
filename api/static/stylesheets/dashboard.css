@@ -101,6 +101,11 @@ body {
     background-color:rgba(219,217,217,0.6);
 }
 
-.table th {
-    text-align:"center"
+.tbl-header {
+    background-color:rgba(234,227,227,0.6);
 }
+
+.tbl-row-header {
+    background-color:rgba(201,213,219,0.6);
+}
+

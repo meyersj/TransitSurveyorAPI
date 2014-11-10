@@ -151,40 +151,58 @@ class Helper(object):
 
 
     @staticmethod
-    def query_route_data(rte_desc='', dir_desc=''):
+    def query_route_data(user='', rte_desc='', dir_desc='', csv=False):
         ret_val = []
-        debug("query: " + rte_desc + ' ' + dir_desc)
+        query_args = {}       
+        where = ""
 
-        # query last 100 most recent
-        # records for route and direction passed in
-        # TODO method to build query instead of having three..
-        if rte_desc and dir_desc:
-            debug('rte and dir')
-            query = web_session.execute("""
-                SELECT rte_desc, dir_desc, date, time, user_id,
-                    on_stop_name, off_stop_name
-                FROM v.display_data
-                WHERE rte_desc = :rte_desc
-                AND dir_desc = :dir_desc
-                ORDER BY date DESC, time DESC
-                LIMIT 100;""", {'rte_desc':rte_desc, 'dir_desc':dir_desc})
-        elif rte_desc:
-            debug('just_dir')
-            query = web_session.execute("""
-                SELECT rte_desc, dir_desc, date, time, user_id,
-                    on_stop_name, off_stop_name
-                FROM v.display_data
-                WHERE rte_desc = :rte_desc
-                ORDER BY date DESC, time DESC
-                LIMIT 100;""", {'rte_desc':rte_desc})
-        else:
-            debug('other')
-            query = web_session.execute("""
-                SELECT rte_desc, dir_desc, date, time, user_id,
-                    on_stop_name, off_stop_name
-                FROM v.display_data
-                ORDER BY date DESC, time DESC
-                LIMIT 100;""")
+        if user: user = "%" + user + "%"
+        user_filter = " user_id LIKE :user "
+        rte_desc_filter = " rte_desc = :rte_desc "
+        dir_desc_filter = " dir_desc = :dir_desc "
+        
+        def construct_where(string, param, filt_name):
+            if not param:
+                return string
+
+            if filt_name == "user": filt = user_filter
+            elif filt_name == "rte_desc": filt = rte_desc_filter
+            else: filt = dir_desc_filter
+
+            if string:
+                return string + " AND " + filt
+            else:
+                return string + filt
+      
+        # build where clause
+        debug(where)
+        for param in [(user, 'user'),(rte_desc, 'rte_desc'),(dir_desc, 'dir_desc')]:
+            where = construct_where(where, param[0], param[1])
+            debug(where)
+            
+            query_args[param[1]] = param[0]
+        if where:
+            where = " WHERE " + where
+        
+        limit = "LIMIT 300;"
+        if csv:
+            # add headers to csv data
+            ret_val.append(
+                ['date','time','user','rte_desc','dir_desc','on_stop', 'off_stop'])
+            
+            limit = ";"
+ 
+        query_string = """
+            SELECT rte_desc, dir_desc, date, time, user_id,
+                on_stop_name, off_stop_name
+            FROM v.display_data """
+        query_string += where 
+        query_string += " ORDER BY date DESC, time DESC "
+        query_string += limit
+
+        debug(query_string)
+
+        query = web_session.execute(query_string, query_args)
 
         RTE_DESC = 0
         DIR_DESC = 1
@@ -197,17 +215,26 @@ class Helper(object):
         # each record will be converted as json
         # and sent back to page
         for record in query:
-            data = {}
-            data['date'] = str(record[DATE])
-            data['time'] = str(record[TIME])
-            data['user'] = record[USER]
-            data['rte_desc'] = record[RTE_DESC]
-            data['dir_desc'] = record[DIR_DESC]
-            data['on_stop'] = record[ON_STOP]
-            data['off_stop'] = record[OFF_STOP]
+            if csv:
+                data = []
+                data.append(str(record[DATE]))
+                data.append(str(record[TIME]))
+                data.append(record[USER])
+                data.append(record[RTE_DESC])
+                data.append(record[DIR_DESC])
+                data.append(record[ON_STOP])
+                data.append(record[OFF_STOP])
+            else:
+                data = {}
+                data['date'] = str(record[DATE])
+                data['time'] = str(record[TIME])
+                data['user'] = record[USER]
+                data['rte_desc'] = record[RTE_DESC]
+                data['dir_desc'] = record[DIR_DESC]
+                data['on_stop'] = record[ON_STOP]
+                data['off_stop'] = record[OFF_STOP]
             ret_val.append(data)
       
-        debug(ret_val)
         return ret_val
 
 
@@ -338,4 +365,53 @@ class Helper(object):
             ret_val[str(dir)][time] = data
         
         return ret_val
+
+     
+    @staticmethod
+    def current_users(date):
+        ret_val = {}
+        
+        results = web_session.execute("""
+            SELECT rte_desc, time_period, user_id, rte
+            FROM v.users_tod
+            WHERE date = :date
+            ORDER BY
+            CASE time_period
+                WHEN 'AM Peak' THEN 1
+                    WHEN 'Midday' THEN 2
+                    WHEN 'PM Peak' THEN 3
+                    WHEN 'Evening' THEN 4
+                    WHEN 'Total' THEN 5
+                ELSE 6
+            END, rte;""",{'date':date})
+
+            
+        for result in results:
+            
+            rte_desc = result[0]
+            time_period = result[1]
+            user = result[2]
+
+            if time_period not in ret_val:
+                ret_val[time_period] = []
+            
+            data = {'rte_desc':rte_desc, 'user':user}
+            ret_val[time_period].append(data)
+        
+        debug(ret_val)
+        return ret_val
+
+    @staticmethod
+    def get_users():
+        users = ["testuser", "anon", "meyersj",
+            "mchughb", "reckerj", "petersry", "dbower",
+            "Twaller", "Rpeabody", "kweaver", "dloftus"
+        ]
+        
+        return sorted(users)
+
+
+
+
+
 

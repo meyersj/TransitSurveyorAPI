@@ -1,198 +1,158 @@
 {% extends "onoff/base.html" %}
 
-{% block head %}
-{{ super() }}
-<script src="//code.highcharts.com/highcharts.js"></script>
-<!--script src="../static/js/charts.js"></script-->
-
-
-{% endblock %}
-
 
 {% block dashboard %}
 {{ super() }}
-
-<!-- dropdowns that trigger ajax call to update table based on selection -->
-<table>
-  <tr>
-    <td style="padding-right:1em">
-      <strong>Route:</strong>
-    </td>
-    <td>
-      <div class="btn-group">
-        <button id="line-btn" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-        All    <span class="caret"></span>
-        </button>
-        <ul id="filter-line" class="dropdown-menu scrollable-menu" role="menu">
-          <li role="presentation" class="dropdown-header">Route</li>
-          <li role="presentation"><a href="#">All</a></li>
-          <li role="presentation" class="divider"></li>
-          <!-- func views.py::status()
-                 func results from helper.py::Query.routes()
-               returns a list of all routes that are queryable -->
-          {% for route in routes %}
-          <li><a href="#">{{ route }}</a></li>
-          {% endfor %}
-        </ul>
-      </div>
-    </td>
-  </tr>
-</table>
-
-<!-- container for summary chart -->
-<div id="status_summary_chart" style="margin: 0 auto"></div>
-<!-- container for single chart -->
-<div id="status_route_chart" style="margin: 0 auto"></div>
-<!-- table for single status numbers -->
 <br>
-<div id="status_table" class="table-responsive">
-  <table class="table table-striped">
-    <thead id="status_thead">
+<!-- table that has body populated by ajax call -->
+<div id="status-table" class="table-responsive panel panel-default">
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th rowspan="2"></th>
+        <th colspan="4" class="text-center">Inbound</th>
+        <th colspan="4" class="text-center">Outboud</th>
+      </tr>
+      <tr>
+        <th class="text-center">AM</th>
+        <th class="text-center">Mid</th>
+        <th class="text-center">PM</th>
+        <th class="text-center">Eve</th>
+        <th class="text-center">AM</th>
+        <th class="text-center">Mid</th>
+        <th class="text-center">PM</th>
+        <th class="text-center">Eve</th>
+      </tr>
     </thead> 
-    <tbody id="status_tbody">
+    <!-- fill in body from json status data -->
+    <tbody>  
     </tbody>
   </table>
 </div>
 
 <script>
 
-    function build_options(container, title, categories, series) {
-        //size of columns in chart
-        var pointWidth = 50;
-        //set height of chart dynamically
-        var h = (pointWidth + 10) * 1 * categories.length + 50 + 70;
-        // + 10- distance between bars
-        // * 2 - number of series
-        // +50+70 - margins top + bottom
-        // n - number of points
-        return {
-            chart: {
-                type: 'bar',
-                renderTo: container,
-                height:h
-            },
-            title: {
-                text: title
-            },
-            xAxis: {
-                categories:categories
-            },
-            yAxis: {
-                min: 0,
-                max: 100,
-                title: {
-                    text: 'Percent Complete'
-                }
-            },
-            legend: {
-                reversed: true
-            },
-            plotOptions: {
-                series: {
-                    stacking: 'Percent'
-                }
-            },
-            series:series,
-            credits: {
-                enabled: false
+    function build_cell(text, pct) {
+        var td = $('<td>');
+        //td.text(text);
+        if(pct) {
+            if(pct > 100) text = "100%";
+            else text = pct.toString() + "%";
+            td.attr("class", get_status(pct));
+        }
+        if(text == 'N/A') {
+            td.attr("class", "status-none");
+        }
+        td.text(text);
+        td.attr("align", "center");
+        return td;
+    }
+    
+    function get_number(data) {
+        var ret_val = "";
+        if(!$.isEmptyObject(data)) {
+            ret_val = (data['count'].toString() + '/' + data['target'].toString())
+        }
+        return ret_val;
+    }
+
+    function get_pct(data) {
+        var ret_val = 0;
+        if(!$.isEmptyObject(data)) {
+            ret_val= ((data['count'] / data['target']) * 100).toFixed(0);
+        }
+        return ret_val;
+    }
+
+    function get_status(pct_complete) {
+        var cls = "";
+        switch (Math.floor(pct_complete / 25) + 1) {
+            //0% -> 24%
+            case 1:
+                cls = "status-1";
+                break;
+            //25% -> 49%  
+            case 2:
+                cls = "status-2";
+                break;
+            //50% -> 74%    
+            case 3:
+                cls = "status-3";               
+                break;
+            //75% -> 99%    
+            case 4: 
+                cls = "status-4";
+                break;
+            //100% +    
+            default:
+                cls = "status-complete";
+        }
+        return cls;
+    }
+    
+    function build_stats_row(rte_desc, data) {
+        var array = [];
+        var nbsp = "N/A";
+        array[0] = rte_desc
+       
+        var tr = $('<tr>');
+            tr.append($('<th>').text(rte_desc));
+        
+        //        
+        for(var i = 0; i < 4; i++) {
+            if (!$.isEmptyObject(data['0'][times[i]])) {
+                tr.append(
+                    build_cell(
+                        get_number(data['0'][times[i]]),
+                        get_pct(data['0'][times[i]])
+                    )
+                );
+            }
+            else {
+                tr.append(build_cell(nbsp, null));
+            }   
+        }
+        for(var i = 4; i < 8; i++) {                
+            if (!$.isEmptyObject(data['1'][times[i - 4]])) {
+                tr.append(
+                    build_cell(
+                        get_number(data['1'][times[i - 4]]),
+                        get_pct(data['1'][times[i - 4]])
+                    )
+                );
+            }
+            else {
+                tr.append(build_cell(nbsp, null));
             }
         }
+        return tr;
     }
+    
+    var routes = {{ routes|tojson|safe }};
+    var data = {{ data|tojson|safe }};
+    var streetcar = {{ streetcar|tojson|safe }};
+    var times = ['AM Peak', 'Midday', 'PM Peak', 'Evening'];
 
-    function bcell(data) {
-        return '<td>' + data +'</td>';
-    }
+    $(routes).each(function(index, item) {
 
-    function hcell(data) {
-        return '<th>' + data +'</th>';
-    }
-
-    function build_chart(id, title, data) {
-        var options = build_options(
-            id, title, data.categories, data.series
-        );
-        return new Highcharts.Chart(options);
-    }
-
-    var chart_data = {{ chart|tojson|safe }};
-    var summary_chart = build_chart(
-        "status_summary_chart", "Percent Complete by Route", chart_data
-    );
-
-    var single_chart;
- 
-    function setSelection(selector, text) {
-        $(selector).text(text+' ').append('<span class="caret"></span>');
-    }
-
-    $('#filter-line a').on('click', function() {
-        var text = this.text;
-        setSelection('#line-btn', text);
-        
-        if(text == 'All') {
-            $('#status_table').hide();
-            $('#status_route_chart').hide();
-            $('#status_summary_chart').show();
+        var tr = $('<tr>');
+        if (item.indexOf('Portland Streetcar') < 0) {
+            tr = build_stats_row(item, data[item]);
         }
         else {
-            var url = "{{ url_for('onoff.status_details') }}";
-            var params = {'rte_desc':text};
-            $.getJSON(url, params ,function(data) {
-                if(data.success == true) {
-                    $('#status_summary_chart').hide();
-
-                    // TODO fix table to work with time of day data
-                    //keep table hidden for now
-                    $('#status_table').hide();
-                    
-                    /*
-                    var desc_0 = data.data['0'].dir_desc;
-                    var count_0 = data.data['0'].count;
-                    var target_0 = data.data['0'].target;
-                    var pct_0 = Math.round((count_0 / target_0) * 100).toString() + '%';
-                    var desc_1 = data.data['1'].dir_desc;
-                    var count_1 = data.data['1'].count;
-                    var target_1 = data.data['1'].target;
-                    var pct_1 = Math.round((count_1 / target_1) * 100).toString() + '%';
-                    var count_total = count_0 + count_1;
-                    var target_total = target_0 + target_1;
-                    var pct_total = Math.round((count_total / target_total) * 100).toString() + '%';
-
-                    function new_trow(header, zero, one, total) {
-                        return '<tr>'+hcell(header)+
-                            bcell(zero)+bcell(one)+bcell(total)+'</tr>';
-                    }
-
-                    function new_thead(zero, one) {
-                        return '<tr>'+hcell('&nbsp;')+
-                            hcell(zero)+hcell(one)+hcell('Total')+'</tr>';
-                    }
-
-                    var header_row = new_thead(desc_0, desc_1)+'</tr>';
-                    var complete_row = new_trow("Complete", count_0, count_1, count_total);
-                    var target_row = new_trow("Target", target_0, target_1, target_total);
-                    var pct_row = new_trow("Percent Complete", pct_0, pct_1, pct_total);
-
-                    $("#status_thead").empty().append(header_row);
-                    $("#status_tbody").empty().
-                        append(complete_row).
-                        append(target_row).
-                        append(pct_row);
-                    $('#status_table').show();
-                    */ 
-                    
-                    single_chart = build_chart(
-                        "status_route_chart",
-                        "Percent Complete " + data.data.rte_desc,
-                        data.chart
-                    );
-                    $('#status_route_chart').show();
-                }
-            });
+            tr.append($('<th>').text(item));
+            tr.append(
+                $('<td>').text(get_pct(streetcar[item]).toString() + '%')
+                    .attr("colspan", "8")
+                    .attr("class", get_status(get_pct(streetcar[item])))
+                    .attr("align", "center")
+            );
         }
+        $("#status-table tbody").append(tr);
+    
     });
 
-
 </script>
+
 {% endblock %}
 
