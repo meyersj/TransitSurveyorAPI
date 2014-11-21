@@ -403,10 +403,15 @@ class Helper(object):
 
     @staticmethod
     def get_users():
-        users = ["testuser", "anon", "meyersj",
-            "mchughb", "reckerj", "petersry", "dbower",
-            "Twaller", "Rpeabody", "kweaver", "dloftus"
-        ]
+        users = [
+            "aggreye", "aronsonr",
+            "bishopk", "brockq", "cumminga", "dbower",
+            "dloftus", "elkingtj", "hamiltob", "herzogn",
+            "hickeyj", "kweaver", "langstoe", "longj",
+            "meyersj", "pala", "petersry", "rogerss",
+            "Rpeabody", "schoenbi", "sheehana", "testuser",
+            "turnera", "Twaller", "wagnerz", "willeyc"
+        ] 
         
         return sorted(users)
 
