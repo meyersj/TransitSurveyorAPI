@@ -16,7 +16,7 @@ Session = sessionmaker(bind=engine)
 web_session = Session()
 
 # assign new function names
-# to make deubg and error logging easier
+# to make debug and error logging easier
 debug = app.logger.debug
 error = app.logger.error
 
