@@ -14,7 +14,7 @@ app.debug = True
 engine = create_engine(app.config['WEB_DB_CONFIG'])
 Session = scoped_session(sessionmaker(bind=engine))
 
-web_session = Session()
+#web_session = Session()
 
 # assign new function names
 # to make deubg and error logging easier
