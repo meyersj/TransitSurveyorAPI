@@ -4,7 +4,7 @@ from sqlalchemy import func, desc, distinct, cast, Integer
 
 from flask import current_app
 #from api.shared.models import Scans, OnOffPairs_Scans, OnOffPairs_Stops
-from api import db #web_session
+from api import db
 from api import Session
 from api import debug
 
