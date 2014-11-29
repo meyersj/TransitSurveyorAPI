@@ -9,7 +9,7 @@ from sqlalchemy import func
 from models import Scans, OnOffPairs_Scans, OnOffPairs_Stops
 from helper import Helper
 from api import app, db
-from api import debug, error, web_session
+from api import debug, error, Session #web_session
 
 STATIC_DIR = '/onoff'
 mod_onoff = Blueprint('onoff', __name__, url_prefix='/onoff')
@@ -36,6 +36,7 @@ def overview():
 def status():
     routes = [ route['rte_desc'] for route in Helper.get_routes() ]
     data = Helper.query_route_status()
+    web_session = Session()
     query = web_session.execute("""
         SELECT rte_desc, sum(count) AS count
         FROM v.records
@@ -51,6 +52,7 @@ def status():
     for record in query:
         debug(record)
         streetcar[record[0]]['count'] = int(record[1])
+    web_session.close()
     return render_template(static('status.html'), 
             streetcar=streetcar, routes=routes, data=data)
 
@@ -95,9 +97,6 @@ def data():
     routes = [ route['rte_desc'] for route in Helper.get_routes() ]
     directions = Helper.get_directions()
     users = Helper.get_users()
-    
-    debug(users)
-    #users = ['meyersj', 'testuser']
     
     return render_template(static('data.html'),
             routes=routes, directions=directions, headers=headers,
@@ -152,6 +151,7 @@ def surveyor_summary_query():
         date = request.args['date'].strip()
 
     response = Helper.current_users(date)
+    debug(response)
     return jsonify(users=response)
 
 

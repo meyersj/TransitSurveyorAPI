@@ -1,7 +1,7 @@
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_bootstrap import Bootstrap
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import create_engine
 
 app = Flask(__name__)
@@ -12,8 +12,9 @@ db = SQLAlchemy(app)
 app.debug = True
 
 engine = create_engine(app.config['WEB_DB_CONFIG'])
-Session = sessionmaker(bind=engine)
-web_session = Session()
+Session = scoped_session(sessionmaker(bind=engine))
+
+#web_session = Session()
 
 # assign new function names
 # to make debug and error logging easier

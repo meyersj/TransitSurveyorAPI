@@ -4,7 +4,8 @@ from sqlalchemy import func, desc, distinct, cast, Integer
 
 from flask import current_app
 #from api.shared.models import Scans, OnOffPairs_Scans, OnOffPairs_Stops
-from api import db, web_session
+from api import db #web_session
+from api import Session
 from api import debug
 
 app = current_app
@@ -16,6 +17,7 @@ OUTBOUND = '0'
 DIRECTION = {'1':'Inbound', '0':'Outbound'}
 TRAINS = ['190','193','194','200']
 
+
 class Helper(object):
 
     # return total number of records for each route being surveyed
@@ -25,6 +27,7 @@ class Helper(object):
         ret_val = []
       
         # get count and target for each route
+        web_session = Session()
         query = web_session.execute("""
             SELECT 
                 rte,
@@ -51,6 +54,7 @@ class Helper(object):
             data['count'] = float(record[COUNT])
             data['target'] = float(record[TARGET])
             ret_val.append(data)
+        web_session.close()
 
         return ret_val
 
@@ -115,6 +119,8 @@ class Helper(object):
     @staticmethod
     def get_routes():
         ret_val = []
+        
+        web_session = Session()
         routes = web_session.execute("""
             SELECT rte, rte_desc
             FROM v.lookup_rte
@@ -124,12 +130,14 @@ class Helper(object):
         RTE_DESC = 1
         ret_val = [ {'rte':str(route[RTE]), 'rte_desc':route[RTE_DESC]}
             for route in routes ]
+        web_session.close()
         
         return ret_val
 
     @staticmethod
     def get_directions():
         ret_val = []
+        web_session = Session()
         directions = web_session.execute("""
             SELECT rte, rte_desc, dir, dir_desc
             FROM v.lookup_dir
@@ -144,7 +152,7 @@ class Helper(object):
             'dir':int(direction[DIR]), 'dir_desc':direction[DIR_DESC]}
             for direction in directions ]
         app.logger.debug(ret_val)
-
+        web_session.close()
         return ret_val
 
 
@@ -202,6 +210,7 @@ class Helper(object):
 
         debug(query_string)
 
+        web_session = Session()
         query = web_session.execute(query_string, query_args)
 
         RTE_DESC = 0
@@ -234,7 +243,7 @@ class Helper(object):
                 data['on_stop'] = record[ON_STOP]
                 data['off_stop'] = record[OFF_STOP]
             ret_val.append(data)
-      
+        web_session.close()
         return ret_val
 
 
@@ -246,7 +255,8 @@ class Helper(object):
       
         # query web database
         # using helper views
-        
+       
+        web_session = Session()
         if rte_desc:
             query = web_session.execute("""
                 SELECT rte, rte_desc, dir, dir_desc,
@@ -281,9 +291,7 @@ class Helper(object):
                     ELSE 6
                     END;""")
             ret_val = Helper.build_response_summary_status(query)
-          
-       
-       
+        web_session.close()
         return ret_val
 
     @staticmethod
@@ -371,6 +379,7 @@ class Helper(object):
     def current_users(date):
         ret_val = {}
         
+        web_session = Session()
         results = web_session.execute("""
             SELECT rte_desc, time_period, user_id, rte
             FROM v.users_tod
@@ -390,20 +399,39 @@ class Helper(object):
             
             rte_desc = result[0]
             time_period = result[1]
-            user = result[2]
-
+            
+            user = ", ".join(
+                sorted(list(set([user.strip() for user in result[2].split(",")]))))
+            
+            #list1 = result[2].split(",")
+            #list2 = set(list1)
+            #list3 = ", ".join(list2)
+            #debug(list1)
+            #debug(list2)
+            #debug(list3)
+            #user = ", ".join(list(set(result[2].split(","))))
+            #debug(user)
             if time_period not in ret_val:
                 ret_val[time_period] = []
             
             data = {'rte_desc':rte_desc, 'user':user}
             ret_val[time_period].append(data)
-        
+        web_session.close() 
         debug(ret_val)
         return ret_val
 
     @staticmethod
     def get_users():
-        users = ["Twaller", "Rpeabody", "kweaver", "dloftus"]
+        #users = ["Twaller", "Rpeabody", "kweaver", "dloftus"]
+        users = [
+            "aggreye", "aronsonr",
+            "bishopk", "brockq", "cumminga", "dbower",
+            "dloftus", "elkingtj", "hamiltob", "herzogn",
+            "hickeyj", "kweaver", "langstoe", "longj",
+            "meyersj", "pala", "petersry", "rogerss",
+            "Rpeabody", "schoenbi", "sheehana", "testuser",
+            "turnera", "Twaller", "wagnerz", "willeyc"
+        ] 
         return sorted(users)
 
 
