@@ -246,6 +246,29 @@ class Helper(object):
         web_session.close()
         return ret_val
 
+    @staticmethod
+    def query_routes_summary():
+        ret_val = {}
+      
+        # query web database
+        # using helper views
+       
+        web_session = Session()
+        query = web_session.execute("""
+            SELECT rte, rte_desc, sum(count), sum(target) * 0.2
+            FROM v.summary
+            GROUP BY rte, rte_desc
+            ORDER BY rte;""")
+
+        for record in query:
+            rte_desc = record[1]
+            count = int(record[2])
+            target = int(record[3])
+            ret_val[rte_desc] = {"count":count, "target":target}
+
+        return ret_val
+
+
 
     @staticmethod
     def query_route_status(rte_desc=''):

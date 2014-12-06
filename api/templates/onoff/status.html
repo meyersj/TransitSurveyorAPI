@@ -10,6 +10,7 @@
     <thead>
       <tr>
         <th rowspan="2"></th>
+        <th rowspan="2" class="text-center">Total</th>
         <th colspan="4" class="text-center">Inbound</th>
         <th colspan="4" class="text-center">Outbound</th>
       </tr>
@@ -90,15 +91,15 @@
         return cls;
     }
     
-    function build_stats_row(rte_desc, data) {
+    function build_stats_row(rte_desc, data, summary_data) {
         var array = [];
         var nbsp = "N/A";
         array[0] = rte_desc
        
         var tr = $('<tr>');
             tr.append($('<th>').text(rte_desc));
+            tr.append(build_cell(get_number(summary_data), get_pct(summary_data))); 
         
-        //        
         for(var i = 0; i < 4; i++) {
             if (!$.isEmptyObject(data['0'][times[i]])) {
                 tr.append(
@@ -130,6 +131,9 @@
     
     var routes = {{ routes|tojson|safe }};
     var data = {{ data|tojson|safe }};
+    var summary = {{ summary|tojson|safe }};
+
+    console.log(summary);
     var streetcar = {{ streetcar|tojson|safe }};
     var times = ['AM Peak', 'Midday', 'PM Peak', 'Evening'];
 
@@ -137,13 +141,13 @@
 
         var tr = $('<tr>');
         if (item.indexOf('Portland Streetcar') < 0) {
-            tr = build_stats_row(item, data[item]);
+            tr = build_stats_row(item, data[item], summary[item]);
         }
         else {
             tr.append($('<th>').text(item));
             tr.append(
                 $('<td>').text(get_pct(streetcar[item]).toString() + '%')
-                    .attr("colspan", "8")
+                    .attr("colspan", "9")
                     .attr("class", get_status(get_pct(streetcar[item])))
                     .attr("align", "center")
             );

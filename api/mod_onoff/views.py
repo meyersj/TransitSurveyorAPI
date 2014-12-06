@@ -48,13 +48,15 @@ def status():
             "Portland Streetcar - NS Line":{'target':2182, 'count':0},
             "Portland Streetcar - CL Line":{'target':766, 'count':0}
     }
-    
     for record in query:
         debug(record)
         streetcar[record[0]]['count'] = int(record[1])
     web_session.close()
+   
+    summary = Helper.query_routes_summary()
+    
     return render_template(static('status.html'), 
-            streetcar=streetcar, routes=routes, data=data)
+            streetcar=streetcar, routes=routes, data=data, summary=summary)
 
 """
 
