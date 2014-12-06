@@ -260,7 +260,7 @@ class Helper(object):
         if rte_desc:
             query = web_session.execute("""
                 SELECT rte, rte_desc, dir, dir_desc,
-                    time_period, count, target
+                    time_period, count, target * .2
                 FROM v.summary
                 WHERE rte_desc = :rte_desc
                 ORDER BY rte, dir,
@@ -279,7 +279,7 @@ class Helper(object):
             # using helper views
             query = web_session.execute("""
                 SELECT rte, rte_desc, dir, dir_desc,
-                    time_period, count, target
+                    time_period, count, target * .2
                 FROM v.summary
                 ORDER BY rte, dir,
                     CASE time_period
