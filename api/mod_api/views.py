@@ -4,8 +4,9 @@ import logging
 import hashlib
 
 from flask import Blueprint, request, jsonify
-from api import app, db
+from api import app, db, debug
 
+from sqlalchemy import func as sql_func
 from geoalchemy2.elements import WKTElement
 from geoalchemy2 import functions as func
 import models
@@ -125,8 +126,8 @@ def insertPair():
 def stopLookup():
     data = json.loads(request.form[DATA])
     geom = getGeom(data[LAT], data[LON])
-    stop_name, error = findNearStop(geom, data[LINE], data[DIR]) 
-    return jsonify(error=error, stop_name=stop_name)
+    stop_name, stop_seq, error = findNearStop(geom, data[LINE], data[DIR]) 
+    return jsonify(error=error, stop_seq_rem=stop_seq, stop_name=stop_name)
 
 def getGeom(lat, lon):
     geom = None
@@ -138,21 +139,28 @@ def getGeom(lat, lon):
     return geom
 
 def findNearStop(geom, line, dir):
+    stop_seq = None
     stop_name = None
     error = True
     if geom is None:
         return stop_name, error
     try:
-        near_stop = db.session.query(models.Stops.gid, models.Stops.stop_name,
+        near_stop = db.session.query(
+            models.Stops.gid, models.Stops.stop_name, models.Stops.stop_seq,
             func.ST_Distance(models.Stops.geom, geom).label("dist"))\
             .filter_by(rte=int(line), dir=int(dir))\
             .order_by(models.Stops.geom.distance_centroid(geom))\
             .first()
         if near_stop:
             stop_name = near_stop.stop_name
+            stop_seq = near_stop.stop_seq
+            max_stop = db.session.query(sql_func.max(models.Stops.stop_seq))\
+                .filter_by(rte=int(line), dir=int(dir)).first()
+            
+            stop_seq = int((max_stop[0] - stop_seq) / 50)
             error = False
 
     except Exception as e:
         app.logger.warn("Exception thrown in findNearStop: " + str(e))
 
-    return stop_name, error
+    return stop_name, stop_seq, error
