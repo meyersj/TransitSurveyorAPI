@@ -54,7 +54,7 @@ def status():
     web_session.close()
    
     summary = Helper.query_routes_summary()
-    
+    debug(summary) 
     return render_template(static('status.html'), 
             streetcar=streetcar, routes=routes, data=data, summary=summary)
 
