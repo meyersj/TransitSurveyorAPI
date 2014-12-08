@@ -101,11 +101,11 @@
             tr.append(build_cell(get_number(summary_data), get_pct(summary_data))); 
         
         for(var i = 0; i < 4; i++) {
-            if (!$.isEmptyObject(data['0'][times[i]])) {
+            if (!$.isEmptyObject(data['1'][times[i]])) {
                 tr.append(
                     build_cell(
-                        get_number(data['0'][times[i]]),
-                        get_pct(data['0'][times[i]])
+                        get_number(data['1'][times[i]]),
+                        get_pct(data['1'][times[i]])
                     )
                 );
             }
@@ -114,11 +114,11 @@
             }   
         }
         for(var i = 4; i < 8; i++) {                
-            if (!$.isEmptyObject(data['1'][times[i - 4]])) {
+            if (!$.isEmptyObject(data['0'][times[i - 4]])) {
                 tr.append(
                     build_cell(
-                        get_number(data['1'][times[i - 4]]),
-                        get_pct(data['1'][times[i - 4]])
+                        get_number(data['0'][times[i - 4]]),
+                        get_pct(data['0'][times[i - 4]])
                     )
                 );
             }
