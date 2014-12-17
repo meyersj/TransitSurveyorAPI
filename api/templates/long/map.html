@@ -39,7 +39,7 @@
             var url = '_geoquery'; 
             var args = {uri:uri};
             $.getJSON(url, args, function(data) {
-                if(!isEmpty(data.data)) {
+                if(!$.isEmptyObject(data.data)) {
                     console.log(data.data);
                     addMarkers(data.data);
                 }
@@ -88,16 +88,6 @@
         addMarker(data.dest_geom, blue);
         addMarker(data.on_geom, green);
         addMarker(data.off_geom, red);   
-    }
-
-    function isEmpty(obj) {
-        if (obj == null) return true;
-        if (obj.length > 0)    return false;
-        if (obj.length === 0)  return true;
-        for (var key in obj) {
-            if (hasOwnProperty.call(obj, key)) return false;
-        }
-        return true;
     }
 
 </script>
