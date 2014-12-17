@@ -4,7 +4,7 @@ function initmap(map_div) {
 
     // create the tile layer with correct attribution
     var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-    osmUrl = 'https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png';    
+    //osmUrl = 'https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png';    
     var osmAttrib='Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';
     var osm = new L.TileLayer(osmUrl, {
         minZoom: 8,
@@ -15,7 +15,7 @@ function initmap(map_div) {
 
     // start the map in South-East England
     map.setView(new L.LatLng(45.51, -122.678),12);
-    map.addLayer(osm);
+    //map.addLayer(osm);
     return map;
 }
 
