@@ -8,8 +8,10 @@ from sqlalchemy import func
 
 from models import Scans, OnOffPairs_Scans, OnOffPairs_Stops
 from helper import Helper
+from spatial import Spatial
 from api import app, db
-from api import debug, error, Session #web_session
+from api import debug, error, Session
+
 
 STATIC_DIR = '/onoff'
 mod_onoff = Blueprint('onoff', __name__, url_prefix='/onoff')
@@ -155,5 +157,12 @@ def surveyor_summary_query():
     response = Helper.current_users(date)
     debug(response)
     return jsonify(users=response)
+
+#@mod_onoff.route('/map')
+#def map():
+#    return render_template(static('map.html'))
+
+
+
 
 
