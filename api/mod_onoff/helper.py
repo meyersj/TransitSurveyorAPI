@@ -187,7 +187,6 @@ class Helper(object):
         for param in [(user, 'user'),(rte_desc, 'rte_desc'),(dir_desc, 'dir_desc')]:
             where = construct_where(where, param[0], param[1])
             debug(where)
-            
             query_args[param[1]] = param[0]
         if where:
             where = " WHERE " + where
@@ -199,7 +198,7 @@ class Helper(object):
                 ['date','time','user','rte_desc','dir_desc','on_stop', 'off_stop'])
             
             limit = ";"
- 
+
         query_string = """
             SELECT rte_desc, dir_desc, date, time, user_id,
                 on_stop_name, off_stop_name
@@ -448,12 +447,13 @@ class Helper(object):
         #users = ["Twaller", "Rpeabody", "kweaver", "dloftus"]
         users = [
             "aggreye", "aronsonr",
-            "bishopk", "brockq", "cumminga", "dbower",
+            "bishopk", "brockq", 
             "dloftus", "elkingtj", "hamiltob", "herzogn",
             "hickeyj", "kweaver", "langstoe", "longj",
             "meyersj", "pala", "petersry", "rogerss",
             "Rpeabody", "schoenbi", "sheehana", "testuser",
-            "turnera", "Twaller", "wagnerz", "willeyc"
+            "turnera", "Twaller", "wagnerz", "willeyc",
+            "terhunee", "coryellc", "carpentc"
         ] 
         return sorted(users)
 
