@@ -151,6 +151,7 @@ class Helper(object):
         ret_val = [ {'rte':str(direction[RTE]), 'rte_desc':direction[RTE_DESC],
             'dir':int(direction[DIR]), 'dir_desc':direction[DIR_DESC]}
             for direction in directions ]
+        app.logger.debug(ret_val)
         web_session.close()
         return ret_val
 

@@ -3,7 +3,6 @@ import csv, os
 from sqlalchemy import func, desc, distinct, cast, Integer
 
 from flask import current_app
-#from api.shared.models import Scans, OnOffPairs_Scans, OnOffPairs_Stops
 from api import db
 from api import Session
 from api import debug
@@ -116,46 +115,48 @@ class Helper(object):
         
         return {'series':series, 'categories':categories}
 
+
+    @staticmethod
+    def rte_lookup(rte_desc):
+        rte = None
+        session = Session()
+        query = session.execute("""
+            SELECT rte
+            FROM v.lookup_rte
+            WHERE rte_desc = :rte_desc""", {'rte_desc':rte_desc})
+        for record in query:
+            rte = record[0]
+        session.close()
+        return rte
+
+
     @staticmethod
     def get_routes():
         ret_val = []
-        
-        web_session = Session()
-        routes = web_session.execute("""
+        session = Session()
+        routes = session.execute("""
             SELECT rte, rte_desc
             FROM v.lookup_rte
             ORDER BY rte;""")
-
-        RTE = 0
-        RTE_DESC = 1
-        ret_val = [ {'rte':str(route[RTE]), 'rte_desc':route[RTE_DESC]}
-            for route in routes ]
-        web_session.close()
-        
+        ret_val = [ {'rte':str(route[0]), 'rte_desc':route[1]} for route in routes ]
+        session.close()
         return ret_val
 
     @staticmethod
     def get_directions():
         ret_val = []
-        web_session = Session()
-        directions = web_session.execute("""
+        session = Session()
+        directions = session.execute("""
             SELECT rte, rte_desc, dir, dir_desc
             FROM v.lookup_dir
             ORDER BY rte, dir;""")
-
-        RTE = 0
-        RTE_DESC = 1
-        DIR = 2
-        DIR_DESC = 3
-
-        ret_val = [ {'rte':str(direction[RTE]), 'rte_desc':direction[RTE_DESC],
-            'dir':int(direction[DIR]), 'dir_desc':direction[DIR_DESC]}
-            for direction in directions ]
-        web_session.close()
+        ret_val = [{
+            'rte':str(direction[0]),
+            'rte_desc':direction[1],
+            'dir':int(direction[2]),
+            'dir_desc':direction[3]} for direction in directions ]
+        session.close()
         return ret_val
-
-
-
 
     @staticmethod
     def query_route_data(user='', rte_desc='', dir_desc='', csv=False):

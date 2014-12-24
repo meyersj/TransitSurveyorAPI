@@ -1,0 +1,267 @@
+{% extends "long/base.html" %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+<script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+<script src="../static/js/map.js"></script>
+{% endblock %}
+
+
+{% block dashboard %}
+
+{{ super() }}
+<table>
+  <tr>
+    <td>
+      <div class="btn-group" style="z-index:1000" role="form">
+        <button id="line-btn" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+        Select Route    <span class="caret"></span>
+        </button>
+        <ul id="filter_line" class="dropdown-menu scrollable-menu" role="menu">
+          <li role="presentation" class="dropdown-header">Route</li>
+          <li role="presentation" class="divider"></li>
+          {% for route in routes %}
+          <li><a href="#">{{ route }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </td>
+  </tr>
+</table>
+<br>
+<div style="margin:2px">
+  <ul id="dir-tabs" class="nav nav-tabs" style="display:none">
+    <li id="inbound-link" role="presentation" class="active"><a href="#">Inbound</a></li>
+    <li id="outbound-link" role="presentation"><a href="#">Outbound</a></li>
+  </ul>
+  <div id="map" style="width:100%; height:60vh; z-index:1"></div>
+</div>
+<script>
+    var inbound;
+    var outbound;
+    var stops;
+
+    $('#filter_line a').on('click', function() {
+        //setup html views
+        $("#line-btn").text(this.text+' ').append('<span class="caret"></span>');
+        var dir = dir_lookup[this.text];
+        $("#outbound-link > a").text(dir[0]);
+        $("#inbound-link > a").text(dir[1]);
+        $("#dir-tabs").show();
+
+        var args = {"rte_desc":this.text};
+        //fetch route stats
+        $.getJSON('map2/_details', args, function(data) {
+            if(outbound) map.removeLayer(outbound);
+            if(inbound) map.removeLayer(inbound);
+            outbound = build_dir_feature(data.data[0], data.time_data[0]);
+            inbound = build_dir_feature(data.data[1], data.time_data[1]);  
+            activate_dir(1); 
+        }); 
+    });
+
+
+    function activate_dir(dir) {
+        var layer;
+        map.removeLayer(outbound);
+        map.removeLayer(inbound);
+        if(dir == 0) layer = outbound;
+        if(dir == 1) layer = inbound;
+        map.addLayer(layer);
+        map.fitBounds(layer.getBounds());
+    }
+
+    var tad_stops = {};
+
+    function show_stops(tad) {
+        //map.addLayer(tad_stops[tad]);
+        //console.log(tad_stops[tad]);
+    }
+
+    function hide_stops(tad) {
+        //map.removeLayer(tad_stops[tad]);
+    }
+
+    function build_dir_feature(data, time_data) {
+        var fc = {
+            "type":"FeatureCollection",
+            "features":[]
+        };
+       
+        $(data).each(function(index, item) {
+            //console.log(item);
+            var geo = JSON.parse(item.centroid);
+            var prop = {};
+            prop.tad = item.tad;
+            prop.count = item.count;
+            prop.ons = item.ons;
+            prop.time = time_data[item.tad];
+            geo.properties = prop;
+            fc.features.push(geo);
+            tad_stops[item.tad] = new L.geoJson(JSON.parse(item.stops), {
+                pointToLayer:pointFunctionStops
+            });
+        });
+        return new L.geoJson(fc, {
+            pointToLayer:pointFunctionTads,
+            onEachFeature:onEachFeature 
+        });
+    }
+ 
+    $('#dir-tabs > li > a').click( function() {
+        $('#dir-tabs > li.active').removeClass('active');
+        $(this).parent().addClass('active');
+        var link = $(this).parent().attr('id');
+        if(link == 'outbound-link') activate_dir(0);
+        if(link == 'inbound-link') activate_dir(1);
+    });
+
+    var directions = {{ directions|tojson|safe }};
+    var dir_lookup = {};
+    
+    $(directions).each(function(index, item) {
+        if(!dir_lookup.hasOwnProperty(item.rte_desc)) {
+            dir_lookup[item.rte_desc] = {};
+        }
+        dir_lookup[item.rte_desc][item.dir] = item.dir_desc;
+    });
+
+    var map = initmap('map');
+    var stats = new L.geoJson().addTo(map);
+
+    var status_color = {
+        'status-1':'rgba(219,85,85,1)',
+        'status-2':'rgba(212,162,70,1)',
+        'status-3':'rgba(204,255,51,1)',
+        'status-4':'rgba(161,237,68,1)',
+        'status-complete':'rgba(118,219,85,1)'
+    };
+
+    var options = {
+        radius: 8,
+        color: "#000",
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 1
+    };
+
+    var red = '#D62020';
+    var green = '#26D620';
+    var blue = '#2035D6';
+    var orange = '#D69020';
+
+    function build_cell(text, pct) {
+        pct = Math.round(pct);
+        var td = $('<td>');
+        if(text != null) {
+            td.attr("class", get_status(pct));
+            td.text(text);
+            td.attr("align", "center");
+        }
+        else {
+            if(pct) {
+                if(pct > 100) text = "100%";
+                else text = pct.toString() + "%";
+                td.attr("class", get_status(pct));
+            }
+            if(text == 'N/A') {
+                td.attr("class", "status-none");
+            }
+            td.text(text);
+            td.attr("align", "center");
+        }
+        return td;
+    }
+
+    function get_pct(count, quota) {
+        if(count == null) return 0;
+        if(quota == null) return null;
+        return (count / quota ) * 100;
+    }
+
+    function get_status(pct_complete) {
+        var cls = "";
+        switch (Math.floor(pct_complete / 25) + 1) {
+            //0% -> 24%
+            case 1:
+                cls = "status-1";
+                break;
+            //25% -> 49%  
+            case 2:
+                cls = "status-2";
+                break;
+            //50% -> 74%    
+            case 3:
+                cls = "status-3";               
+                break;
+            //75% -> 99%    
+            case 4: 
+                cls = "status-4";
+                break;
+            //100% +    
+            default:
+                cls = "status-complete";
+        }
+        return cls;
+    }
+
+    var pointFunctionStops = function (feature, latlng) {
+        options.fillColor = blue;
+        options.radius = 3;
+        var marker = new L.circleMarker(latlng, options);
+        return marker;
+    }
+
+    var pointFunctionTads = function (feature, latlng) {
+        var code = get_status(get_pct(
+            feature.properties.count,
+            feature.properties.ons
+        ));
+        options.fillColor = status_color[code];
+        options.radius = Math.log(feature.properties.ons * 1.5) * 4;
+        var marker = new L.circleMarker(latlng, options);
+        marker.on('mouseover', function(e) {
+            var feature = e.target.feature.geometry;
+            show_stops(feature.properties.tad);
+        });
+        marker.on('mouseout', function(e) {
+            var feature = e.target.feature.geometry;
+            hide_stops(feature.properties.tad);
+        });
+        return marker;
+    }
+
+    var headers = ['', '', '6a-9a','9a-12p','12p-3p','3p-6p','6p-9p','9p-12a'];
+    var onEachFeature = function (feature, layer) {
+        console.log(feature.properties);
+        
+        //var popup = feature.properties.count.toString() + '/' + 
+        //    feature.properties.ons.toString();
+        if (feature.properties && feature.properties.ons) {
+         
+            var row1 = $('<tr>'); 
+            var row2 = $('<tr>');
+            $(feature.properties.time).each(function(index, item) {
+                if(index > 1) {
+                    var pct = (item.count / item.ons) * 100;
+                    var header = build_cell(headers[index], pct);
+                    var cell = build_cell(null, pct);   
+                    row1.append(header);
+                    row2.append(cell);
+                }
+            });
+            var popup_html = $('<div>')
+                .addClass("table-responsive panel panel-default")
+                .append(
+                    $('<table>').addClass('table').append(row1).append(row2)
+                ).html();
+            layer.bindPopup(popup_html);
+        }
+    }
+
+
+</script>
+
+
+{% endblock %}

@@ -10,6 +10,10 @@ from api import Session
 from api import debug
 
 from ..shared.models import Stops, Routes, SurveysCore, SurveysFlag
+from ..shared.helper import Helper
+
+
+from decimal import Decimal
 
 
 STATIC_DIR = '/long'
@@ -85,9 +89,74 @@ def geo_query():
     return jsonify({'data':data})
     #return jsonify({'points':points, 'lines':lines})
 
+
+@mod_long.route('/map2')
+def map2():
+    routes = [ route['rte_desc'] for route in Helper.get_routes() ]
+    directions = Helper.get_directions()
+    return render_template(static('map2.html'), routes=routes, directions=directions)
+
+@mod_long.route('/map2/_details', methods=['GET'])
+def map2_details():
+    response = {'success':False}
+    if 'rte_desc' in request.args.keys():
+        rte_desc = request.args['rte_desc'].strip()
+        rte = Helper.rte_lookup(rte_desc)
+        session = Session()
+        fields = ['dir', 'tad', 'centroid', 'stops', 'ons', 'count']
+        query = session.execute("""
+            SELECT """ + ','.join(fields) + """
+            FROM long.tad_stats
+            WHERE rte = :rte;""", {'rte':rte})
+
+        query_time = session.execute("""
+            SELECT """ + ','.join(fields) + """, bucket
+            FROM long.tad_time_stats
+            WHERE rte = :rte;""", {'rte':rte})
+    
+        def build_data(record):
+            data = {}
+            for index in range(1, len(fields)):
+                field = record[index]
+                if isinstance(field, Decimal): field = int(field)
+                data[fields[index]] = field
+            return data
+        
+        def int_zero(value):
+            try:
+                return int(value)
+            except:
+                return 0
+
+        data = {}
+        data[0] = []
+        data[1] = []
+        for record in query:
+            data[record[0]].append(build_data(record))
+        time_data = {}
+        time_data[0] = {}
+        time_data[1] = {}
+        for record in query_time:
+            #debug(record)
+            tad = record[1]
+            if tad not in time_data[record[0]]:
+                time_data[record[0]][tad] = []
+            ons = int_zero(record[4])
+            count = int_zero(record[5])
+            bucket = int_zero(record[6])
+            #debug(time_data[record[0]][tad])
+            time_data[record[0]][tad].insert(bucket, {"count":count, "ons":ons})
+        response['success'] = True
+        response['data'] = data
+        response['time_data'] = time_data 
+    return jsonify(response)
+
+
+
+
+
+
 """
-
-
 def transfers(query):
     before = 0
     after = 0
