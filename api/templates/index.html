@@ -8,5 +8,34 @@
 {% endblock %}
 
 
+{% block dashboard %}
+<h2 class="page-header">On and Off</h2>
+<ul class="nav nav-pills nav-justified">
+  <li role="presentation">
+    <a class="pull-left" href="{{ url_for('onoff.status') }}">Status</a>
+  </li>
+</ul>
+
+<ul class="nav nav-pills nav-justified">
+  <li role="presentation">
+    <a class="pull-left" href="{{ url_for('onoff.surveyor_status') }}">Surveyors</a>
+  </li>
+</ul>
+
+<ul class="nav nav-pills nav-justified">
+  <li role="presentation">
+    <a class="pull-left" href="{{ url_for('onoff.data') }}">Data</a>
+  </li>
+</ul>
+
+<ul class="nav nav-pills nav-justified">
+  <li role="presentation">
+    <a class="pull-left" href="{{ url_for('onoff.map') }}">Map</a>
+  </li>
+</ul>
+{% endblock %}
+
+
+
 
 
