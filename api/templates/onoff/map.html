@@ -2,12 +2,15 @@
 
 {% block head %}
 {{ super() }}
-<link rel="stylesheet" href="../static/lib/leaflet/leaflet.css" />
-<!--script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script-->
-<script src="../static/lib/leaflet/leaflet-src.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+<script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+<!--link rel="stylesheet" href="../static/lib/leaflet/leaflet.css" />
+<script src="../static/lib/leaflet/plugins/leaflet-src.js"></script-->
+<link rel="stylesheet" href="../static/lib/leaflet/plugins/leaflet.label.css" />
+<script src="../static/lib/leaflet/plugins/leaflet.label.js"></script>
 <script src="../static/js/map.js"></script>
 {% endblock %}
-
 
 {% block dashboard %}
 
@@ -32,61 +35,144 @@
 </table>
 <br>
 <div style="margin:2px">
-  <ul id="dir-tabs" class="nav nav-tabs" style="display:none">
-    <li id="inbound-link" role="presentation" class="active"><a href="#">Inbound</a></li>
-    <li id="outbound-link" role="presentation"><a href="#">Outbound</a></li>
+  <ul id="dir-tabs" class="nav nav-tabs">
+    <li id="inbound-link" role="presentation" class="active disabled">
+        <a href="#">Inbound</a>
+    </li>
+    <li id="outbound-link" role="presentation" class="disabled">
+        <a href="#">Outbound</a>
+    </li>
   </ul>
-  <div id="map" style="width:100%; height:60vh; z-index:1"></div>
+  <div id="map" style="width:100%; height:63vh; z-index:1"></div>
+  <!--div id="map" style="width:100%; height:60vh; z-index:1"></div-->
 </div>
 <script>
-    var inbound;
-    var outbound;
-    var in_routes;
-    var out_routes;
-    var active = {'route':null, 'tad':null};
-    var routes = {'in':null, 'out':null};
-    var tads = {'in':null, 'out':null};
+    //map options
+    var status_color = {
+        'status-1':'rgba(219,85,85,0.8)',
+        'status-2':'rgba(212,162,70,0.8)',
+        'status-3':'rgba(204,255,51,0.8)',
+        'status-4':'rgba(161,237,68,0.8)',
+        'status-complete':'rgba(118,219,85,0.8)',
+        'status-none':'rgba(219,217,217,0.6)'
+    };
+    var red = '#D62020';
+    var green = '#26D620';
+    var blue = '#2035D6';
+    var orange = '#D69020';
+    var black =' #000';
+    var options = {
+        radius: 8,
+        color: black,
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 1
+    };
+    var icon = {
+        start: L.icon({
+            iconUrl: '../static/icons/bus-12-green.svg',
+            iconSize: [36, 36],
+            iconAnchor: [18, 18],
+            popupAnchor: [0, -18],
+            labelAnchor: [14, 0]
+        }),
+        end: L.icon({
+            iconUrl: '../static/icons/bus-12-red.svg',
+            iconSize: [36, 36],
+            iconAnchor: [18, 18],
+            popupAnchor: [0, -18],
+            labelAnchor: [14, 0]
+        })
+    };
+    
+    // variables
+    var tbl_headers = ['', '', '6a-9a','9a-12p','12p-3p','3p-6p','6p-9p','9p-12a'];
+    var layer_names = ['route', 'tads', 'start', 'end'];
+    var layers = {
+        1:{
+            'route':null,
+            'tads':null,
+            'start':null,
+            'end':null
+        },
+        0:{
+            'route':null,
+            'tads':null,
+            'start':null,
+            'end':null
+        }
+    };
+    var active = null;
     var stops;
+    var tad_stops = {};
+    var dir_lookup = {};
+    var directions = {{ directions|tojson|safe }};
+    var map = initmap('map');
+    var stats = new L.geoJson().addTo(map);
 
     $('#filter_line a').on('click', function() {
-        //setup html views
-        $("#line-btn").text(this.text+' ').append('<span class="caret"></span>');
         var dir = dir_lookup[this.text];
+        var args = {"rte_desc":this.text};
+        
+        $('#dir-tabs li.disabled').removeClass('disabled');
+        $("#line-btn").text(this.text+' ').append('<span class="caret"></span>');
         $("#outbound-link > a").text(dir[0]);
         $("#inbound-link > a").text(dir[1]);
         $('#outbound-link').removeClass('active');
         $('#inbound-link').addClass('active');
-        $("#dir-tabs").show();
-        var args = {"rte_desc":this.text};
         
         //fetch route stats
         $.getJSON('map/_details', args, function(data) {
-            if (active.route) map.removeLayer(active.route);
-            if (active.tad) map.removeLayer(active.tad);
-            var opt = jQuery.extend(true, {}, options);
-            opt.color = '#424559';
-            opt.weight = 4;
-            opt.clickable = false;
-            delete opt.radius;
-            out_routes = new L.geoJson(data.routes[0].geom, opt);
-            in_routes = new L.geoJson(data.routes[1].geom, opt);
-            outbound = build_dir_feature(data.data[0], data.time_data[0]);
-            inbound = build_dir_feature(data.data[1], data.time_data[1]);   
-            activate_dir(inbound, in_routes); 
+            turnoff_dir();
+            var route_opt = jQuery.extend(true, {}, options);
+            route_opt.color = '#424559';
+            route_opt.weight = 5;
+            route_opt.clickable = false;
+            delete route_opt.radius;
+            $([0, 1]).each(function(index, item) {
+                layers[item].route = new L.geoJson(data.routes[item].geom, route_opt);
+                layers[item].tads = build_dir_feature(
+                    data.data[item], data.time_data[item]
+                );
+                console.log(data.minmax[item]);
+                layers[item].start = markerFactory(
+                    JSON.parse(data.minmax[item].start.geom),
+                    'START: ' + data.minmax[item].start.stop_name,
+                    icon.start
+                );
+                layers[item].end = markerFactory(
+                    JSON.parse(data.minmax[item].end.geom),
+                    'END: ' + data.minmax[item].end.stop_name,
+                    icon.end
+                );
+            });
+            turnon_dir(1);
         }); 
     });
 
-    function activate_dir(layer, routes) {
-        if (active.route) map.removeLayer(active.route);
-        if (active.tad) map.removeLayer(active.tad);
-        active.route = routes;
-        active.tad = layer;
-        map.addLayer(routes);
-        map.addLayer(layer);
-        map.fitBounds(layer.getBounds());
+    function markerFactory(geojson, label, icon) {
+        coords = [geojson.coordinates[1], geojson.coordinates[0]]
+        return new L.marker(coords, {'icon':icon}).bindLabel(label);
     }
 
-    var tad_stops = {};
+    function turnoff_dir() {
+        if(active != null) {
+            $(layer_names).each(function(index, item) {
+                map.removeLayer(layers[active][item]);
+            });
+        } 
+        active = null;
+    }
+
+    function turnon_dir(dir) {
+        if(active != null) turnoff_dir();
+        map.addLayer(layers[dir].route);
+        map.addLayer(layers[dir].tads);
+        map.addLayer(layers[dir].start);
+        map.addLayer(layers[dir].end);
+        map.fitBounds(layers[dir].tads.getBounds());
+        active = dir;
+    }
 
     function show_stops(tad) {
         map.addLayer(tad_stops[tad]);
@@ -101,7 +187,6 @@
             "type":"FeatureCollection",
             "features":[]
         };
-       
         $(data).each(function(index, item) {
             var geo = JSON.parse(item.centroid);
             var prop = {};
@@ -125,50 +210,20 @@
         $('#dir-tabs > li.active').removeClass('active');
         $(this).parent().addClass('active');
         var link = $(this).parent().attr('id');
-        if(link == 'outbound-link') activate_dir(outbound, out_routes);
-        if(link == 'inbound-link') activate_dir(inbound, in_routes);
+        if(link == 'outbound-link') turnon_dir(0);
+        if(link == 'inbound-link') turnon_dir(1);
     });
-
-    var directions = {{ directions|tojson|safe }};
-    var dir_lookup = {};
-    
+        
     $(directions).each(function(index, item) {
         if(!dir_lookup.hasOwnProperty(item.rte_desc)) {
             dir_lookup[item.rte_desc] = {};
         }
         dir_lookup[item.rte_desc][item.dir] = item.dir_desc;
     });
-
-    var map = initmap('map');
-    var stats = new L.geoJson().addTo(map);
-
-    var status_color = {
-        'status-1':'rgba(219,85,85,0.8)',
-        'status-2':'rgba(212,162,70,0.8)',
-        'status-3':'rgba(204,255,51,0.8)',
-        'status-4':'rgba(161,237,68,0.8)',
-        'status-complete':'rgba(118,219,85,0.8)',
-        'status-none':'rgba(219,217,217,0.6)'
-    };
-
-    var red = '#D62020';
-    var green = '#26D620';
-    var blue = '#2035D6';
-    var orange = '#D69020';
-    var black =' #000';
-
-    var options = {
-        radius: 8,
-        color: black,
-        weight: 1,
-        opacity: 1,
-        fillOpacity: 1
-    };
-
+    
     function get_pct_text(pct) {
         var text;
         if(pct < 0) text = 'N/A';
-        //else if(pct > 100) text = "100%";
         else text = pct.toString() + "%";
         return text;
     }
@@ -191,9 +246,9 @@
     }
         
     function get_pct(count, quota) {
-        if(count == null) return 0;
         if(quota == null) return null;
-        return (count / quota ) * 100;
+        if(count == null) return 0;
+        return Math.round((count / quota ) * 100);
     }
 
     function get_status(pct_complete) {
@@ -248,7 +303,10 @@
         return marker;
     }
 
-    var headers = ['', '', '6a-9a','9a-12p','12p-3p','3p-6p','6p-9p','9p-12a'];
+    // too complicated function to build table for tad centroid
+    // popup. Contains different colored column for each three hour
+    // period from 6 am to 12 pm (6 columns)
+    // if ons is empty column is greyed with a 'N/A' label
     var onEachFeature = function (feature, layer) {
         if (feature.properties) {
             var row1 = $('<tr>'); 
@@ -261,8 +319,7 @@
                 count + '/' + ons;
             var cell = build_cell(complete, pct).attr('colspan', '6');
             var row4 = $('<tr>').append(cell);
-            //console.log(feature.properties.time);
-            $(headers).each(function(index, item) {
+            $(tbl_headers).each(function(index, item) {
                 if(index > 1) {
                     var pct;
                     var feat = feature.properties.time[index];
@@ -280,17 +337,11 @@
                             }
                         }
                     else pct = -1;
-                    var header = build_cell(headers[index], pct);
-                    var cell1 = build_cell(null, pct);   
-                    var cell2 = build_cell(num_text ,pct);
-                    row1.append(header);
-                    row2.append(cell1);
-                    row3.append(cell2);
-                    
+                    row1.append(build_cell(tbl_headers[index], pct));
+                    row2.append(build_cell(null, pct));
+                    row3.append(build_cell(num_text ,pct));
                 }
             });
-            //row3.append(
-
             var popup_html = $('<div>')
                 .addClass("table-responsive panel panel-default")
                 .append(
@@ -305,9 +356,6 @@
             layer.bindPopup(popup);
         }
     }
-
-
 </script>
-
 
 {% endblock %}
