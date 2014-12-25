@@ -24,7 +24,7 @@ function initmap(map_div) {
 
 
     // start the map in South-East England
-    map.setView(new L.LatLng(45.51, -122.678),12);
+    map.setView(new L.LatLng(45.51, -122.678),11);
     //map.addLayer(osm);
     map.addLayer(trimet);
     return map;
