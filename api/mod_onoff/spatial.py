@@ -8,8 +8,6 @@ from api import debug
 
 app = current_app
 
-
-
 class Spatial(object):
 
     @staticmethod
