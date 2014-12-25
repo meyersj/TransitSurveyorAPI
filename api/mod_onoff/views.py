@@ -189,7 +189,11 @@ def map_details():
             FROM tm_routes
             WHERE rte = :rte
             GROUP BY dir;""", {'rte':rte})
-        
+        query_minmax = session.execute("""
+            SELECT dir, label, stop_name, ST_AsGeoJson(ST_Transform(geom, 4326))
+            FROM long.stop_minmax
+            WHERE rte = :rte;""", {'rte':rte})
+
         def build_data(record):
             data = {}
             for index in range(1, len(fields)):
@@ -207,11 +211,13 @@ def map_details():
         data = {}
         data[0] = []
         data[1] = []
-        for record in query:
-            data[record[0]].append(build_data(record))
         time_data = {}
         time_data[0] = {}
         time_data[1] = {}
+        routes_geom = {}
+        minmax = {} 
+        for record in query:
+            data[record[0]].append(build_data(record))
         for record in query_time:
             tad = record[1]
             if tad not in time_data[record[0]]:
@@ -220,16 +226,23 @@ def map_details():
             count = int_zero(record[5])
             bucket = int_zero(record[6])
             time_data[record[0]][tad].insert(bucket, {"count":count, "ons":ons})
-        routes_geom = {}
         for record in query_routes:
             routes_geom[record[0]] = {
                 'dir':record[0],
                 'geom':json.loads(record[1])
             }
+        for record in query_minmax:
+            if record[0] not in minmax:
+                minmax[record[0]] = {}
+            minmax[record[0]][record[1]] = {
+                'geom':record[3],
+                'stop_name':record[2]
+            }
         response['success'] = True
         response['data'] = data
         response['time_data'] = time_data
         response['routes'] = routes_geom
+        response['minmax'] = minmax
         session.close()
     return jsonify(response)
 
