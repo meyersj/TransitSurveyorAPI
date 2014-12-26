@@ -3,13 +3,13 @@
 {% block nav_links %}
 <li><a href="{{ url_for('onoff.index') }}">On and Off</a></li>
 <!-- change below to 'long.index' when that blueprint is enabled -->
-<li><a href="{{ url_for('long.index') }}">Intercept</a></li>
+<li><a href="{{ url_for('index') }}">Intercept</a></li>
 <li><a href="{{ url_for('tests') }}">Tests</a></li>
 {% endblock %}
 
 
 {% block dashboard %}
-<h2 class="page-header">On and Off</h2>
+<h3 class="page-header">On and Off</h3>
 <ul class="nav nav-pills nav-justified">
   <li role="presentation">
     <a class="pull-left" href="{{ url_for('onoff.status') }}">Status</a>

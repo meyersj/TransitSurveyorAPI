@@ -16,7 +16,7 @@ from api import debug, error, Session
 from ..shared.helper import Helper as h
 
 STATIC_DIR = '/onoff'
-mod_onoff = Blueprint('onoff', __name__, url_prefix='/onoff')
+mod_onoff = Blueprint('onoff', __name__, url_prefix='/onoff', static_folder='static')
 
 
 def static(html, static=STATIC_DIR):
