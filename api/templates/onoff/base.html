@@ -1,8 +1,6 @@
 {% extends "dashboard_base.html" %}
 
 {% block dashboard %}
-
-
 <h2 class="page-header">On and Off Dashboard</h2>
 {% endblock %}
 
@@ -12,7 +10,5 @@
 <li><a href="{{ url_for('onoff.status') }}">Status</a></li>
 <li><a href="{{ url_for('onoff.data') }}">Data</a></li>
 <li><a href="{{ url_for('onoff.map') }}">Map</a></li>
-<!-- need to add brackets another bracket around url_for() if enabling long -->
-<!--li><a href="{ url_for('long.index') }">Intercept</a></li-->
 {% endblock %}
 
