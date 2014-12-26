@@ -3,19 +3,18 @@
 {% block head %}
 {{ super() }}
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<link rel="stylesheet" href="//cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
-<script src="//cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
-<!--link rel="stylesheet" href="../static/lib/leaflet/leaflet.css" />
-<script src="../static/lib/leaflet/plugins/leaflet-src.js"></script-->
-<link rel="stylesheet"
-  href="{{ url_for('static', filename='lib/leaflet/plugins/leaflet.label.css') }}"/>
-<script src="{{ url_for('static', filename='lib/leaflet/plugins/leaflet.label.js') }}"></script>
+<!--link rel="stylesheet" href="//cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+<script src="//cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script-->
+<link rel="stylesheet" href="../static/lib/leaflet/leaflet.css"/>
+<script src="../static/lib/leaflet/leaflet-src.js"></script>
+<link rel="stylesheet"  href="../static/lib/leaflet/plugins/leaflet.label.css"/>
+<script src="../static/lib/leaflet/plugins/leaflet.label.js"></script>
 <script src="../static/js/map.js"></script>
 {% endblock %}
 
 {% block dashboard %}
-
 {{ super() }}
+<div style="margin:2px">
 <table>
   <tr>
     <td>
@@ -34,8 +33,8 @@
     </td>
   </tr>
 </table>
-<br>
-<div style="margin:2px">
+</div>
+<div style="margin:2px; margin-top:10px">
   <ul id="dir-tabs" class="nav nav-tabs">
     <li id="inbound-link" role="presentation" class="active disabled">
         <a href="#">Inbound</a>
@@ -44,7 +43,7 @@
         <a href="#">Outbound</a>
     </li>
   </ul>
-  <div id="map" style="width:100%; height:63vh; z-index:1"></div>
+  <div id="map" style="width:100%; height:58vh; z-index:1"></div>
   <!--div id="map" style="width:100%; height:60vh; z-index:1"></div-->
 </div>
 <script>
