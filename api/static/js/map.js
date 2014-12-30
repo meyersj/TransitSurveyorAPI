@@ -18,7 +18,8 @@ function initmap(map_div) {
     var trimet = new L.TileLayer(trimetUrl, {
         minZoom: 8,
         maxZoom: 20,
-        attribution:"Map data &copy; 2015 Ore...p</a> and contributors.",
+        attribution:"Map data &copy; 2015 Oregon Metro " + 
+            "and <a href='http://openstreetmap.org'>OpenStreetMap</a> contributors",
         subdomains:["tilea", "tileb", "tilec", "tiled"]
     }); 
 
