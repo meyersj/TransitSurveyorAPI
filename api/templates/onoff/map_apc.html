@@ -5,11 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <!--link rel="stylesheet" href="//cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
 <script src="//cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script-->
-<link rel="stylesheet" href="../static/lib/leaflet/leaflet.css" />
 <script src="../static/lib/leaflet/leaflet-src.js"></script>
-<link rel="stylesheet"
-  href="{{ url_for('static', filename='lib/leaflet/plugins/leaflet.label.css') }}"/>
-<script src="{{ url_for('static', filename='lib/leaflet/plugins/leaflet.label.js') }}"></script>
+<link rel="stylesheet" href="../static/lib/leaflet/leaflet.css" />
+
 <script src="../static/js/map.js"></script>
 {% endblock %}
 
@@ -123,7 +121,9 @@
         $('#inbound-link').addClass('active');
         
         //fetch route stats
-        $.getJSON('map/_details', args, function(data) {
+        //$.getJSON('map_data/_details', args, function(data) {
+            
+            /*
             turnoff_dir();
             var route_opt = jQuery.extend(true, {}, options);
             route_opt.color = '#424559';
@@ -148,7 +148,8 @@
                 );
             });
             turnon_dir(1);
-        }); 
+            */
+        //}); 
     });
 
     function markerFactory(geojson, label, icon) {
@@ -211,8 +212,8 @@
         $('#dir-tabs > li.active').removeClass('active');
         $(this).parent().addClass('active');
         var link = $(this).parent().attr('id');
-        if(link == 'outbound-link') turnon_dir(0);
-        if(link == 'inbound-link') turnon_dir(1);
+        //if(link == 'outbound-link') turnon_dir(0);
+        //if(link == 'inbound-link') turnon_dir(1);
     });
         
     $(directions).each(function(index, item) {
