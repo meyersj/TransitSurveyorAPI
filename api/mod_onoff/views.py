@@ -231,7 +231,7 @@ def map_details():
 
 
 @mod_onoff.route('/map_offs')
-def map_apc():
+def map_offs():
     routes = [ route['rte_desc'] for route in h.get_routes() ]
     directions = h.get_directions()
     return render_template(static('map_offs.html'),
@@ -239,7 +239,7 @@ def map_apc():
     )
 
 @mod_onoff.route('/map_offs/_details', methods=['GET'])
-def map_off_details():
+def map_offs_details():
     response = {'success':False}
     if 'rte_desc' in request.args.keys():
         rte_desc = request.args['rte_desc'].strip()

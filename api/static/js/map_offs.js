@@ -58,6 +58,7 @@ var init = function() {
     };
     var active = null;
     var active_hover = null;
+    var active_tad = null;
     //var active_dir = null;
     //var active_tad = null;
 
@@ -98,33 +99,64 @@ var init = function() {
 
             //hover_data[0]['00000114'].addTo(map);
             
-            
+            var tadStyleOptions = {
+                fillColor: 'black', //blue,
+                color: '#595959', //blue,
+                weight: 3,
+                dashArray:'2 6',
+                opacity: 1,
+                fillOpacity: 0.15
+            };
+
             var fg = {0:new L.featureGroup(), 1:new L.featureGroup()};
-            var hiddenStyle = function(feature) {
-                return {
-                    opacity: 0,
-                    fillOpacity: 0
-                };
+            
+            var tadStyle = function(feature) {
+                return tadStyleOptions;
             }
 
-            function mouseoutTAD(e) {
-                //var dir = e.target.feature.properties.dir;
-                //var tad = e.target.feature.properties.tad;
-                //map.removeLayer(hover_data[dir][tad]);
+            function mouseoutTAD(e) {}
+
+            var hoverTADStyle = {
+                fillColor: '#555C91', //blue,
+                color: '#595959', //blue,
+                weight: 3,
+                //dashArray:'2 6',
+                opacity: 1,
+                fillOpacity: 0.6
+            };
+            
+
+            var tadExists = function(dir, tad) {
+                var ret_val = false;
+                if(hover_data.hasOwnProperty(dir)) {
+                    if(hover_data[dir].hasOwnProperty(tad)) {
+                        ret_val = true;
+                    }
+                }
+                return ret_val;
             }
+
 
             function mouseoverTAD(e) {
-                var dir = e.target.feature.properties.dir;
-                var tad = e.target.feature.properties.tad;
-                if(active_hover == null) {
-                    active_hover = hover_data[dir][tad];
-                    map.addLayer(active_hover);
-                }
-                else {
-                    if(active_hover != hover_data[dir][tad]) {
-                        map.removeLayer(active_hover);
+                var layer = e.target;
+                var dir = layer.feature.properties.dir;
+                var tad = layer.feature.properties.tad;
+                if(tadExists(dir, tad)) {
+                    if(active_tad == null) {
                         active_hover = hover_data[dir][tad];
+                        active_tad = layer;
                         map.addLayer(active_hover);
+                        active_tad.setStyle(hoverTADStyle);
+                    }
+                    else {
+                        if(active_tad != layer) {
+                            active_tad.setStyle(tadStyleOptions);
+                            map.removeLayer(active_hover);
+                            active_hover = hover_data[dir][tad];
+                            active_tad = layer;
+                            layer.setStyle(hoverTADStyle);
+                            map.addLayer(active_hover);
+                        }
                     }
                 }
             }
@@ -148,7 +180,7 @@ var init = function() {
                 fg[tad.dir].addLayer(new L.geoJson(
                     feature, 
                     {
-                        style:hiddenStyle,
+                        style:tadStyle,
                         onEachFeature:eachTAD
                     }
                 ));
@@ -237,22 +269,11 @@ var init = function() {
                     centroid.properties = prop;
                     new_fc.features.push(centroid);
                 }
-                //var pct = off_tad.offs / on_tad.ons;
-                //console.log(off_tad.tad);
-                //var centroid = geoms[off_tad.tad].centroid;
-                //var prop = {};
-                //prop.tad = off_tad.tad;
-                //prop.offs = off_tad.offs;
-                //prop.pct = pct;
-                //centroid.properties = prop;
-                //new_fc.features.push(centroid);
             });
             ret_val[on_tad.tad] = new L.geoJson(new_fc, {
                 pointToLayer:pointFunctionTADCentroid
             });
         });
-        //console.log("build_tad");
-        //console.log(ret_val);
         return ret_val;
     }
     
@@ -356,21 +377,35 @@ var init = function() {
 
     var pointFunctionTADCentroid = function (feature, latlng) {
         var opt = jQuery.extend(true, {}, options);
-        //var code = get_status(get_pct(
-        //    feature.properties.count,
-        //    feature.properties.ons
-        //));
-        var opacity = feature.properties.pct
-        if(opacity >= 0.05) {
-            opacity = opacity + 0.1;
+        var pct = feature.properties.pct;
+        var opacity = feature.properties.pct;
+       
+        console.log(feature);
+        function float2color( percentage ) {
+            var color_part_dec = 255 * percentage;
+            var color_part_hex = Number(parseInt( color_part_dec , 10)).toString(16);
+            return "#" + color_part_hex + color_part_hex + color_part_hex;
         }
-        opt.color = '#06112D';
-        opt.opacity = opacity;
-        opt.fillColor = '#06112D';
-        opt.fillOpacity = opacity;
         
-        // status_color[code];
+        // grey scale based on pct
+        opt.color = '#06112D';
+        opt.opacity = 1; //opacity;
+        opt.fillColor = '#06112D';
+        opt.fillOpacity = 0.7; //opacity;
+        opt.radius = Math.log(feature.properties.offs) / Math.log(10) * 20;
+       
+
+        /*
+        // grey scale based on pct
+        opt.color = float2color(pct); //'#06112D';
+        opt.opacity = 1; //opacity;
+        opt.fillColor = float2color(pct); //'#06112D';
+        opt.fillOpacity = 0.7; //opacity;
         opt.radius = 30;
+        */
+
+        // status_color[code];
+        //opt.radius = pct * 100; //Math.log(feature.properties.offs) / Math.log(10) * 20;
         //opt.radius =  Math.log(feature.properties.ons) / Math.log(10) * 10;
         var marker = new L.circleMarker(latlng, opt);
         //marker.on('mouseover', function(e) {
