@@ -1,0 +1,57 @@
+{% extends "onoff/base.html" %}
+
+{% block head %}
+{{ super() }}
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<!--link rel="stylesheet" href="//cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+<script src="//cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script-->
+<link rel="stylesheet" href="../static/lib/leaflet/leaflet.css" />
+<script src="../static/lib/leaflet/leaflet-src.js"></script>
+<link rel="stylesheet"
+  href="{{ url_for('static', filename='lib/leaflet/plugins/leaflet.label.css') }}"/>
+<script src="{{ url_for('static', filename='lib/leaflet/plugins/leaflet.label.js') }}"></script>
+<!--link rel="stylesheet"  href="../static/lib/leaflet/plugins/leaflet.label.css"/>
+<script src="../static/lib/leaflet/plugins/leaflet.label.js"></script-->
+<script src="../static/js/map.js"></script>
+<script src="../static/js/map_offs.js"></script>
+{% endblock %}
+
+{% block dashboard %}
+{{ super() }}
+<div style="margin:2px; margin-top:10px">
+<div class="btn-group" style="z-index:1000" role="form">
+  <button id="line-btn" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+Select Route    <span class="caret"></span>
+  </button>
+  <ul id="filter_line" class="dropdown-menu scrollable-menu" role="menu">
+    <li role="presentation" class="dropdown-header">Route</li>
+    <li role="presentation" class="divider"></li>
+    {% for route in routes %}
+    <li><a href="#">{{ route }}</a></li>
+    {% endfor %}
+  </ul>
+</div>
+<ul id="dir-tabs" class="nav nav-tabs navbar-right">
+<li id="inbound-link" role="presentation" class="active disabled">
+        <a href="#">Inbound</a>
+    </li>
+    <li id="outbound-link" role="presentation" class="disabled">
+        <a href="#">Outbound</a>
+    </li>
+</ul>
+<div id="map" style="width:100%; height:58vh; z-index:1"></div>
+</div>
+<script>
+var dir_lookup = {};
+var directions = {{ directions|tojson|safe }};
+
+$(directions).each(function(index, item) {
+    if(!dir_lookup.hasOwnProperty(item.rte_desc)) {
+        dir_lookup[item.rte_desc] = {};
+    }
+    dir_lookup[item.rte_desc][item.dir] = item.dir_desc;
+});
+init();
+</script>
+
+{% endblock %}

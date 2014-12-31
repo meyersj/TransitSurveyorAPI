@@ -146,6 +146,8 @@ var init = function() {
             prop.time = time_data[item.tad];
             geo.properties = prop;
             fc.features.push(geo);
+            
+            
             tad_stops[item.tad] = new L.geoJson(JSON.parse(item.stops), {
                 pointToLayer:pointFunctionStops
             });

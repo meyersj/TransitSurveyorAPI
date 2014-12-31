@@ -230,42 +230,63 @@ def map_details():
     return jsonify(response)
 
 
-@mod_onoff.route('/map_apc')
+@mod_onoff.route('/map_offs')
 def map_apc():
     routes = [ route['rte_desc'] for route in h.get_routes() ]
     directions = h.get_directions()
-    return render_template(static('map_apc.html'),
+    return render_template(static('map_offs.html'),
         routes=routes, directions=directions
     )
 
-@mod_onoff.route('/map_apc/_details', methods=['GET'])
-def map_apc_details():
+@mod_onoff.route('/map_offs/_details', methods=['GET'])
+def map_off_details():
     response = {'success':False}
     if 'rte_desc' in request.args.keys():
         rte_desc = request.args['rte_desc'].strip()
         rte = h.rte_lookup(rte_desc)
         session = Session()
         
+        query_markers = session.execute("""
+            SELECT dir, tad, centroid, stops, ons
+            FROM long.tad_stats
+            WHERE rte = :rte;""", {'rte':rte})
+        query_tads = session.execute("""
+            SELECT
+                r.dir,
+                t.tadce10 AS tad,
+                ST_AsGeoJson(ST_Transform(ST_Union(t.geom), 4326)) AS geom,
+                ST_AsGeoJson(ST_Transform(ST_Centroid(ST_Union(t.geom)), 4326)) AS centroid
+            FROM tad AS t
+            JOIN tm_routes AS r
+            ON ST_Intersects(t.geom, r.geom)
+            WHERE r.rte = :rte
+            GROUP BY r.dir, t.tadce10;""", {'rte':rte})
+        query_data_summary = session.execute("""
+            SELECT
+                dir,
+                on_tad,
+                sum(count) AS ons
+            FROM long.tad_onoff
+            WHERE rte = :rte
+            GROUP BY dir, on_tad;""", {'rte':rte})
+        query_data = session.execute("""
+            SELECT
+                dir,
+                on_tad,
+                off_tad,
+                count
+            FROM long.tad_onoff
+            WHERE rte = :rte;""", {'rte':rte})
+        query_routes = session.execute("""
+            SELECT dir, ST_AsGeoJson(ST_Transform(ST_Union(geom), 4326))
+            FROM tm_routes
+            WHERE rte = :rte
+            GROUP BY dir;""", {'rte':rte})
+        query_minmax = session.execute("""
+            SELECT dir, label, stop_name, ST_AsGeoJson(ST_Transform(geom, 4326))
+            FROM long.stop_minmax
+            WHERE rte = :rte;""", {'rte':rte})
         
-        #fields = ['dir', 'tad', 'centroid', 'stops', 'ons', 'count']
-        #query = session.execute("""
-        #    SELECT """ + ','.join(fields) + """
-        #    FROM long.tad_stats
-        #    WHERE rte = :rte;""", {'rte':rte})
-        #query_time = session.execute("""
-        #    SELECT """ + ','.join(fields) + """, bucket
-        #    FROM long.tad_time_stats
-        #    WHERE rte = :rte;""", {'rte':rte})
-        #query_routes = session.execute("""
-        #    SELECT dir, ST_AsGeoJson(ST_Transform(ST_Union(geom), 4326))
-        #    FROM tm_routes
-        #    WHERE rte = :rte
-        #    GROUP BY dir;""", {'rte':rte})
-        #query_minmax = session.execute("""
-        #    SELECT dir, label, stop_name, ST_AsGeoJson(ST_Transform(geom, 4326))
-        #    FROM long.stop_minmax
-        #    WHERE rte = :rte;""", {'rte':rte})
-        """
         def build_data(record):
             data = {}
             for index in range(1, len(fields)):
@@ -280,24 +301,57 @@ def map_apc_details():
             except:
                 return False
 
+        tads = []
+        stops = {}
+        stops[0] = {}
+        stops[1] = {}
+        summary = {}
+        summary[0] = []
+        summary[1] = []
         data = {}
-        data[0] = []
-        data[1] = []
-        time_data = {}
-        time_data[0] = {}
-        time_data[1] = {}
+        data[0] = {}
+        data[1] = {}
         routes_geom = {}
         minmax = {} 
-        for record in query:
-            data[record[0]].append(build_data(record))
-        for record in query_time:
+        
+        for record in query_tads:
+            dir_ = record[0]
             tad = record[1]
-            if tad not in time_data[record[0]]:
-                time_data[record[0]][tad] = []
-            ons = int_zero(record[4])
-            count = int_zero(record[5])
-            bucket = int_zero(record[6])
-            time_data[record[0]][tad].insert(bucket, {"count":count, "ons":ons})
+            geom = record[2]
+            centroid = record[3]
+            tads.append({'dir':dir_, 'tad':tad, 'geom':geom, 'centroid':centroid})
+        for record in query_markers:
+            dir_ = record[0]
+            #if dir_ not in stops:
+            #    stops[_dir] = {}
+            tad = record[1]
+            centroid = json.loads(record[2])
+            stops_geom = json.loads(record[3])
+            ons = int(record[4])
+            debug(tad)
+            stops[dir_][tad] = {'centroid':centroid, 'stops':stops_geom, 'ons':ons}
+        for record in query_data_summary:
+            dir_ = record[0]
+            tad_on = record[1]
+            ons = int(record[2])
+            summary[dir_].append({'tad':tad_on, 'ons':ons})
+            #summary = {
+            #   0:[ {tad:1233, ons:141}, { ... }],
+            #   1:[ ... ]
+            #}
+        for record in query_data:
+            dir_ = record[0]
+            tad_on = record[1]
+            tad_off = record[2]
+            offs = int(record[3])
+            if tad_on not in data[dir_]:
+                data[dir_][tad_on] = {}
+                data[dir_][tad_on]['offs'] = []
+            data[dir_][tad_on]['offs'].append({'tad':tad_off, 'offs':offs})
+            #data = {
+            #   0:{ '0000012':{offs:[{tad:1233, offs:21}, { ... }]}. '0000015':{ ... } },
+            #   1:{ ... }
+            #}
         for record in query_routes:
             routes_geom[record[0]] = {
                 'dir':record[0],
@@ -311,12 +365,184 @@ def map_apc_details():
                 'stop_name':record[2]
             }
         response['success'] = True
+        response['stops'] = stops
+        response['summary'] = summary
         response['data'] = data
-        response['time_data'] = time_data
+        response['tads'] = tads
         response['routes'] = routes_geom
         response['minmax'] = minmax
-        """
+        session.close()
+    return jsonify(response)
+
+
+@mod_onoff.route('/map_4_9')
+def map_4_9():
+    #routes = [ route['rte_desc'] for route in h.get_routes() ]
+    routes = ['4-Division/Fessenden', '9-Powell Blvd']
+    directions = [
+        {
+            'rte':4,
+            'rte_desc':'4-Division/Fessenden',
+            'dir':0,
+            'dir_desc':'To Gresham Transit Center'
+        },
+        {
+            'rte':4,
+            'rte_desc':'4-Division/Fessenden',
+            'dir':1,
+            'dir_desc':'To St Johns'
+        },
+        {
+            'rte':9,
+            'rte_desc':'9-Powell Blvd',
+            'dir':0,
+            'dir_desc':'To Powell & 98th or Gresham Transit Center'
+        },
+        {
+            'rte':9,
+            'rte_desc':'9-Powell Blvd',
+            'dir':1,
+            'dir_desc':'To Portland'
+        }
+    ]
+    #directions = h.get_directions()
+    return render_template(static('map_offs.html'),
+        routes=routes, directions=directions
+    )
+
+@mod_onoff.route('/map_4_9/_details', methods=['GET'])
+def map_4_9_details():
+    response = {'success':False}
+    if 'rte_desc' in request.args.keys():
+        rte_desc = request.args['rte_desc'].strip()
+        rte = h.rte_lookup(rte_desc)
+        session = Session()
         
+        query_markers = session.execute("""
+            SELECT dir, tad, centroid, stops, ons
+            FROM long.tad_stats
+            WHERE rte = :rte;""", {'rte':rte})
+        query_tads = session.execute("""
+            SELECT
+                r.dir,
+                t.tadce10 AS tad,
+                ST_AsGeoJson(ST_Transform(ST_Union(t.geom), 4326)) AS geom,
+                ST_AsGeoJson(ST_Transform(ST_Centroid(ST_Union(t.geom)), 4326)) AS centroid
+            FROM tad AS t
+            JOIN tm_routes AS r
+            ON ST_Intersects(t.geom, r.geom)
+            WHERE r.rte = :rte
+            GROUP BY r.dir, t.tadce10;""", {'rte':rte})
+        query_data_summary = session.execute("""
+            SELECT
+                dir,
+                on_tad,
+                sum(count) AS ons
+            FROM long.tad_onoff
+            WHERE rte = :rte
+            GROUP BY dir, on_tad;""", {'rte':rte})
+        query_data = session.execute("""
+            SELECT
+                dir,
+                on_tad,
+                off_tad,
+                count
+            FROM long.tad_onoff
+            WHERE rte = :rte;""", {'rte':rte})
+        query_routes = session.execute("""
+            SELECT dir, ST_AsGeoJson(ST_Transform(ST_Union(geom), 4326))
+            FROM tm_routes
+            WHERE rte = :rte
+            GROUP BY dir;""", {'rte':rte})
+        query_minmax = session.execute("""
+            SELECT dir, label, stop_name, ST_AsGeoJson(ST_Transform(geom, 4326))
+            FROM long.stop_minmax
+            WHERE rte = :rte;""", {'rte':rte})
+        
+        def build_data(record):
+            data = {}
+            for index in range(1, len(fields)):
+                field = record[index]
+                if isinstance(field, Decimal): field = int(field)
+                data[fields[index]] = field
+            return data
+
+        def int_zero(value):
+            try:
+                return int(value)
+            except:
+                return False
+
+        tads = []
+        stops = {}
+        stops[0] = {}
+        stops[1] = {}
+        summary = {}
+        summary[0] = []
+        summary[1] = []
+        data = {}
+        data[0] = {}
+        data[1] = {}
+        routes_geom = {}
+        minmax = {} 
+        
+        for record in query_tads:
+            dir_ = record[0]
+            tad = record[1]
+            geom = record[2]
+            centroid = record[3]
+            tads.append({'dir':dir_, 'tad':tad, 'geom':geom, 'centroid':centroid})
+        for record in query_markers:
+            dir_ = record[0]
+            #if dir_ not in stops:
+            #    stops[_dir] = {}
+            tad = record[1]
+            centroid = json.loads(record[2])
+            stops_geom = json.loads(record[3])
+            ons = int(record[4])
+            debug(tad)
+            stops[dir_][tad] = {'centroid':centroid, 'stops':stops_geom, 'ons':ons}
+        for record in query_data_summary:
+            dir_ = record[0]
+            tad_on = record[1]
+            ons = int(record[2])
+            summary[dir_].append({'tad':tad_on, 'ons':ons})
+            #summary = {
+            #   0:[ {tad:1233, ons:141}, { ... }],
+            #   1:[ ... ]
+            #}
+        for record in query_data:
+            dir_ = record[0]
+            tad_on = record[1]
+            tad_off = record[2]
+            offs = int(record[3])
+            if tad_on not in data[dir_]:
+                data[dir_][tad_on] = {}
+                data[dir_][tad_on]['offs'] = []
+            data[dir_][tad_on]['offs'].append({'tad':tad_off, 'offs':offs})
+            #data = {
+            #   0:{ '0000012':{offs:[{tad:1233, offs:21}, { ... }]}. '0000015':{ ... } },
+            #   1:{ ... }
+            #}
+        for record in query_routes:
+            routes_geom[record[0]] = {
+                'dir':record[0],
+                'geom':json.loads(record[1])
+            }
+        for record in query_minmax:
+            if record[0] not in minmax:
+                minmax[record[0]] = {}
+            minmax[record[0]][record[1]] = {
+                'geom':record[3],
+                'stop_name':record[2]
+            }
+        response['success'] = True
+        response['stops'] = stops
+        response['summary'] = summary
+        response['data'] = data
+        response['tads'] = tads
+        response['routes'] = routes_geom
+        response['minmax'] = minmax
         session.close()
     return jsonify(response)
 

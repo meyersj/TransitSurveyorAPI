@@ -139,6 +139,7 @@ class Helper(object):
             FROM v.lookup_rte
             ORDER BY rte;""")
         ret_val = [ {'rte':str(route[0]), 'rte_desc':route[1]} for route in routes ]
+        debug(ret_val)
         session.close()
         return ret_val
 

@@ -1,51 +1,4 @@
-{% extends "onoff/base.html" %}
-
-{% block head %}
-{{ super() }}
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<!--link rel="stylesheet" href="//cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
-<script src="//cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script-->
-<script src="../static/lib/leaflet/leaflet-src.js"></script>
-<link rel="stylesheet" href="../static/lib/leaflet/leaflet.css" />
-
-<script src="../static/js/map.js"></script>
-{% endblock %}
-
-{% block dashboard %}
-
-{{ super() }}
-<table>
-  <tr>
-    <td>
-      <div class="btn-group" style="z-index:1000" role="form">
-        <button id="line-btn" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-        Select Route    <span class="caret"></span>
-        </button>
-        <ul id="filter_line" class="dropdown-menu scrollable-menu" role="menu">
-          <li role="presentation" class="dropdown-header">Route</li>
-          <li role="presentation" class="divider"></li>
-          {% for route in routes %}
-          <li><a href="#">{{ route }}</a></li>
-          {% endfor %}
-        </ul>
-      </div>
-    </td>
-  </tr>
-</table>
-<br>
-<div style="margin:2px">
-  <ul id="dir-tabs" class="nav nav-tabs">
-    <li id="inbound-link" role="presentation" class="active disabled">
-        <a href="#">Inbound</a>
-    </li>
-    <li id="outbound-link" role="presentation" class="disabled">
-        <a href="#">Outbound</a>
-    </li>
-  </ul>
-  <div id="map" style="width:100%; height:63vh; z-index:1"></div>
-  <!--div id="map" style="width:100%; height:60vh; z-index:1"></div-->
-</div>
-<script>
+var init = function() {
     //map options
     var status_color = {
         'status-1':'rgba(219,85,85,0.8)',
@@ -60,6 +13,8 @@
     var blue = '#2035D6';
     var orange = '#D69020';
     var black =' #000';
+    var grey_blue = '#424559';
+    var dark_blue = '#2E3B5E';
     var options = {
         radius: 8,
         color: black,
@@ -70,44 +25,52 @@
     var icon = {
         start: L.icon({
             iconUrl: '../static/icons/bus-12-green.svg',
-            iconSize: [36, 36],
+            iconSize: [30, 30],
             iconAnchor: [18, 18],
             popupAnchor: [0, -18],
             labelAnchor: [14, 0]
         }),
         end: L.icon({
             iconUrl: '../static/icons/bus-12-red.svg',
-            iconSize: [36, 36],
+            iconSize: [30, 30],
             iconAnchor: [18, 18],
             popupAnchor: [0, -18],
             labelAnchor: [14, 0]
         })
     };
-    
+
     // variables
-    var tbl_headers = ['', '', '6a-9a','9a-12p','12p-3p','3p-6p','6p-9p','9p-12a'];
-    var layer_names = ['route', 'tads', 'start', 'end'];
+    //var tbl_headers = ['', '', '6a-9a','9a-12p','12p-3p','3p-6p','6p-9p','9p-12a'];
+    var layer_names = ['tads', 'route', 'start', 'end'];
     var layers = {
         1:{
-            'route':null,
             'tads':null,
+            'route':null,
             'start':null,
             'end':null
         },
         0:{
-            'route':null,
             'tads':null,
+            'route':null,
             'start':null,
             'end':null
         }
     };
     var active = null;
-    var stops;
-    var tad_stops = {};
-    var dir_lookup = {};
-    var directions = {{ directions|tojson|safe }};
+    var active_hover = null;
+    //var active_dir = null;
+    //var active_tad = null;
+
+    var hover_data = {};
+    hover_data[0] = {};
+    hover_data[1] = {};
+    //data = {
+    //  0:{'0000012':new L.geojson(), ... },
+    //  1:{'0000012':new L.geojson(), ... }
+    //};
+    //var stops;
+    //var tad_stops = {};
     var map = initmap('map');
-    var stats = new L.geoJson().addTo(map);
 
     $('#filter_line a').on('click', function() {
         var dir = dir_lookup[this.text];
@@ -121,20 +84,85 @@
         $('#inbound-link').addClass('active');
         
         //fetch route stats
-        //$.getJSON('map_data/_details', args, function(data) {
-            
-            /*
+        $.getJSON('map_offs/_details', args, function(data) {
+            console.log(data);
             turnoff_dir();
+            
+            hover_data[0] = build_tad_hover_feature(
+                data.summary[0], data.data[0], data.stops[0]);
+            hover_data[1] = build_tad_hover_feature(
+                data.summary[1], data.data[1], data.stops[1]);
+            console.log(hover_data[0]);
+            console.log(hover_data[0]['00000101']);
+            //hover_data[0]['00000101'].addTo(map);
+
+            //hover_data[0]['00000114'].addTo(map);
+            
+            
+            var fg = {0:new L.featureGroup(), 1:new L.featureGroup()};
+            var hiddenStyle = function(feature) {
+                return {
+                    opacity: 0,
+                    fillOpacity: 0
+                };
+            }
+
+            function mouseoutTAD(e) {
+                //var dir = e.target.feature.properties.dir;
+                //var tad = e.target.feature.properties.tad;
+                //map.removeLayer(hover_data[dir][tad]);
+            }
+
+            function mouseoverTAD(e) {
+                var dir = e.target.feature.properties.dir;
+                var tad = e.target.feature.properties.tad;
+                if(active_hover == null) {
+                    active_hover = hover_data[dir][tad];
+                    map.addLayer(active_hover);
+                }
+                else {
+                    if(active_hover != hover_data[dir][tad]) {
+                        map.removeLayer(active_hover);
+                        active_hover = hover_data[dir][tad];
+                        map.addLayer(active_hover);
+                    }
+                }
+            }
+
+            function eachTAD(feature, layer) {
+                layer.on({
+                    mouseover:mouseoverTAD,
+                    mouseout:mouseoutTAD
+                });
+            }
+            
+            $(data.tads).each(function(index, tad) {
+                var feature = {
+                    "type": "Feature",
+                    "properties": {
+                        "dir":tad.dir,
+                        "tad":tad.tad
+                    },
+                    "geometry":JSON.parse(tad.geom)
+                }
+                fg[tad.dir].addLayer(new L.geoJson(
+                    feature, 
+                    {
+                        style:hiddenStyle,
+                        onEachFeature:eachTAD
+                    }
+                ));
+            });
+            layers[0].tads = fg[0];
+            layers[1].tads = fg[1];
+            //route geometry
             var route_opt = jQuery.extend(true, {}, options);
-            route_opt.color = '#424559';
+            route_opt.color = grey_blue;
             route_opt.weight = 5;
             route_opt.clickable = false;
             delete route_opt.radius;
             $([0, 1]).each(function(index, item) {
                 layers[item].route = new L.geoJson(data.routes[item].geom, route_opt);
-                layers[item].tads = build_dir_feature(
-                    data.data[item], data.time_data[item]
-                );
                 console.log(data.minmax[item]);
                 layers[item].start = markerFactory(
                     JSON.parse(data.minmax[item].start.geom),
@@ -148,8 +176,7 @@
                 );
             });
             turnon_dir(1);
-            */
-        //}); 
+        }); 
     });
 
     function markerFactory(geojson, label, icon) {
@@ -172,7 +199,7 @@
         map.addLayer(layers[dir].tads);
         map.addLayer(layers[dir].start);
         map.addLayer(layers[dir].end);
-        map.fitBounds(layers[dir].tads.getBounds());
+        map.fitBounds(layers[dir].route.getBounds());
         active = dir;
     }
 
@@ -184,6 +211,51 @@
         map.removeLayer(tad_stops[tad]);
     }
 
+    
+    function build_tad_hover_feature(summary, offs, geoms) {
+        var ret_val = {};
+        var fc = {
+            "type":"FeatureCollection",
+            "features":[]
+        };
+        //for each tad in summary for 
+        $(summary).each(function(index, on_tad) {
+            var new_fc = jQuery.extend(true, {}, fc);
+            //construct feature for centroid of bus stops
+            //for each tad
+            $(offs[on_tad.tad].offs).each(function(index, off_tad) {
+                if(geoms.hasOwnProperty(off_tad.tad)) {
+                    var pct = off_tad.offs / on_tad.ons;
+                    var centroid = geoms[off_tad.tad].centroid;
+                    var stops_geom =  geoms[off_tad.tad].stops_geom;
+                    
+                    
+                    var prop = {};
+                    prop.tad = off_tad.tad;
+                    prop.offs = off_tad.offs;
+                    prop.pct = pct;
+                    centroid.properties = prop;
+                    new_fc.features.push(centroid);
+                }
+                //var pct = off_tad.offs / on_tad.ons;
+                //console.log(off_tad.tad);
+                //var centroid = geoms[off_tad.tad].centroid;
+                //var prop = {};
+                //prop.tad = off_tad.tad;
+                //prop.offs = off_tad.offs;
+                //prop.pct = pct;
+                //centroid.properties = prop;
+                //new_fc.features.push(centroid);
+            });
+            ret_val[on_tad.tad] = new L.geoJson(new_fc, {
+                pointToLayer:pointFunctionTADCentroid
+            });
+        });
+        //console.log("build_tad");
+        //console.log(ret_val);
+        return ret_val;
+    }
+    
     function build_dir_feature(data, time_data) {
         var fc = {
             "type":"FeatureCollection",
@@ -207,13 +279,13 @@
             onEachFeature:onEachFeature 
         });
     }
- 
+
     $('#dir-tabs > li > a').click( function() {
         $('#dir-tabs > li.active').removeClass('active');
         $(this).parent().addClass('active');
         var link = $(this).parent().attr('id');
-        //if(link == 'outbound-link') turnon_dir(0);
-        //if(link == 'inbound-link') turnon_dir(1);
+        if(link == 'outbound-link') turnon_dir(0);
+        if(link == 'inbound-link') turnon_dir(1);
     });
         
     $(directions).each(function(index, item) {
@@ -222,7 +294,7 @@
         }
         dir_lookup[item.rte_desc][item.dir] = item.dir_desc;
     });
-    
+
     function get_pct_text(pct) {
         var text;
         if(pct < 0) text = 'N/A';
@@ -281,6 +353,44 @@
         return marker;
     }
 
+
+    var pointFunctionTADCentroid = function (feature, latlng) {
+        var opt = jQuery.extend(true, {}, options);
+        //var code = get_status(get_pct(
+        //    feature.properties.count,
+        //    feature.properties.ons
+        //));
+        var opacity = feature.properties.pct
+        if(opacity >= 0.05) {
+            opacity = opacity + 0.1;
+        }
+        opt.color = '#06112D';
+        opt.opacity = opacity;
+        opt.fillColor = '#06112D';
+        opt.fillOpacity = opacity;
+        
+        // status_color[code];
+        opt.radius = 30;
+        //opt.radius =  Math.log(feature.properties.ons) / Math.log(10) * 10;
+        var marker = new L.circleMarker(latlng, opt);
+        //marker.on('mouseover', function(e) {
+        //    console.log(marker);
+        //    console.log(e);
+        //    var feature = e.target.feature.geometry;
+        //    show_stops(feature.properties.tad);
+        //    marker.openPopup();
+        //    marker.options.color = blue;
+        //});
+        //marker.on('mouseout', function(e) {
+        //    var feature = e.target.feature.geometry;
+        //    hide_stops(feature.properties.tad);
+        //    marker.closePopup();
+        //    marker.options.color = black;
+        //});
+        return marker;
+    }
+
+
     var pointFunctionTads = function (feature, latlng) {
         var opt = jQuery.extend(true, {}, options);
         var code = get_status(get_pct(
@@ -291,6 +401,8 @@
         opt.radius =  Math.log(feature.properties.ons) / Math.log(10) * 10;
         var marker = new L.circleMarker(latlng, opt);
         marker.on('mouseover', function(e) {
+            console.log(marker);
+            console.log(e);
             var feature = e.target.feature.geometry;
             show_stops(feature.properties.tad);
             marker.openPopup();
@@ -305,6 +417,7 @@
         return marker;
     }
 
+    /*
     // too complicated function to build table for tad centroid
     // popup. Contains different colored column for each three hour
     // period from 6 am to 12 pm (6 columns)
@@ -358,6 +471,7 @@
             layer.bindPopup(popup);
         }
     }
-</script>
+    */
+}
 
-{% endblock %}
+
