@@ -3,17 +3,13 @@
 {% block head %}
 {{ super() }}
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<!--link rel="stylesheet" href="//cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
-<script src="//cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script-->
-<link rel="stylesheet" href="../static/lib/leaflet/leaflet.css" />
-<script src="../static/lib/leaflet/leaflet-src.js"></script>
-<link rel="stylesheet"
-  href="{{ url_for('static', filename='lib/leaflet/plugins/leaflet.label.css') }}"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='lib/leaflet/leaflet.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='lib/leaflet/plugins/leaflet.label.css') }}"/>
+<script src="{{url_for('static', filename='lib/leaflet/leaflet-src.js') }}"></script>
 <script src="{{ url_for('static', filename='lib/leaflet/plugins/leaflet.label.js') }}"></script>
-<!--link rel="stylesheet"  href="../static/lib/leaflet/plugins/leaflet.label.css"/>
-<script src="../static/lib/leaflet/plugins/leaflet.label.js"></script-->
-<script src="../static/js/map.js"></script>
-<script src="../static/js/map_offs.js"></script>
+<script src="{{ url_for('static', filename='lib/d3/d3.js') }}"></script>
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+<script src="{{ url_for('static', filename='js/map_offs.js') }}"></script>
 {% endblock %}
 
 {% block dashboard %}

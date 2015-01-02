@@ -109,22 +109,29 @@ body {
     background-color:rgba(201,213,219,0.6);
 }
 
-.pct-label {
-    text-align:center;
-    font-size:85%;    
-    color:#fff;
-    font-weight:bold;
-    text-shadow: 0 0 10px #2D2727;
+.pie-marker {   
+}
 
-/*
-background:#ff8888;
-  border:5px solid rgba(255,255,255,0.5);
-  color:#fff;
-  font-weight:bold;
-  text-align:center;
-  border-radius:50%;
-  line-height:30px;
-*/
+.off-label {  
+    background-color:rgba(0,0,0,0.2);
+    width:30px;
+    height:30px;
+    border-radius: 10px;
+}
+
+.off-label table {  
+    border-collapse:collapse;
+    width:100%;
+    height:100%;
+}
+
+.off-label td {
+    line-height:0;
+    text-align: center;
+    font-size:10;
+    color:#D2D4EF;
+    font-weight:bold;
+    text-shadow: 0 0 3px black;
 }
 
 

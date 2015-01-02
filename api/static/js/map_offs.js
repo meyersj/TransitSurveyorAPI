@@ -76,7 +76,6 @@ HoverLayers.prototype = {
     },
     addLayer:function(layer, label) {
         for(var key in layer) {
-            console.log(this);
             if(!this.layers.hasOwnProperty(key)) {
                 this.layers[key] = new L.layerGroup();
                 this.namedLayers[key] = {};
@@ -192,7 +191,7 @@ BuildOffs.prototype = {
             "features":[]
         };
         $(summary).each(function(index, on_tad) {
-            var new_fc = jQuery.extend(true, {}, fc);
+            var newFc = jQuery.extend(true, {}, fc);
             //construct feature for centroid of bus stops
             //for each tad
             $(offs[on_tad.tad].offs).each(function(index, off_tad) {
@@ -203,17 +202,19 @@ BuildOffs.prototype = {
                     prop.offs = off_tad.offs;
                     prop.pct = off_tad.offs / on_tad.ons;
                     centroid.properties = prop;
-                    new_fc.features.push(centroid);
+                    newFc.features.push(centroid);
                 }
             });
-            features[on_tad.tad] = new L.geoJson(new_fc, {
+            features[on_tad.tad] = new L.geoJson(newFc, {
                 pointToLayer:THIS.pointToLayer()
             });
         });
         return features;
     },
     buildLabels:function(summary, offs, geoms) {
+        var THIS = this;
         var features = {};
+        //var id = 1;
         $(summary).each(function(index, on_tad) {
             var labels = new L.featureGroup();
             $(offs[on_tad.tad].offs).each(function(index, off_tad) {
@@ -221,9 +222,40 @@ BuildOffs.prototype = {
                     var pct = off_tad.offs / on_tad.ons;
                     var centroid = geoms[off_tad.tad].centroid;
                     var pct_label = Math.round(pct * 100) + '%';
+                    /*
+                    // testing using d3 for icons
+                    var newId = 'pie-' + id;
+                    id = id + 1;
+                    var radius = Math.log(off_tad.offs) / Math.log(10) * 15;
+                    var diameter = radius * 2;
+                    var svg = document.createElement("svg");
+                    var svgContainer = d3.select(svg)
+                        .attr("id", newId)
+                        .attr("width", diameter)
+                        .attr("height", diameter);
+                    var translate = "translate("+radius+","+radius+")";
+                    var arc = d3.svg.arc()
+                        .innerRadius(radius /2)
+                        .outerRadius(radius)
+                        .startAngle(0)
+                        .endAngle(2*Math.PI);
+                    svgContainer.append("path")
+                        .attr("d", arc)
+                        .attr("transform", translate);
                     var labelIcon = L.divIcon({
-                        html:pct_label + '<br>' + off_tad.offs,
-                        className:'pct-label',
+                        iconSize:[diameter, diameter],
+                        html:svg.outerHTML,
+                        className:''
+                    });
+                    */ 
+                    var table = $('<table>');
+                    table.append($('<tr>').append($('<td>').text(pct_label)));
+                    table.append($('<tr>').append($('<td>').text(off_tad.offs)));
+                    var div = $('<div>').addClass('off-label').append(table);
+                    var labelIcon = L.divIcon({
+                        html:div[0].outerHTML,
+                        className:'',
+                        iconAnchor:[15,15]
                     });
                     var label = new L.marker(
                         [centroid.coordinates[1], centroid.coordinates[0]],
@@ -313,6 +345,10 @@ Map.prototype = {
             THIS.dirLayers.addLayer(dir, routeLayers[dir].start, 'start');
             THIS.dirLayers.addLayer(dir, routeLayers[dir].end, 'end');
         });
+        //$(offs.pies).each(function(index, pieID) {
+        //    var pie = new d3pie(pieID, pieOptions);
+        //});
+        //console.log(offs);
     },
     activateDir:function(dir) {
         this.dirLayers.turnOn(dir); 
