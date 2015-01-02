@@ -109,3 +109,22 @@ body {
     background-color:rgba(201,213,219,0.6);
 }
 
+.pct-label {
+    text-align:center;
+    font-size:85%;    
+    color:#fff;
+    font-weight:bold;
+    text-shadow: 0 0 10px #2D2727;
+
+/*
+background:#ff8888;
+  border:5px solid rgba(255,255,255,0.5);
+  color:#fff;
+  font-weight:bold;
+  text-align:center;
+  border-radius:50%;
+  line-height:30px;
+*/
+}
+
+

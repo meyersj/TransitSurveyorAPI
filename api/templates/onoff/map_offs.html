@@ -44,6 +44,7 @@ Select Route    <span class="caret"></span>
 <script>
 var dir_lookup = {};
 var directions = {{ directions|tojson|safe }};
+var map = new Map('map', 'map_offs/_details');
 
 $(directions).each(function(index, item) {
     if(!dir_lookup.hasOwnProperty(item.rte_desc)) {
@@ -51,7 +52,27 @@ $(directions).each(function(index, item) {
     }
     dir_lookup[item.rte_desc][item.dir] = item.dir_desc;
 });
-init();
+
+$('#filter_line a').on('click', function() {
+    var dir = dir_lookup[this.text];
+    var args = {"rte_desc":this.text};
+    $('#dir-tabs li.disabled').removeClass('disabled');
+    $("#line-btn").text(this.text+' ').append('<span class="caret"></span>');
+    $("#outbound-link > a").text(dir[0]);
+    $("#inbound-link > a").text(dir[1]);
+    $('#outbound-link').removeClass('active');
+    $('#inbound-link').addClass('active');
+    map.activateRoute(args);
+});
+
+$('#dir-tabs > li > a').click( function() {
+    $('#dir-tabs > li.active').removeClass('active');
+    $(this).parent().addClass('active');
+    var link = $(this).parent().attr('id');
+    if(link == 'outbound-link') map.activateDir(0);
+    if(link == 'inbound-link') map.activateDir(1);
+});
+
 </script>
 
 {% endblock %}
