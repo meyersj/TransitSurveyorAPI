@@ -46,7 +46,7 @@
     </button>
   </div>
 
-   <div id="dir-tabs" class="btn-group" role="group">
+   <div id="dir-tabs" style="display:none" class="btn-group" role="group">
     <button id="inbound-link" class="btn btn-default active disabled">
       <a href="#">Inbound</a>
     </button>
@@ -122,7 +122,7 @@ $('#filter_line a').on('click', function() {
     $("#inbound-link > a").text(dir[1]);
     $('#outbound-link').removeClass('active');
     $('#inbound-link').addClass('active');
-    map.activateRoute(args, '#status-cog');
+    map.activateRoute(args, '#status-cog', '#dir-tabs');
 });
 
 $('#dir-tabs button').click( function() {

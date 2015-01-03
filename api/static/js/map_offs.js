@@ -313,16 +313,16 @@ function Map(mapDiv, url) {
 }
 
 Map.prototype = {
-    activateRoute:function(args, statusCog) {
+    activateRoute:function(args, statusCog, dirBtns) {
         var THIS = this;
-        
+        $(dirBtns).hide();
         $(statusCog).show();
-
+        THIS.dirLayers.reset();
         $.getJSON(this.url, args, function(data) {
-            THIS.dirLayers.reset();
             THIS.buildData(data);
             THIS.dirLayers.turnOn(1);
             $(statusCog).hide();
+            $(dirBtns).show();
         });
     },
     buildData:function(data) {
