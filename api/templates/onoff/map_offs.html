@@ -3,10 +3,13 @@
 {% block head %}
 {{ super() }}
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css">
 <link rel="stylesheet" href="{{ url_for('static', filename='lib/leaflet/leaflet.css') }}" />
 <link rel="stylesheet" href="{{ url_for('static', filename='lib/leaflet/plugins/leaflet.label.css') }}"/>
+<!--link rel="stylesheet" href="{ url_for('static', filename='lib/leaflet/plugins/leaflet-sidebar.css') }"/-->
 <script src="{{url_for('static', filename='lib/leaflet/leaflet-src.js') }}"></script>
 <script src="{{ url_for('static', filename='lib/leaflet/plugins/leaflet.label.js') }}"></script>
+<!--script src="{ url_for('static', filename='lib/leaflet/plugins/leaflet-sidebar.js') }"></script-->
 <!--script src="{ url_for('static', filename='lib/d3/d3.js') }"></script-->
 <script src="{{ url_for('static', filename='js/map.js') }}"></script>
 <script src="{{ url_for('static', filename='js/map_offs.js') }}"></script>
@@ -14,33 +17,94 @@
 
 {% block dashboard %}
 {{ super() }}
-<div style="margin:2px; margin-top:10px">
-<div class="btn-group" style="z-index:1000" role="form">
-  <button id="line-btn" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-Select Route    <span class="caret"></span>
-  </button>
-  <ul id="filter_line" class="dropdown-menu scrollable-menu" role="menu">
-    <li role="presentation" class="dropdown-header">Route</li>
-    <li role="presentation" class="divider"></li>
-    {% for route in routes %}
-    <li><a href="#">{{ route }}</a></li>
-    {% endfor %}
-  </ul>
-</div>
-<ul id="dir-tabs" class="nav nav-tabs navbar-right">
-<li id="inbound-link" role="presentation" class="active disabled">
-        <a href="#">Inbound</a>
-    </li>
-    <li id="outbound-link" role="presentation" class="disabled">
-        <a href="#">Outbound</a>
-    </li>
-</ul>
+
+<style>
+#menu-btn-group button {
+    height:40px;
+    margin-bottom:5px;
+}
+</style>
+
+<div id="menu-btn-group" class="btn-toolbar" role="toolbar">
+
+  <div class="btn-group"  role="group">
+    <button id="line-btn" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+      Select Route    <span class="caret"></span>
+    </button>
+      <ul id="filter_line" class="dropdown-menu scrollable-menu" role="menu">
+        <li role="presentation" class="dropdown-header">Route</li>
+        <li role="presentation" class="divider"></li>
+        {% for route in routes %}
+        <li><a href="#">{{ route }}</a></li>
+        {% endfor %}
+      </ul> 
+  </div>
+
+  <div id="status-cog" style="display:none" class="btn-group" role="group">
+    <button class="btn btn-default">
+      <i class="fa fa-cog fa-spin fa-2x"></i>
+    </button>
+  </div>
+
+   <div id="dir-tabs" class="btn-group" role="group">
+    <button id="inbound-link" class="btn btn-default active disabled">
+      <a href="#">Inbound</a>
+    </button>
+    <button id="outbound-link" class="btn btn-default disabled">
+      <a href="#">Outbound</a>
+    </button>
+  </div>
+
+</div> 
+
 <div id="map" style="width:100%; height:70vh; z-index:1"></div>
-</div>
+
 <script>
 var dir_lookup = {};
 var directions = {{ directions|tojson|safe }};
 var map = new Map('map', 'map_offs/_details');
+
+/*
+//working on adding map control to switch between quotas and offs map
+
+var MenuButton = L.Control.extend({
+    options: {
+        position: 'topright'
+    },
+
+    onAdd: function (map) {
+        // create the control container with a particular class name
+
+        var list = $(
+            '<button type="button" ' +
+                'class="btn btn-default dropdown-toggle" data-toggle="dropdown">'+
+                'Layers <span class="caret"></span>'+
+            '</button>'+
+            '<ul class="dropdown-menu pull-right" role="menu">'+
+                '<li><a href="#">Quotas</a></li>'+
+                '<li><a href="#">Offs</a></li>'+
+            '</ul>'
+        );
+
+        var container = L.DomUtil.create('div', 'my-custom-control');
+        var onSelectDiv = $('<div>').append(list);
+
+        $(container)
+            .append(onSelectDiv);
+        // ... initialize other DOM elements, add listeners, etc.
+        return container;
+    }
+    //,
+
+    //initialize: function (foo, options) {
+    //    L.Util.setOptions(this, options);
+    //}
+
+});
+
+var control = new MenuButton();
+map.map.addControl(control);
+*/
 
 $(directions).each(function(index, item) {
     if(!dir_lookup.hasOwnProperty(item.rte_desc)) {
@@ -52,19 +116,19 @@ $(directions).each(function(index, item) {
 $('#filter_line a').on('click', function() {
     var dir = dir_lookup[this.text];
     var args = {"rte_desc":this.text};
-    $('#dir-tabs li.disabled').removeClass('disabled');
+    $('#dir-tabs button.disabled').removeClass('disabled');
     $("#line-btn").text(this.text+' ').append('<span class="caret"></span>');
     $("#outbound-link > a").text(dir[0]);
     $("#inbound-link > a").text(dir[1]);
     $('#outbound-link').removeClass('active');
     $('#inbound-link').addClass('active');
-    map.activateRoute(args);
+    map.activateRoute(args, '#status-cog');
 });
 
-$('#dir-tabs > li > a').click( function() {
-    $('#dir-tabs > li.active').removeClass('active');
-    $(this).parent().addClass('active');
-    var link = $(this).parent().attr('id');
+$('#dir-tabs button').click( function() {
+    $('#dir-tabs button.active').removeClass('active');
+    $(this).addClass('active');
+    var link = $(this).attr('id');
     if(link == 'outbound-link') map.activateDir(0);
     if(link == 'inbound-link') map.activateDir(1);
 });

@@ -58,6 +58,7 @@ HoverLayers.prototype = {
     turnoff:function() {
         if(this.hoverKey != null) {
             this.map.removeLayer(this.layers[this.hoverKey]);
+            this.hoverFeature.setStyle(styles.tadDefault);
         }
         this.hoverKey = null;
         this.hoverFeature = null;
@@ -312,12 +313,16 @@ function Map(mapDiv, url) {
 }
 
 Map.prototype = {
-    activateRoute:function( args) {
+    activateRoute:function(args, statusCog) {
         var THIS = this;
+        
+        $(statusCog).show();
+
         $.getJSON(this.url, args, function(data) {
             THIS.dirLayers.reset();
             THIS.buildData(data);
             THIS.dirLayers.turnOn(1);
+            $(statusCog).hide();
         });
     },
     buildData:function(data) {
