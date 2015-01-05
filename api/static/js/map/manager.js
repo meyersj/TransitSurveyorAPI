@@ -3,8 +3,17 @@ function EventHandler(map, defaultStyle, eventStyle) {
     this.eventKey = null;
     this.eventFeature = null;
     this.displayLayers = {};
+    this.eventTriggers = {};
     this.defaultStyle = defaultStyle;
     this.eventStyle = eventStyle;
+
+}
+
+EventHandler.prototype.addEventTrigger = function(key, onActivate, onClose) {
+    if(!this.eventTriggers.hasOwnProperty(key)) {
+        this.eventTriggers[key] = [];
+    }
+    this.eventTriggers[key].push({activate:onActivate, close:onClose});
 }
 
 EventHandler.prototype.clear = function() {
@@ -19,8 +28,6 @@ EventHandler.prototype.clear = function() {
 }
 
 EventHandler.prototype.activate = function(feature, key) {
-    console.log(feature);
-    console.log(key);
     if(this.eventKey == key) return false;
     if(this.eventFeature) {
         if(this.displayLayers.hasOwnProperty(this.eventKey)) {
@@ -32,6 +39,13 @@ EventHandler.prototype.activate = function(feature, key) {
     if(this.displayLayers.hasOwnProperty(key)) {
         this.map.addLayer(this.displayLayers[key]);
     }
+    if(this.eventTriggers.hasOwnProperty(key)) {
+        var THIS = this;
+        $(THIS.eventTriggers[key]).each(function(index, callback) {
+        
+        });
+    }
+    
     this.eventKey = key;
     this.eventFeature = feature;
     return true;
@@ -137,7 +151,6 @@ ViewManager.prototype.turnOn = function() {
 
 ViewManager.prototype.turnOff = function() {
     if(this.curView) {
-        console.log(this.curView);
         this.curView.turnOff()
         this.curView = null;
         return true;

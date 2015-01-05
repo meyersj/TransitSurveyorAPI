@@ -31,7 +31,7 @@ var styles = {
         color:'#595959',
         weight:3,
         opacity:1,
-        fillOpacity: 0.5
+        fillOpacity: 0.2
     },
     _defaultStyle:{
         fillColor:'black',
@@ -43,10 +43,10 @@ var styles = {
     },
     _eventStyle:{
         fillColor:'#45A035',
-        color:'#595959',
-        weight:3,
+        color:'#297A34',
+        weight:4,
         opacity:1,
-        fillOpacity: 0.5
+        fillOpacity: 0.3
     },
 
     offCentroid:{
@@ -76,10 +76,41 @@ var icons = {
 };
 
 
+function BuildStops(MAP_THIS) {
+    this.MAP_THIS = MAP_THIS;
+}
+
+BuildStops.prototype = {
+    pointFunctionStops:function(feature, latlng) { 
+        var opt = jQuery.extend(true, {}, styles.tadQuota); 
+        opt.fillColor = '#000'; 
+        opt.color = '#302D5B';    
+        opt.fillOpacity = 0.6
+        opt.radius = 4; 
+        opt.clickable = false; 
+        var marker = new L.circleMarker(latlng, opt); 
+        return marker; 
+    },
+    build:function(data) {
+        var stops = [{}, {}];
+        var THIS = this;
+        $([0, 1]).each(function(index, dir) {
+            for(var key in data[dir]) {
+                var item = data[dir][key];
+                stops[dir][item.tad] = new L.geoJson(item.stops, {
+                    pointToLayer:THIS.pointFunctionStops
+                });
+            }
+        });
+        return stops;
+    }
+};
+
 function BuildQuotas(MAP_THIS) {
     this.MAP_THIS = MAP_THIS;
     this.tblHeaders = ['', '', '6a-9a','9a-12p','12p-3p','3p-6p','6p-9p','9p-12a'];
 }
+
 
 BuildQuotas.prototype = {
     _buildCell:function(label, pct) {
@@ -130,32 +161,26 @@ BuildQuotas.prototype = {
     tadPointToLayer:function() {
         var THIS = this;
         return function(feature, latlng) {
-            var opt = jQuery.extend(true, {}, styles.tadQuotas);
+            var opt = jQuery.extend(true, {}, styles.tadQuota);
             var code = THIS._getStatus(
                 THIS._getPct(feature.properties.count,feature.properties.ons)
             );
             opt.fillColor = styles.statusColor[code];
+            opt.fillOpacity = 0.8;
+            opt.color = '#565656';   //styles.statusColor[code];
             opt.radius =  Math.log(feature.properties.ons) / Math.log(10) * 10;
+            
+            console.log(opt);
             var marker = new L.circleMarker(latlng, opt);
-            //marker.on('mouseover', function(e) {
-            //    var feature = e.target.feature.geometry;
-            //    //show_stops(feature.properties.tad);
-            //    marker.openPopup();
-            //    marker.options.color = blue;
-            //});
-            //marker.on('mouseout', function(e) {
-            //    var feature = e.target.feature.geometry;
-            //    //hide_stops(feature.properties.tad);
-            //    marker.closePopup();
-            //    marker.options.color = black;
-            //});
             return marker;
         }
     },
     tadOnEachFeature:function() {
         var THIS = this;
-        return function(feature, layer) {
-            if (feature.properties) {
+        return function(feature, layer) {};
+    },
+            /*
+        if (feature.properties) {
                 var row1 = $('<tr>');
                 var row2 = $('<tr>');
                 var row3 = $('<tr>');
@@ -203,50 +228,49 @@ BuildQuotas.prototype = {
                 layer.bindPopup(popup);
             }
         }
+    },*/
+    /*
+    pointFunctionStops:function(feature, latlng) { 
+        var opt = jQuery.extend(true, {}, styles.tadQuota); 
+        opt.fillColor = '#000'; 
+        opt.radius = 4; 
+        opt.clickable = false; 
+        var marker = new L.circleMarker(latlng, opt); 
+        return marker; 
     },
+    buildStops:function(data) {
+        var stopsEventLayer = {};
+        for(var key in data) {
+            var item = data[key];
+            stopsEventLayer[item.tad] = new L.geoJson(item.stops, {
+                pointToLayer:this.pointFunctionStops
+            });
+        }
+       return stopsEventLayer;
+    },
+    */
     build:function(data, timeData) {
         var THIS = this;
         var fc = {
             "type":"FeatureCollection",
             "features":[]
         };
-        //console.log(data);
-        //console.log(timeData);
-        //console.log("data");
-        //console.log(data);
-        //console.log(timeData);
-        
         for(var key in data) {
             var item = data[key];
             var tad = key;
             var geo = item.centroid;
-            var prop = {};
-            prop.tad = tad;
-            prop.count = item.count;
-            prop.ons = item.ons;
-            prop.time = timeData[tad];
+            var prop = {
+                tad:tad,
+                count:item.count,
+                ons:item.ons,
+                time:timeData[tad]
+            };
             geo.properties = prop;
             fc.features.push(geo);
         }
-
-        //$(data).each(function(index, item) {
-            //console.log(item);
-            //var geo = item.centroid;
-            //console.log(geo);
-            //var prop = {};
-            //prop.tad = item.tad;
-            //prop.count = item.count;
-            //prop.ons = item.ons;
-            //prop.time = timedata[item.tad];
-            //geo.properties = prop;
-            //fc.features.push(geo);
-            //tad_stops[item.tad] = new L.geoJson(JSON.parse(item.stops), {
-            //    pointToLayer:pointFunctionStops
-            //});
-        //});
         return new L.geoJson(fc, {
-            pointToLayer:THIS.tadPointToLayer(),
-            onEachFeature:THIS.tadOnEachFeature()
+                pointToLayer:THIS.tadPointToLayer(),
+                onEachFeature:THIS.tadOnEachFeature()
         });
     }
 }
@@ -494,7 +518,7 @@ Map.prototype = {
             THIS.downloadStatusOn();
             THIS.manager.turnOff();
             $.getJSON(this.url, {rte_desc:args.rteDesc}, function(data) {
-                console.log(data);
+                //console.log(data);
                 THIS.manager.addRoute(THIS.currentRte)
                 THIS.buildData(data);
                 THIS.downloadStatusOff();
@@ -504,18 +528,6 @@ Map.prototype = {
         else {
             args.activateView(args.active);
         }
-        //activate route if direction and view has already been selected
-        
-        //else {
-        //    var curView = null
-        //    if(curViewName) {
-        //        var newID = THIS.manager.createViewID(THIS.currentRte, curDir, curViewName);
-       //         var newView = THIS.manager.views[newID];
-       //         if(newView && newView != THIS.manager.curView) {
-       //             THIS.manager.activateView(THIS.currentRte, curDir, curViewName);
-       //         }
-       //     }
-       // }
         return true;
     },
     buildData:function(data) {
@@ -536,18 +548,21 @@ Map.prototype = {
             0:new View(this.map, buildViewArgs(viewArgs, 0, 'Offs')),
             1:new View(this.map, buildViewArgs(viewArgs, 1, 'Offs'))
         };
+        var viewQuotas = {
+            0:new View(this.map, buildViewArgs(viewArgs, 0, 'Quotas')),
+            1:new View(this.map, buildViewArgs(viewArgs, 1, 'Quotas'))
+        }
         var tads = new BuildTads(THIS);
         var routes = new BuildRoutes(THIS);
         var offs = new BuildOffs(THIS);
-        //var quotas = new BuildQuotas(THIS);
-
+        var quotas = new BuildQuotas(THIS);
+        var tadStops = new BuildStops(THIS);
         //tadLayer has a hover event handler attached to it
         var tadLayers = tads.build(data.tads);
         var routeLayers = routes.build(data.routes, data.minmax);
-        
+        var tadStopLayers = tadStops.build(data.stops);
         $([0, 1]).each(function(index, dir) {
-            //var t = quotas.build(data.stops[dir], data.time_data[dir])
-            //console.log(t);
+            var quotasLayer = quotas.build(data.stops[dir], data.time_data[dir])
             var offLabelLayer = offs.buildLabels(
                 data.summary[dir],
                 data.data[dir],
@@ -558,43 +573,30 @@ Map.prototype = {
                 data.data[dir],
                 data.stops[dir]
             );
-            for(var key in offLayer) {
-                viewOffs[dir].addEventLayer(offLayer[key], key);
-            }
-            for(var key in offLabelLayer) {
-                viewOffs[dir].addEventLayer(offLabelLayer[key], key);
-            }
+            //tad display layer
             viewOffs[dir].addDisplayLayer(tadLayers[dir]);
+            viewQuotas[dir].addDisplayLayer(tadLayers[dir]);
+            //route and terminus layers
             $(["route", "end", "start"]).each(function(index, layer) {
                 viewOffs[dir].addDisplayLayer(routeLayers[dir][layer]);
+                viewQuotas[dir].addDisplayLayer(routeLayers[dir][layer]);
             });
+            //"Offs" layers
+            $([offLayer, offLabelLayer]).each(function(index, layer) {
+                for(var key in layer) {
+                    viewOffs[dir].addEventLayer(layer[key], key);
+                }
+            });
+            viewQuotas[dir].addDisplayLayer(quotasLayer);
+            //tad stops hover layers
+            for(var key in tadStopLayers[dir]) {
+                viewOffs[dir].addEventLayer(tadStopLayers[dir][key], key);
+                viewQuotas[dir].addEventLayer(tadStopLayers[dir][key], key);
+            }
+            //add views to manager
             THIS.manager.addView(viewOffs[dir]);
+            THIS.manager.addView(viewQuotas[dir]);
         });
-        //THIS.manager.activateView(THIS.currentRte, 1, 'offs');
-        //console.log(THIS.manager);
-        
-        //$([0, 1]).each(function(index, dir) {
-            /*
-            var offLabelLayer = offs.buildLabels(
-                data.summary[dir],
-                data.data[dir],
-                data.stops[dir]
-            );
-            var offLayer = offs.build(
-                data.summary[dir],
-                data.data[dir],
-                data.stops[dir]
-            );
-            */
-            
-            //THIS.dirLayers.addHoverLayer(dir, offLayer, 'offs');
-            //THIS.dirLayers.addHoverLayer(dir, offLabelLayer, 'labels');
-            
-            //THIS.dirLayers.addLayer(dir, routeLayers[dir].route, 'route');
-            //THIS.dirLayers.addLayer(dir, routeLayers[dir].start, 'start');
-            //THIS.dirLayers.addLayer(dir, routeLayers[dir].end, 'end');
-        //});
-        
     },
     activateView:function(rte, dir, viewName) {
         this.manager.activateView(rte, dir, viewName);
