@@ -232,7 +232,9 @@ def map_details():
 
 @mod_onoff.route('/map_offs')
 def map_offs():
-    routes = [ route['rte_desc'] for route in h.get_routes() ]
+    routes = [ {
+        'rte':route['rte'], 'rte_desc':route['rte_desc']
+        } for route in h.get_routes() ]
     directions = h.get_directions()
     return render_template(static('map_offs.html'),
         routes=routes, directions=directions
@@ -245,9 +247,13 @@ def map_offs_details():
         rte_desc = request.args['rte_desc'].strip()
         rte = h.rte_lookup(rte_desc)
         session = Session()
-        
+        fields = ['dir', 'tad', 'centroid', 'stops', 'ons', 'count']
+        query_time = session.execute("""
+            SELECT """ + ','.join(fields) + """, bucket
+            FROM long.tad_time_stats
+            WHERE rte = :rte;""", {'rte':rte})
         query_markers = session.execute("""
-            SELECT dir, tad, centroid, stops, ons
+            SELECT dir, tad, centroid, stops, ons, count
             FROM long.tad_stats
             WHERE rte = :rte;""", {'rte':rte})
         query_tads = session.execute("""
@@ -299,7 +305,7 @@ def map_offs_details():
             try:
                 return int(value)
             except:
-                return False
+                return 0
 
         tads = []
         stops = {}
@@ -313,7 +319,10 @@ def map_offs_details():
         data[1] = {}
         routes_geom = {}
         minmax = {} 
-        
+        time_data = {}
+        time_data[0] = {}
+        time_data[1] = {}
+      
         for record in query_tads:
             dir_ = record[0]
             tad = record[1]
@@ -322,23 +331,19 @@ def map_offs_details():
             tads.append({'dir':dir_, 'tad':tad, 'geom':geom, 'centroid':centroid})
         for record in query_markers:
             dir_ = record[0]
-            #if dir_ not in stops:
-            #    stops[_dir] = {}
             tad = record[1]
             centroid = json.loads(record[2])
             stops_geom = json.loads(record[3])
-            ons = int(record[4])
-            debug(tad)
-            stops[dir_][tad] = {'centroid':centroid, 'stops':stops_geom, 'ons':ons}
+            ons = int_zero(record[4])
+            count = int_zero(record[5])
+            stops[dir_][tad] = {
+                'centroid':centroid, 'count':count, 'stops':stops_geom, 'ons':ons
+            }
         for record in query_data_summary:
             dir_ = record[0]
             tad_on = record[1]
             ons = int(record[2])
             summary[dir_].append({'tad':tad_on, 'ons':ons})
-            #summary = {
-            #   0:[ {tad:1233, ons:141}, { ... }],
-            #   1:[ ... ]
-            #}
         for record in query_data:
             dir_ = record[0]
             tad_on = record[1]
@@ -348,10 +353,6 @@ def map_offs_details():
                 data[dir_][tad_on] = {}
                 data[dir_][tad_on]['offs'] = []
             data[dir_][tad_on]['offs'].append({'tad':tad_off, 'offs':offs})
-            #data = {
-            #   0:{ '0000012':{offs:[{tad:1233, offs:21}, { ... }]}. '0000015':{ ... } },
-            #   1:{ ... }
-            #}
         for record in query_routes:
             routes_geom[record[0]] = {
                 'dir':record[0],
@@ -364,6 +365,15 @@ def map_offs_details():
                 'geom':record[3],
                 'stop_name':record[2]
             }
+        for record in query_time:
+            tad = record[1]
+            if tad not in time_data[record[0]]:
+                time_data[record[0]][tad] = []
+            ons = int_zero(record[4])
+            count = int_zero(record[5])
+            bucket = int_zero(record[6])
+            time_data[record[0]][tad].insert(bucket, {"count":count, "ons":ons})
+
         response['success'] = True
         response['stops'] = stops
         response['summary'] = summary
@@ -371,8 +381,31 @@ def map_offs_details():
         response['tads'] = tads
         response['routes'] = routes_geom
         response['minmax'] = minmax
+        response['time_data'] = time_data
+        
         session.close()
     return jsonify(response)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 @mod_onoff.route('/map_4_9')
@@ -500,7 +533,6 @@ def map_4_9_details():
             centroid = json.loads(record[2])
             stops_geom = json.loads(record[3])
             ons = int(record[4])
-            debug(tad)
             stops[dir_][tad] = {'centroid':centroid, 'stops':stops_geom, 'ons':ons}
         for record in query_data_summary:
             dir_ = record[0]

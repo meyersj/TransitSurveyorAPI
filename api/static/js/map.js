@@ -32,7 +32,6 @@ function initmap(map_div) {
 }
 
 
-var trimet_tiles 
 
 
 function makePieChart() {

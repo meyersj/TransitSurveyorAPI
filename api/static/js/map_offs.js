@@ -87,8 +87,9 @@ HoverLayers.prototype = {
     }
 }
 
-function DirectionLayers(map) {
+function DirectionLayers(map, rteDesc) {
     this.map = map;
+    this.rteDesc = rteDesc;
     this.activeDir = null;
     this.namedLayers = {0:{},1:{}};
     this.layers = [new L.layerGroup(), new L.layerGroup()];
@@ -212,10 +213,52 @@ BuildOffs.prototype = {
         });
         return features;
     },
+    onTadData:function(summary, offs, geoms) {
+        var THIS = this;
+        var features = {};
+        $(summary).each(function(index, on_tad) {
+            features[tad] = on_tad.ons;
+        });
+        return features;
+    },
+    /*
+    buildPies:function(summary, offs, geoms) { 
+        var THIS = this;
+        var pies = {};
+        var id = 1;
+        $(summary).each(function(index, on_tad) {
+            $(offs[on_tad.tad].offs).each(function(index, off_tad) {
+                var pct = off_tad.offs / on_tad.ons;
+                var pct_label = Math.round(pct * 100) + '%';
+                // testing using d3 for icons
+                var newId = 'pie-' + id;
+                id = id + 1;
+                var radius = Math.log(off_tad.offs) / Math.log(10) * 15;
+                var diameter = radius * 2;
+                var svg = document.createElement("svg");
+                var svgContainer = d3.select(svg)
+                    .attr("id", newId)
+                    .attr("width", diameter)
+                    .attr("height", diameter);
+                var translate = "translate("+radius+","+radius+")";
+                var arc = d3.svg.arc()
+                    .innerRadius(radius /2)
+                    .outerRadius(radius)
+                    .startAngle(0)
+                    .endAngle(2*Math.PI);
+                svgContainer.append("path")
+                    .attr("d", arc)
+                    .attr("transform", translate);
+                console.log($(svg));
+                pies[on_tad] = svg;
+            });
+        });
+        return pies 
+    },
+    */
     buildLabels:function(summary, offs, geoms) {
         var THIS = this;
         var features = {};
-        //var id = 1;
         $(summary).each(function(index, on_tad) {
             var labels = new L.featureGroup();
             $(offs[on_tad.tad].offs).each(function(index, off_tad) {
@@ -223,32 +266,6 @@ BuildOffs.prototype = {
                     var pct = off_tad.offs / on_tad.ons;
                     var centroid = geoms[off_tad.tad].centroid;
                     var pct_label = Math.round(pct * 100) + '%';
-                    /*
-                    // testing using d3 for icons
-                    var newId = 'pie-' + id;
-                    id = id + 1;
-                    var radius = Math.log(off_tad.offs) / Math.log(10) * 15;
-                    var diameter = radius * 2;
-                    var svg = document.createElement("svg");
-                    var svgContainer = d3.select(svg)
-                        .attr("id", newId)
-                        .attr("width", diameter)
-                        .attr("height", diameter);
-                    var translate = "translate("+radius+","+radius+")";
-                    var arc = d3.svg.arc()
-                        .innerRadius(radius /2)
-                        .outerRadius(radius)
-                        .startAngle(0)
-                        .endAngle(2*Math.PI);
-                    svgContainer.append("path")
-                        .attr("d", arc)
-                        .attr("transform", translate);
-                    var labelIcon = L.divIcon({
-                        iconSize:[diameter, diameter],
-                        html:svg.outerHTML,
-                        className:''
-                    });
-                    */ 
                     var table = $('<table>');
                     table.append($('<tr>').append($('<td>').text(pct_label)));
                     table.append($('<tr>').append($('<td>').text(off_tad.offs)));
@@ -305,25 +322,59 @@ BuildRoutes.prototype = {
     }
 }
 
-function Map(mapDiv, url) {
-    this.map = initmap(mapDiv);
+function Map(args) {
+    this.map = this.initmap(args.mapID);
+    this.currentRoute = null;
     this.dirLayers = new DirectionLayers(this.map);
     this.hoverLayers = new HoverLayers(this.map);
-    this.url = url;
+    this.url = args.url;
+    this.cog = args.cog;
+    this.dirTabs = args.dirTabs;
 }
 
 Map.prototype = {
-    activateRoute:function(args, statusCog, dirBtns) {
+    trimetTiles:function() {
+        var url = "http://{s}.trimet.org"+
+            "/tilecache/tilecache.py/1.0.0/currentOSM/{z}/{x}/{y}";
+        return new L.TileLayer(url, {
+            minZoom: 8,
+            maxZoom: 20,
+            attribution:"Map data &copy; 2015 Oregon Metro " +
+                "and <a href='http://openstreetmap.org'>OpenStreetMap</a> contributors",
+            subdomains:["tilea", "tileb", "tilec", "tiled"]
+        });
+    },
+    osmTiles:function() {
+        var url='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+        return new L.TileLayer(url, {
+            minZoom: 8,
+            maxZoom: 20,
+            attribution: 'Map data © '+
+            '<a href="http://openstreetmap.org">OpenStreetMap</a>contributors'
+        });
+    },
+    initmap:function(map_div) {
+        var map = new L.Map(map_div);
+        var tiles = this.trimetTiles()
+        map.setView(new L.LatLng(45.51, -122.678),11);
+        map.addLayer(tiles);
+        return map;
+    },
+    activateRoute:function(args) {
+        if(this.currentRoute == args.rte_desc) return false;
         var THIS = this;
-        $(dirBtns).hide();
-        $(statusCog).show();
+        this.currentRoute = args.rte_desc;
+        $(this.dirTabs).hide();
+        $(this.cog).show();
         THIS.dirLayers.reset();
         $.getJSON(this.url, args, function(data) {
+            console.log(data);
             THIS.buildData(data);
             THIS.dirLayers.turnOn(1);
-            $(statusCog).hide();
-            $(dirBtns).show();
+            $(THIS.cog).hide();
+            $(THIS.dirTabs).show();
         });
+        return true;
     },
     buildData:function(data) {
         var THIS = this;
@@ -350,10 +401,6 @@ Map.prototype = {
             THIS.dirLayers.addLayer(dir, routeLayers[dir].start, 'start');
             THIS.dirLayers.addLayer(dir, routeLayers[dir].end, 'end');
         });
-        //$(offs.pies).each(function(index, pieID) {
-        //    var pie = new d3pie(pieID, pieOptions);
-        //});
-        //console.log(offs);
     },
     activateDir:function(dir) {
         this.dirLayers.turnOn(dir); 

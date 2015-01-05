@@ -73,29 +73,28 @@ var init = function() {
         
         //fetch route stats
         $.getJSON('map/_details', args, function(data) {
-            console.log(data);
-            turnoff_dir();
-            var route_opt = jQuery.extend(true, {}, options);
-            route_opt.color = '#424559';
-            route_opt.weight = 5;
-            route_opt.clickable = false;
-            delete route_opt.radius;
+            //turnoff_dir();
+            //var route_opt = jQuery.extend(true, {}, options);
+            //route_opt.color = '#424559';
+            //route_opt.weight = 5;
+            //route_opt.clickable = false;
+            //delete route_opt.radius;
             $([0, 1]).each(function(index, item) {
-                layers[item].route = new L.geoJson(data.routes[item].geom, route_opt);
+                //layers[item].route = new L.geoJson(data.routes[item].geom, route_opt);
                 layers[item].tads = build_dir_feature(
                     data.data[item], data.time_data[item]
                 );
-                console.log(data.minmax[item]);
-                layers[item].start = markerFactory(
-                    JSON.parse(data.minmax[item].start.geom),
-                    'START: ' + data.minmax[item].start.stop_name,
-                    icon.start
-                );
-                layers[item].end = markerFactory(
-                    JSON.parse(data.minmax[item].end.geom),
-                    'END: ' + data.minmax[item].end.stop_name,
-                    icon.end
-                );
+                //console.log(data.minmax[item]);
+                //layers[item].start = markerFactory(
+                //    JSON.parse(data.minmax[item].start.geom),
+                //    'START: ' + data.minmax[item].start.stop_name,
+                //    icon.start
+                //);
+                //layers[item].end = markerFactory(
+                //    JSON.parse(data.minmax[item].end.geom),
+                //    'END: ' + data.minmax[item].end.stop_name,
+                //    icon.end
+                //);
             });
             turnon_dir(1);
         }); 

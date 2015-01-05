@@ -125,6 +125,11 @@ body {
     height:100%;
 }
 
+.active-dir {
+    background-color:rgba(0,0,0,0.2);
+}
+
+
 .off-label td {
     line-height:0;
     text-align: center;
