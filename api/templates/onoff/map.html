@@ -175,6 +175,7 @@ function updateButtons(rteDesc) {
 $('#rte-menu a').on('click', function() {
     if(active.rte == null) {
         $('#dir-menu button.disabled').removeClass('disabled');
+        $('#both-btn').addClass('disabled');
     }
     active.rte = $(this).attr("rte");
     map.activateRoute({
