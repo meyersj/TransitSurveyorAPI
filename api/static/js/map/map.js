@@ -42,11 +42,11 @@ var styles = {
         fillOpacity:0.15
     },
     _eventStyle:{
-        fillColor:'#45A035',
-        color:'#297A34',
+        fillColor:'#313C72',
+        color:'#3F4D96',
         weight:4,
         opacity:1,
-        fillOpacity: 0.3
+        fillOpacity: 0.2
     },
 
     offCentroid:{
@@ -169,84 +169,64 @@ BuildQuotas.prototype = {
             opt.fillOpacity = 0.8;
             opt.color = '#565656';   //styles.statusColor[code];
             opt.radius =  Math.log(feature.properties.ons) / Math.log(10) * 10;
-            
-            console.log(opt);
+            //console.log(opt);
             var marker = new L.circleMarker(latlng, opt);
             return marker;
         }
     },
+    buildTadTable:function(properties) {
+        var THIS = this;
+        var tableDiv = $('<div>')
+        if (properties) {
+            var row1 = $('<tr>');
+            var row2 = $('<tr>');
+            var row3 = $('<tr>');
+            var count = Math.round(properties.count);
+            var ons = Math.round(properties.ons);
+            var pct = (count / ons) * 100;
+            var complete = Math.round(pct).toString() + '% ' +
+                count + '/' + ons;
+            var cell = THIS._buildCell(complete, pct).attr('colspan', '6');
+            var row4 = $('<tr>').append(cell);
+            $(THIS.tblHeaders).each(function(index, item) {
+                if(index > 1) {
+                    var pct;
+                    var feat = properties.time[index];
+                    var num_text = 'N/A';
+                    if(feat) {
+                        if(!feat.ons) pct = -1;
+                            else if(!feat.count) {
+                                num_text = 0 + '/' + Math.round(feat.ons);
+                                pct = 0;
+                            }
+                            else {
+                                pct = (feat.count / feat.ons) * 100;
+                                num_text = Math.round(feat.count) + '/' +
+                                    Math.round(feat.ons);
+                            }
+                        }
+                    else pct = -1;
+                    row1.append(THIS._buildCell(THIS.tblHeaders[index], pct));
+                    row2.append(THIS._buildCell(null, pct));
+                    row3.append(THIS._buildCell(num_text ,pct));
+                }
+            });
+            //tableDiv.addClass("table-responsive panel panel-default")
+            tableDiv.append($('<table>').addClass('table')
+                    .append(row1).append(row2).append(row3).append(row4)
+                );
+        }
+        return $('<div>').append(tableDiv.html()).html();
+    },
     tadOnEachFeature:function() {
         var THIS = this;
         return function(feature, layer) {
-            if (feature.properties) {
-                var row1 = $('<tr>');
-                var row2 = $('<tr>');
-                var row3 = $('<tr>');
-                var count = Math.round(feature.properties.count);
-                var ons = Math.round(feature.properties.ons);
-                var pct = (count / ons) * 100;
-                var complete = Math.round(pct).toString() + '% ' +
-                    count + '/' + ons;
-                var cell = THIS._buildCell(complete, pct).attr('colspan', '6');
-                var row4 = $('<tr>').append(cell);
-                $(THIS.tblHeaders).each(function(index, item) {
-                    if(index > 1) {
-                        var pct;
-                        var feat = feature.properties.time[index];
-                        var num_text = 'N/A';
-                        if(feat) {
-                            if(!feat.ons) pct = -1;
-                                else if(!feat.count) {
-                                    num_text = 0 + '/' + Math.round(feat.ons);
-                                    pct = 0;
-                                }
-                                else {
-                                    pct = (feat.count / feat.ons) * 100;
-                                    num_text = Math.round(feat.count) + '/' +
-                                        Math.round(feat.ons);
-                                }
-                            }
-                        else pct = -1;
-                        row1.append(THIS._buildCell(THIS.tblHeaders[index], pct));
-                        row2.append(THIS._buildCell(null, pct));
-                        row3.append(THIS._buildCell(num_text ,pct));
-                    }
-                });
-                var popup_html = $('<div>')
-                    .addClass("table-responsive panel panel-default")
-                    .append(
-                        $('<table>').addClass('table')
-                            .append(row1)
-                            .append(row2)
-                            .append(row3)
-                            .append(row4)
-                    ).html();
-                var popup = L.popup({'minWidth':320})
-                    .setContent(popup_html);
-                layer.bindPopup(popup);
-            }
-        }
+            var tableDiv = THIS.buildTadTable(feature.properties);
+            var popup = L.popup({'minWidth':320})
+                .setContent(tableDiv);
+            layer.bindPopup(popup);
+        };
     },
-    /*
-    pointFunctionStops:function(feature, latlng) { 
-        var opt = jQuery.extend(true, {}, styles.tadQuota); 
-        opt.fillColor = '#000'; 
-        opt.radius = 4; 
-        opt.clickable = false; 
-        var marker = new L.circleMarker(latlng, opt); 
-        return marker; 
-    },
-    buildStops:function(data) {
-        var stopsEventLayer = {};
-        for(var key in data) {
-            var item = data[key];
-            stopsEventLayer[item.tad] = new L.geoJson(item.stops, {
-                pointToLayer:this.pointFunctionStops
-            });
-        }
-       return stopsEventLayer;
-    },
-    */
     build:function(data, timeData) {
         var THIS = this;
         var fc = {
@@ -270,8 +250,28 @@ BuildQuotas.prototype = {
                 pointToLayer:THIS.tadPointToLayer(),
                 onEachFeature:THIS.tadOnEachFeature()
         });
+    },
+    buildTables:function(data, timeData) {
+        var THIS = this;
+        var quotasTables = {};
+        for(var key in data) {
+            var item = data[key];
+            var tad = key;
+            var prop = {
+                tad:tad,
+                count:item.count,
+                ons:item.ons,
+                time:timeData[tad]
+            };
+            quotasTables[tad] = $('<div>').append(THIS.buildTadTable(prop));
+        }
+        return quotasTables;
     }
 }
+
+
+
+
 
 function BuildTads(MAP_THIS) {
     this.MAP_THIS = MAP_THIS;
@@ -469,6 +469,7 @@ function Map(args) {
     this.url = args.url;
     this.cog = args.cog;
     this.dirTabs = args.dirTabs;
+    this.sidebar = null;
 }
 
 Map.prototype = {
@@ -528,27 +529,31 @@ Map.prototype = {
         }
         return true;
     },
+    addSidebar:function(sidebar, sidebarID) {
+        this.map.addControl(sidebar);
+        this.sidebar = $('#'+sidebarID);
+    },
     buildData:function(data) {
         var THIS = this;
-        
         var viewArgs = {
             rte:this.currentRte,
             defaultStyle:styles._defaultStyle,
             eventStyle:styles._eventStyle
         };
-        function buildViewArgs(viewArgs, dir, viewName) {
+        function buildViewArgs(viewArgs, dir, viewName, sidebar) {
             var args = jQuery.extend(true, {}, viewArgs);
             args.dir = dir;
             args.viewName = viewName;
+            args.sidebar = sidebar;
             return args;
         }
         var viewOffs = {
-            0:new View(this.map, buildViewArgs(viewArgs, 0, 'Offs')),
-            1:new View(this.map, buildViewArgs(viewArgs, 1, 'Offs'))
+            0:new View(this.map, buildViewArgs(viewArgs, 0, 'Offs', THIS.sidebar)),
+            1:new View(this.map, buildViewArgs(viewArgs, 1, 'Offs', THIS.sidebar))
         };
         var viewQuotas = {
-            0:new View(this.map, buildViewArgs(viewArgs, 0, 'Quotas')),
-            1:new View(this.map, buildViewArgs(viewArgs, 1, 'Quotas'))
+            0:new View(this.map, buildViewArgs(viewArgs, 0, 'Quotas', THIS.sidebar)),
+            1:new View(this.map, buildViewArgs(viewArgs, 1, 'Quotas', THIS.sidebar))
         }
         var tads = new BuildTads(THIS);
         var routes = new BuildRoutes(THIS);
@@ -560,7 +565,9 @@ Map.prototype = {
         var routeLayers = routes.build(data.routes, data.minmax);
         var tadStopLayers = tadStops.build(data.stops);
         $([0, 1]).each(function(index, dir) {
-            var quotasLayer = quotas.build(data.stops[dir], data.time_data[dir])
+            var quotasLayer = quotas.build(data.stops[dir], data.time_data[dir]);
+            var quotasTables = quotas.buildTables(data.stops[dir], data.time_data[dir]);
+
             var offLabelLayer = offs.buildLabels(
                 data.summary[dir],
                 data.data[dir],
@@ -590,6 +597,22 @@ Map.prototype = {
             for(var key in tadStopLayers[dir]) {
                 viewOffs[dir].addEventLayer(tadStopLayers[dir][key], key);
                 viewQuotas[dir].addEventLayer(tadStopLayers[dir][key], key);
+            }
+            for(var key in quotasTables) {
+                viewQuotas[dir].addEventCallback(key, {
+                    activate:function(feature, key) {
+                        //add html table to map sidebar
+                        console.log("active callback hello");
+                        $('#map-sidebar').show().append(quotasTables[key]);
+                        //$('#map-sidebar').css('display', '').empty()
+                        //    .append(quotasTables[key]);
+                    },
+                    close:function(feature, key) {
+                        //remove html table from map sidebar
+                        console.log("close callback hello");
+                        $('#map-sidebar').empty().hide();
+                    }
+                });
             }
             //add views to manager
             THIS.manager.addView(viewOffs[dir]);

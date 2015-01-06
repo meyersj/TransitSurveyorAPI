@@ -109,6 +109,21 @@ body {
     background-color:rgba(201,213,219,0.6);
 }
 
+
+.map-sidebar {
+    display:none;
+    background-color:rgba(0,0,0,0.5);
+    padding:10px;
+}
+
+.map-sidebar div {
+    background-color:rgba(255,255,255,0.6);
+}
+
+.map-sidebar table {
+    margin:0px;
+}
+
 .pie-marker {   
 }
 

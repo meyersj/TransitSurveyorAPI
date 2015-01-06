@@ -1,25 +1,48 @@
-function EventHandler(map, defaultStyle, eventStyle) {
+function EventHandler(map, sidebar, defaultStyle, eventStyle) {
     this.map = map;
+    this.sidebar = sidebar;
     this.eventKey = null;
     this.eventFeature = null;
     this.displayLayers = {};
     this.eventTriggers = {};
     this.defaultStyle = defaultStyle;
     this.eventStyle = eventStyle;
-
 }
 
-EventHandler.prototype.addEventTrigger = function(key, onActivate, onClose) {
+///* callbacks = {
+//       activate:function(feature, key) { ... } ,
+//       close:function(feature, key) { ... }
+//   }
+//*/
+EventHandler.prototype.addEventCallback = function(key, callbacks) {
+    console.log("add event callback");
+    var newCallbacks = {activate:null, close:null};
     if(!this.eventTriggers.hasOwnProperty(key)) {
         this.eventTriggers[key] = [];
     }
-    this.eventTriggers[key].push({activate:onActivate, close:onClose});
+    if(callbacks.hasOwnProperty('activate') &&
+        typeof(callbacks.activate) == "function") {
+        newCallbacks.activate = callbacks.activate;
+    }
+    if(callbacks.hasOwnProperty('close') &&
+        typeof(callbacks.close) == "function") {
+        newCallbacks.close = callbacks.close;
+    }
+    if(newCallbacks.activate == null || newCallbacks.close == null) return false;
+    this.eventTriggers[key].push(newCallbacks);
+    return true;
 }
 
 EventHandler.prototype.clear = function() {
+    var THIS = this;
     if(this.eventFeature) {
         if(this.displayLayers.hasOwnProperty(this.eventKey)) {
             this.map.removeLayer(this.displayLayers[this.eventKey]);
+        }
+        if(this.eventTriggers.hasOwnProperty(this.eventKey)) {
+            $(THIS.eventTriggers[THIS.eventKey]).each(function(index, callbacks) {
+                callbacks.close(THIS.eventFeature, THIS.eventKey);
+            });
         }
         this.eventFeature.setStyle(this.defaultStyle);
     }
@@ -28,12 +51,20 @@ EventHandler.prototype.clear = function() {
 }
 
 EventHandler.prototype.activate = function(feature, key) {
+    //same event as current event, do nothing
     if(this.eventKey == key) return false;
+    //if an event is active reset current features style and turn off everything
     if(this.eventFeature) {
         if(this.displayLayers.hasOwnProperty(this.eventKey)) {
             this.map.removeLayer(this.displayLayers[this.eventKey]);
         }
         this.eventFeature.setStyle(this.defaultStyle);
+        if(this.eventTriggers.hasOwnProperty(this.eventKey)) {
+            var THIS = this;
+            $(THIS.eventTriggers[THIS.eventKey]).each(function(index, callbacks) {
+                callbacks.close(THIS.eventFeature, THIS.eventKey);
+            });
+        }
     }
     feature.setStyle(this.eventStyle);
     if(this.displayLayers.hasOwnProperty(key)) {
@@ -42,10 +73,9 @@ EventHandler.prototype.activate = function(feature, key) {
     if(this.eventTriggers.hasOwnProperty(key)) {
         var THIS = this;
         $(THIS.eventTriggers[key]).each(function(index, callback) {
-        
+            callback.activate(feature, key);
         });
     }
-    
     this.eventKey = key;
     this.eventFeature = feature;
     return true;
@@ -64,12 +94,23 @@ function View(map, args) {
     this.rte = args.rte;
     this.dir = args.dir;
     this.viewName = args.viewName;
+    this.sidebar = args.sidebar;
     this.displayLayers = L.featureGroup();
-    this.eventHandler = new EventHandler(this.map, args.defaultStyle, args.eventStyle);
+    this.eventHandler = new EventHandler(
+        this.map, this.sidebar, args.defaultStyle, args.eventStyle
+    );
 }
 
 View.prototype.triggerEvent = function(feature, key) {
     return this.eventHandler.activate(feature, key);
+}
+
+View.prototype.addEventSidebar = function(content, key) {
+    if(content != null && key != null) {
+        this.eventHandler.addSidebar(content, key);
+        return true;
+    }
+    return false;
 }
 
 View.prototype.addEventLayer = function(layer, key) {
@@ -80,6 +121,15 @@ View.prototype.addEventLayer = function(layer, key) {
     return false;
 }
 
+///* callbacks = {
+//       activate:function(feature, key) { ... } ,
+//       close:function(feature, key) { ... }
+//   }
+//*/
+View.prototype.addEventCallback = function(key, callbacks) {
+    this.eventHandler.addEventCallback(key, callbacks);
+}
+
 View.prototype.addDisplayLayer = function(layer) {
     if(layer instanceof L.Class) {
         this.displayLayers.addLayer(layer);
@@ -87,7 +137,6 @@ View.prototype.addDisplayLayer = function(layer) {
     }
     return false;
 }
-
 
 View.prototype.turnOn = function() {
     this.map.addLayer(this.displayLayers);
