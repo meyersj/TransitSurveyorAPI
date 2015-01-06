@@ -116,7 +116,7 @@ $(directions).each(function(index, item) {
 });
 
 /*
-function L_ControlChartFactory(position, divId) {
+function TableControlChartFactory(position, divId) {
     return  L.Control.extend({
         options:{
             position:position
@@ -135,7 +135,6 @@ function L_ControlChartFactory(position, divId) {
     });
 }
 */
-
 function ViewControlFactory(position, divId) {
     return  L.Control.extend({
         options:{
@@ -150,11 +149,10 @@ function ViewControlFactory(position, divId) {
     });
 }
 
-/*
-var ChartControl = L_ControlChartFactory('bottomleft', 'chart-control');
-var chartControl = new ChartControl();
-map.map.addControl(chartControl);
-*/
+//var ChartControl = L_ControlChartFactory('bottomleft', 'chart-control');
+//var chartControl = new ChartControl();
+//map.map.addControl(chartControl);
+
 
 var LayerControl = ViewControlFactory('topright', 'layer-control');
 var layerControl = new LayerControl()

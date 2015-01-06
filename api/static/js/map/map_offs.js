@@ -177,10 +177,8 @@ BuildQuotas.prototype = {
     },
     tadOnEachFeature:function() {
         var THIS = this;
-        return function(feature, layer) {};
-    },
-            /*
-        if (feature.properties) {
+        return function(feature, layer) {
+            if (feature.properties) {
                 var row1 = $('<tr>');
                 var row2 = $('<tr>');
                 var row3 = $('<tr>');
@@ -228,7 +226,7 @@ BuildQuotas.prototype = {
                 layer.bindPopup(popup);
             }
         }
-    },*/
+    },
     /*
     pointFunctionStops:function(feature, latlng) { 
         var opt = jQuery.extend(true, {}, styles.tadQuota); 
