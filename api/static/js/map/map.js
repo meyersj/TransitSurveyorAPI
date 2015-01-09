@@ -1,4 +1,5 @@
 var styles = {
+    tadColor:'#CEA04A',
     statusColor:{
         'status-1':'rgba(219,85,85,0.8)',
         'status-2':'rgba(212,162,70,0.8)',
@@ -19,12 +20,12 @@ var styles = {
         fillOpacity: 1
     },
     tadDefault:{
-        fillColor:'black',
+        fillColor:this.tadColor,
         color:'#595959',
         weight:3,
         dashArray:'2 6',
         opacity:1,
-        fillOpacity:0.15
+        fillOpacity:0.7
     },
     tadHover:{
         fillColor:'#45A035',
@@ -34,7 +35,7 @@ var styles = {
         fillOpacity: 0.2
     },
     _defaultStyle:{
-        fillColor:'black',
+        fillColor:this.tadColor,
         color:'#595959',
         weight:3,
         dashArray:'2 6',
@@ -42,11 +43,11 @@ var styles = {
         fillOpacity:0.15
     },
     _eventStyle:{
-        fillColor:'#313C72',
+        fillColor:'#536FD6',
         color:'#3F4D96',
         weight:4,
         opacity:1,
-        fillOpacity: 0.2
+        fillOpacity: 0.4
     },
 
     offCentroid:{
@@ -113,9 +114,10 @@ function BuildQuotas(MAP_THIS) {
 
 
 BuildQuotas.prototype = {
-    _buildCell:function(label, pct) {
+    _buildCell:function(label, pct, header) {
         pct = Math.round(pct);
         var td = $('<td>');
+        if(header == true) td = $('<th>');
         if(label) {
             td.attr("class", this._getStatus(pct));
             td.text(label);
@@ -178,16 +180,26 @@ BuildQuotas.prototype = {
         var THIS = this;
         var tableDiv = $('<div>')
         if (properties) {
+            var row0 = $('<tr>');
             var row1 = $('<tr>');
             var row2 = $('<tr>');
             var row3 = $('<tr>');
+            var row4 = $('<tr>');
             var count = Math.round(properties.count);
             var ons = Math.round(properties.ons);
             var pct = (count / ons) * 100;
             var complete = Math.round(pct).toString() + '% ' +
                 count + '/' + ons;
-            var cell = THIS._buildCell(complete, pct).attr('colspan', '6');
-            var row4 = $('<tr>').append(cell);
+            var header = THIS._buildCell(
+                'Time of Day - Quotas', pct, true)
+                .attr('colspan', '6')
+                .css('background-color', '#934696');
+            var summaryHeader = THIS._buildCell(
+                'Summary: ', pct, true).attr('colspan', '2');
+            var summary = THIS._buildCell(complete, pct, true).attr('colspan', '4');
+            row0.append(header);
+            row4.append(summaryHeader).append(summary);
+            
             $(THIS.tblHeaders).each(function(index, item) {
                 if(index > 1) {
                     var pct;
@@ -206,14 +218,15 @@ BuildQuotas.prototype = {
                             }
                         }
                     else pct = -1;
-                    row1.append(THIS._buildCell(THIS.tblHeaders[index], pct));
+                    row1.append(THIS._buildCell(THIS.tblHeaders[index], pct, true));
+                    //row1.append(THIS._buildCell(THIS.tblHeaders[index], pct));
                     row2.append(THIS._buildCell(null, pct));
                     row3.append(THIS._buildCell(num_text ,pct));
                 }
             });
             //tableDiv.addClass("table-responsive panel panel-default")
-            tableDiv.append($('<table>').addClass('table')
-                    .append(row1).append(row2).append(row3).append(row4)
+            tableDiv.append($('<table>').addClass('quotas-table')
+                    .append(row0).append(row1).append(row2).append(row3).append(row4)
                 );
         }
         return $('<div>').append(tableDiv.html()).html();

@@ -2,6 +2,7 @@
 
 {% block head %}
 {{ super() }}
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css">
 <link rel="stylesheet" href="{{ url_for('static', filename='lib/leaflet/leaflet.css') }}" />
@@ -11,7 +12,6 @@
 <script src="{{ url_for('static', filename='lib/d3/d3.js') }}"></script>
 <script src="{{ url_for('static', filename='js/map/manager.js') }}"></script>
 <script src="{{ url_for('static', filename='js/map/map.js') }}"></script>
-
 
 {% endblock %}
 
@@ -41,7 +41,6 @@
   </div>
 </div>
 <!-- end of invisible div -->
-
 
 <!-- top menu with route dropdown and direction buttons -->
 <div id="layers-toolbar" class="btn-toolbar" role="toolbar">

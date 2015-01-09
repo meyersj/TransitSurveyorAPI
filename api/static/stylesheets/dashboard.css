@@ -112,8 +112,9 @@ body {
 
 .map-sidebar {
     display:none;
-    background-color:rgba(0,0,0,0.5);
-    padding:10px;
+    background-color:rgba(34,34,34,0.8);
+    padding:6px;
+    border-radius:3px;
 }
 
 .map-sidebar div {
@@ -152,6 +153,18 @@ body {
     color:#D2D4EF;
     font-weight:bold;
     text-shadow: 0 0 3px black;
+}
+
+.quotas-table {  
+}
+
+.quotas-table th{  
+    padding:5px;
+    border:1;
+}
+
+.quotas-table td{  
+    padding:5px;
 }
 
 
