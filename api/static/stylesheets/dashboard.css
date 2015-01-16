@@ -109,3 +109,62 @@ body {
     background-color:rgba(201,213,219,0.6);
 }
 
+
+.map-sidebar {
+    display:none;
+    background-color:rgba(34,34,34,0.8);
+    padding:6px;
+    border-radius:3px;
+}
+
+.map-sidebar div {
+    background-color:rgba(255,255,255,0.6);
+}
+
+.map-sidebar table {
+    margin:0px;
+}
+
+.pie-marker {   
+}
+
+.off-label {  
+    background-color:rgba(0,0,0,0.2);
+    width:30px;
+    height:30px;
+    border-radius: 10px;
+}
+
+.off-label table {  
+    border-collapse:collapse;
+    width:100%;
+    height:100%;
+}
+
+.active-dir {
+    background-color:rgba(0,0,0,0.2);
+}
+
+
+.off-label td {
+    line-height:0;
+    text-align: center;
+    font-size:10;
+    color:#D2D4EF;
+    font-weight:bold;
+    text-shadow: 0 0 3px black;
+}
+
+.quotas-table {  
+}
+
+.quotas-table th{  
+    padding:5px;
+    border:1;
+}
+
+.quotas-table td{  
+    padding:5px;
+}
+
+

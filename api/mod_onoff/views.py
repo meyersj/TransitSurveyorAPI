@@ -1,6 +1,8 @@
 import os
 import sys
 import time
+import json
+from decimal import Decimal
 
 from flask import make_response, Blueprint, redirect
 from flask import url_for,render_template, jsonify, request
@@ -8,11 +10,13 @@ from sqlalchemy import func
 
 from models import Scans, OnOffPairs_Scans, OnOffPairs_Stops
 from helper import Helper
+from spatial import Spatial
 from api import app, db
-from api import debug, error, Session #web_session
+from api import debug, error, Session
+from ..shared.helper import Helper as h
 
 STATIC_DIR = '/onoff'
-mod_onoff = Blueprint('onoff', __name__, url_prefix='/onoff')
+mod_onoff = Blueprint('onoff', __name__, url_prefix='/onoff', static_folder='static')
 
 
 def static(html, static=STATIC_DIR):
@@ -58,22 +62,6 @@ def status():
     return render_template(static('status.html'), 
             streetcar=streetcar, routes=routes, data=data, summary=summary)
 
-"""
-
-@mod_onoff.route('/old_status')
-def status():
-    routes = [ route['rte_desc'] for route in Helper.get_routes() ]
-    chart = Helper.summary_chart()
-    #streetcar = {"Portland Streetcar - NS Line":{"target
-    return render_template(
-        static('status.html'), routes=routes,chart=chart)
-"""
-
-#@mod_onoff.route('/status/_details', methods=['GET'])
-#def status_details():
-#     targets = Helper.get_targets()
-#     return jsonify(data=targets)
-
 
 @mod_onoff.route('/status/_details', methods=['GET'])
 def status_details():
@@ -88,9 +76,6 @@ def status_details():
      
      return jsonify(response)
 
-#@mod_onoff.route('/map')
-#def map():
-#    return render_template(static('map.html'))
 
 @mod_onoff.route('/data')
 def data():
@@ -155,5 +140,161 @@ def surveyor_summary_query():
     response = Helper.current_users(date)
     debug(response)
     return jsonify(users=response)
+
+@mod_onoff.route('/map')
+def map():
+    routes = [ {
+        'rte':route['rte'], 'rte_desc':route['rte_desc']
+        } for route in h.get_routes() ]
+    directions = h.get_directions()
+    return render_template(static('map.html'),
+        routes=routes, directions=directions
+    )
+
+@mod_onoff.route('/map/_details', methods=['GET'])
+def map_offs_details():
+    response = {'success':False}
+    if 'rte_desc' in request.args.keys():
+        rte_desc = request.args['rte_desc'].strip()
+        rte = h.rte_lookup(rte_desc)
+        session = Session()
+        fields = ['dir', 'tad', 'centroid', 'stops', 'ons', 'count']
+        query_time = session.execute("""
+            SELECT """ + ','.join(fields) + """, bucket
+            FROM long.tad_time_stats
+            WHERE rte = :rte;""", {'rte':rte})
+        query_markers = session.execute("""
+            SELECT dir, tad, centroid, stops, ons, count
+            FROM long.tad_stats
+            WHERE rte = :rte;""", {'rte':rte})
+        query_tads = session.execute("""
+            SELECT
+                r.dir,
+                t.tadce10 AS tad,
+                ST_AsGeoJson(ST_Transform(ST_Union(t.geom), 4326)) AS geom,
+                ST_AsGeoJson(ST_Transform(ST_Centroid(ST_Union(t.geom)), 4326)) AS centroid
+            FROM tad AS t
+            JOIN tm_routes AS r
+            ON ST_Intersects(t.geom, r.geom)
+            WHERE r.rte = :rte
+            GROUP BY r.dir, t.tadce10;""", {'rte':rte})
+        query_data_summary = session.execute("""
+            SELECT
+                dir,
+                on_tad,
+                sum(count) AS ons
+            FROM long.tad_onoff
+            WHERE rte = :rte
+            GROUP BY dir, on_tad;""", {'rte':rte})
+        query_data = session.execute("""
+            SELECT
+                dir,
+                on_tad,
+                off_tad,
+                count
+            FROM long.tad_onoff
+            WHERE rte = :rte;""", {'rte':rte})
+        query_routes = session.execute("""
+            SELECT dir, ST_AsGeoJson(ST_Transform(ST_Union(geom), 4326))
+            FROM tm_routes
+            WHERE rte = :rte
+            GROUP BY dir;""", {'rte':rte})
+        query_minmax = session.execute("""
+            SELECT dir, label, stop_name, ST_AsGeoJson(ST_Transform(geom, 4326))
+            FROM long.stop_minmax
+            WHERE rte = :rte;""", {'rte':rte})
+        
+        def build_data(record):
+            data = {}
+            for index in range(1, len(fields)):
+                field = record[index]
+                if isinstance(field, Decimal): field = int(field)
+                data[fields[index]] = field
+            return data
+
+        def int_zero(value):
+            try:
+                return int(value)
+            except:
+                return 0
+
+        tads = []
+        stops = {}
+        stops[0] = {}
+        stops[1] = {}
+        summary = {}
+        summary[0] = []
+        summary[1] = []
+        data = {}
+        data[0] = {}
+        data[1] = {}
+        routes_geom = {}
+        minmax = {} 
+        time_data = {}
+        time_data[0] = {}
+        time_data[1] = {}
+      
+        for record in query_tads:
+            dir_ = record[0]
+            tad = record[1]
+            geom = record[2]
+            centroid = record[3]
+            tads.append({'dir':dir_, 'tad':tad, 'geom':geom, 'centroid':centroid})
+        for record in query_markers:
+            dir_ = record[0]
+            tad = record[1]
+            centroid = json.loads(record[2])
+            stops_geom = json.loads(record[3])
+            ons = int_zero(record[4])
+            count = int_zero(record[5])
+            stops[dir_][tad] = {
+                'tad':tad, 'centroid':centroid, 'count':count, 'stops':stops_geom, 'ons':ons
+            }
+        for record in query_data_summary:
+            dir_ = record[0]
+            tad_on = record[1]
+            ons = int(record[2])
+            summary[dir_].append({'tad':tad_on, 'ons':ons})
+        for record in query_data:
+            dir_ = record[0]
+            tad_on = record[1]
+            tad_off = record[2]
+            offs = int(record[3])
+            if tad_on not in data[dir_]:
+                data[dir_][tad_on] = {}
+                data[dir_][tad_on]['offs'] = []
+            data[dir_][tad_on]['offs'].append({'tad':tad_off, 'offs':offs})
+        for record in query_routes:
+            routes_geom[record[0]] = {
+                'dir':record[0],
+                'geom':json.loads(record[1])
+            }
+        for record in query_minmax:
+            if record[0] not in minmax:
+                minmax[record[0]] = {}
+            minmax[record[0]][record[1]] = {
+                'geom':record[3],
+                'stop_name':record[2]
+            }
+        for record in query_time:
+            tad = record[1]
+            if tad not in time_data[record[0]]:
+                time_data[record[0]][tad] = []
+            ons = int_zero(record[4])
+            count = int_zero(record[5])
+            bucket = int_zero(record[6])
+            time_data[record[0]][tad].insert(bucket, {"count":count, "ons":ons})
+
+        response['success'] = True
+        response['stops'] = stops
+        response['summary'] = summary
+        response['data'] = data
+        response['tads'] = tads
+        response['routes'] = routes_geom
+        response['minmax'] = minmax
+        response['time_data'] = time_data
+        
+        session.close()
+    return jsonify(response)
 
 

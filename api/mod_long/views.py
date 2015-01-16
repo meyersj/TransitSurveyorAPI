@@ -6,8 +6,13 @@ from sqlalchemy.orm import aliased
 from geoalchemy2 import functions as geofunc
 
 from api import db
-from ..shared.models import Stops, Routes, SurveysCore, SurveysLng
+from api import Session
+from api import debug
 
+from ..shared.models import Stops, Routes, SurveysCore, SurveysFlag
+from ..shared.helper import Helper
+
+from decimal import Decimal
 
 STATIC_DIR = '/long'
 mod_long = Blueprint('long', __name__, url_prefix='/long')
@@ -22,81 +27,67 @@ def static(html, static=STATIC_DIR):
 def index():
     return redirect(url_for('.map'))
 
-
 def query_locations(uri):
+    ret_val = {}
     On = aliased(Stops)
     Off = aliased(Stops)
-
-    query = db.session.query(
-        SurveysCore.uri.label('uri'),
-        SurveysCore.rte.label('rte'),
-        SurveysCore.dir.label('dir'),
+    session = Session()
+    record = session.query(
+        SurveysCore.uri,
         func.ST_AsGeoJSON(func.ST_Transform(SurveysCore.orig_geom, 4326))
             .label('orig_geom'),
         func.ST_AsGeoJSON(func.ST_Transform(SurveysCore.dest_geom, 4326))
             .label('dest_geom'),
         func.ST_AsGeoJSON(func.ST_Transform(On.geom, 4326))
             .label('on_geom'),
-        On.stop_name.label('on_stop'),
         func.ST_AsGeoJSON(func.ST_Transform(Off.geom, 4326))
-            .label('off_geom'),
-        Off.stop_name.label('off_stop'),
-        SurveysCore.transfers_before.label('transfers_before'),
-        SurveysCore.tb_1.label('tb_1'),
-        SurveysCore.tb_2.label('tb_2'),
-        SurveysCore.tb_3.label('tb_3'),
-        SurveysCore.transfers_after.label('transfers_after'),
-        SurveysCore.ta_1.label('ta_1'),
-        SurveysCore.ta_2.label('ta_2'),
-        SurveysCore.ta_3.label('ta_3'))\
+            .label('off_geom'))\
         .join(On, SurveysCore.board).join(Off, SurveysCore.alight)\
         .filter(SurveysCore.uri == uri).first()
-
-        
+    if record:
+        ret_val["orig_geom"] = json.loads(record.orig_geom)
+        ret_val["dest_geom"] = json.loads(record.dest_geom)
+        ret_val["on_geom"] = json.loads(record.on_geom)
+        ret_val["off_geom"] = json.loads(record.off_geom)
+    return ret_val
     
-    points = None
-    rte = None
-    if (query and query.orig_geom and query.dest_geom 
-        and query.on_geom and query.off_geom):
-        
-        #print query.rte
-        #print query.dir
-        line = db.session.query(
-            func.ST_AsGeoJSON(func.ST_Transform(func.ST_Union(Routes.geom), 4326))\
-            .label('geom')).filter(Routes.rte == query.rte)\
-            .filter(Routes.dir == query.dir).all()
 
-        if len(line) == 1:
-            rte = json.loads(line[0].geom)
+def check_flags(record):
+    if not record.flags.english:
+        return False
+    if not record.flags.locations:
+        return False
+    return True
 
-        points = {}
-        points['orig'] = json.loads(query.orig_geom)
-        points['dest'] = json.loads(query.dest_geom)
-        points['on'] = {}
-        points['on']['name'] = query.on_stop
-        points['on']['geom'] = json.loads(query.on_geom)
-        points['off'] = {}
-        points['off']['name'] = query.off_stop
-        points['off']['geom'] = json.loads(query.off_geom)
 
-    return points, rte
-
+"""
+Filter by route and direction
+Show each tad centroid as pie chart with pct complete
+"""
 @mod_long.route('/map')
 def map():
+    session = Session()
     keys = []
-    for uri in db.session.query(SurveysCore.uri.label('uri')):
-        keys.append(uri.uri)
-    
+    query = session.query(SurveysCore)
+    for record in query:
+        #TODO check that survey has not already been flagged by user
+        if record.flags.locations:
+            keys.append(record.uri)
+    session.close()
     return render_template(static('map.html'), keys=keys)
 
 
 @mod_long.route('/_geoquery', methods=['GET'])
 def geo_query():
-    uri = request.args.get('uri')
-    points, lines = query_locations(uri)
-    return jsonify({'points':points, 'lines':lines})
+    points,lines = None, None
+    if 'uri' in request.args:
+        uri = request.args.get('uri')
+        data = query_locations(uri)
+        debug(data)
+    return jsonify({'data':data})
+    #return jsonify({'points':points, 'lines':lines})
 
-
+"""
 def transfers(query):
     before = 0
     after = 0
@@ -142,7 +133,7 @@ def transfers(query):
         #for g in geom:
         #    rtes.append(json.loads(g.geom))
 
-
+"""
 
 
 

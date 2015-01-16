@@ -1,0 +1,132 @@
+<html>
+<body>
+
+<input type="datetime" class="form-control" placeholder="Text input">
+
+<style>
+.off-label {  
+    background-color:#544D4D;
+    display:inline-block;
+    border-radius: 10px;
+    box-shadow: 0 0 3px black;
+}
+
+.off-label td {
+    text-align: center;
+    font-size:11;
+    color:#fff;
+    font-weight:bold;
+    text-shadow: 0 0 3px black;
+}
+
+</style>
+<br>
+<br>
+<div class="off-label">
+  <table>
+      <tr>
+	<td>15%</td>
+      </tr>
+      <tr>
+	<td>162</td>
+      </tr>
+  </table>
+</div>
+<br>
+<br>
+
+
+
+  <table>
+    <thead>
+      <tr>
+        <th>X</th>
+        <th colspan="4">Inbound</th>
+        <th colspan="4">Outboud</th>
+      </tr>
+      <tr>
+        <th>X</th>
+        <th>AM</th>
+        <th>Mid</th>
+        <th>PM</th>
+        <th>Eve</th>
+        <th>AM</th>
+        <th>Mid</th>
+        <th>PM</th>
+        <th>Eve</th>
+      </tr>
+    </thead>
+    </tbody>
+      <tr>
+        <td bgcolor="#FFFFFF">Line 9</td>
+        <td bgcolor="#DB5555">25</td>
+        <td bgcolor="#CCFF33">45</td>
+        <td bgcolor="#DB5555">14</td>
+        <td bgcolor="#CCFF33">57</td>
+        <td bgcolor="#76DB55">78</td>
+        <td bgcolor="#DB5555">24</td>
+        <td bgcolor="#DB5555">15</td>
+        <td bgcolor="#CCFF33">73</td>
+      </tr>
+      <tr>
+        <td bgcolor="#FFFFFF">Line 33</td>
+        <td bgcolor="#DB5555">53</td>
+        <td bgcolor="#76DB55">72</td>
+        <td bgcolor="#DB5555">20</td>
+        <td bgcolor="#DB5555">15</td>
+        <td bgcolor="#CCFF33">73</td>
+        <td bgcolor="#CCFF33">40</td>
+        <td bgcolor="#DB5555">23</td>
+        <td bgcolor="#76DB55">10</td>
+      </tr>
+    </tbody>
+  </table>
+
+
+
+
+
+
+<script>
+
+
+
+    function color(pct_complete) {
+    var number = Math.floor(pct_complete / 25) + 1;
+    var color = "#FFFFFF";
+    console.log(pct_complete + " " + number);
+
+	switch (number) {
+	case 1: 
+	color = "#DB5555";
+	break;
+	case 2:
+	color = "#D4A246";
+	break;
+	case 3:
+	color = "#CCFF33";
+	break;
+	case 4:	
+	color = "#66CC1A";
+	break;
+	case 5:
+	color = "#76DB55";
+	break;
+	}
+	return color;
+    }
+
+color(0);
+color(24);
+color(25);
+color(74);
+color(75);
+color(99);
+color(100);
+
+</script>
+
+</body>
+</html>
+
+

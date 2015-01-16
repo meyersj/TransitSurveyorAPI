@@ -21,28 +21,37 @@
     var map = initmap('map');
     
     //var points = new L.LayerGroup();
-    var points = new L.geoJson().addTo(map);
-    var lines = new L.geoJson().addTo(map);
+    var locs = new L.geoJson().addTo(map);
+
+    
+    //var points = new L.geoJson().addTo(map);
+    //var lines = new L.geoJson().addTo(map);
 
 
     $("#get_survey").on("click", function() {
         var uri = keys.pop();
-        points.clearLayers();
-        lines.clearLayers();
+        locs.clearLayers();
+        //points.clearLayers();
+        //lines.clearLayers();
         
         if(uri) {
             console.log(uri);
             var url = '_geoquery'; 
             var args = {uri:uri};
-            $.getJSON(url, args, function (data) {
-                console.log(data.lines);
-                if(data.points !== null) {
-                    addMarkers(data.points, data.lines);
+            $.getJSON(url, args, function(data) {
+                if(!$.isEmptyObject(data.data)) {
+                    console.log(data.data);
+                    addMarkers(data.data);
                 }
-                if(data.lines !== null) {
-                    console.log(data.lines.length);
-                    lines.addLayer(L.geoJson(data.lines)); 
-                }
+                  
+                //console.log(data.lines);
+                //if(data.points !== null) {
+                //    addMarkers(data.points, data.lines);
+                //}
+                //if(data.lines !== null) {
+                //    console.log(data.lines.length);
+                //    lines.addLayer(L.geoJson(data.lines)); 
+                //}
             });
         } 
         else {
@@ -66,7 +75,7 @@
 
 
     function addMarker(geojson, color) {
-        points.addLayer(L.geoJson(geojson, {
+        locs.addLayer(L.geoJson(geojson, {
             pointToLayer: function (feature, latlng) {
                 options.fillColor = color;
                 return L.circleMarker(latlng, options);
@@ -74,13 +83,12 @@
         }));
     }
 
-    function addMarkers(points, lines) {
-        addMarker(points.orig, blue);
-        addMarker(points.dest, orange);
-        addMarker(points.on.geom, green);
-        addMarker(points.off.geom, red);   
+    function addMarkers(data) {
+        addMarker(data.orig_geom, blue);
+        addMarker(data.dest_geom, blue);
+        addMarker(data.on_geom, green);
+        addMarker(data.off_geom, red);   
     }
-
 
 </script>
 

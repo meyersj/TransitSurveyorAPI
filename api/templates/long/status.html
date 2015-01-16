@@ -3,6 +3,7 @@
 
 {% block dashboard %}
 {{ super() }}
+<br>
 <!-- table that has body populated by ajax call -->
 <div id="status-table" class="table-responsive panel panel-default">
   <table class="table table-bordered">
@@ -36,10 +37,9 @@
         var td = $('<td>');
         //td.text(text);
         if(pct) {
-            //if(pct > 100) text = "100%";
-            //else text = pct.toString() + "%";
-            text = pct.toString() + "%";
-	    td.attr("class", get_status(pct));
+            if(pct > 100) text = "100%";
+            else text = pct.toString() + "%";
+            td.attr("class", get_status(pct));
         }
         if(text == 'N/A') {
             td.attr("class", "status-none");
@@ -130,28 +130,30 @@
     }
     
     var routes = {{ routes|tojson|safe }};
-    var data = {{ data|tojson|safe }};
-    var summary = {{ summary|tojson|safe }};
+    //var data = { data|tojson|safe };
+    //var summary = { summary|tojson|safe };
 
-    console.log(summary);
-    var streetcar = {{ streetcar|tojson|safe }};
-    var times = ['AM Peak', 'Midday', 'PM Peak', 'Evening'];
+    //console.log(summary);
+    //var streetcar = { streetcar|tojson|safe };
+    //var times = ['AM Peak', 'Midday', 'PM Peak', 'Evening'];
 
     $(routes).each(function(index, item) {
-
+        console.log(item)
         var tr = $('<tr>');
-        if (item.indexOf('Portland Streetcar') < 0) {
-            tr = build_stats_row(item, data[item], summary[item]);
-        }
-        else {
-            tr.append($('<th>').text(item));
-            tr.append(
-                $('<td>').text(get_pct(streetcar[item]).toString() + '%')
-                    .attr("colspan", "9")
-                    .attr("class", get_status(get_pct(streetcar[item])))
-                    .attr("align", "center")
-            );
-        }
+        tr.append($('<th>').text(item));
+        
+        //if (item.indexOf('Portland Streetcar') < 0) {
+        //    tr = build_stats_row(item, data[item], summary[item]);
+       // }
+        //else {
+         //   tr.append($('<th>').text(item));
+        //    tr.append(
+       //         $('<td>').text(get_pct(streetcar[item]).toString() + '%')
+       //             .attr("colspan", "9")
+       //             .attr("class", get_status(get_pct(streetcar[item])))
+       //             .attr("align", "center")
+       //     );
+        //}
         $("#status-table tbody").append(tr);
     
     });

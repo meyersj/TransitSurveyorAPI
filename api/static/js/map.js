@@ -4,20 +4,35 @@ function initmap(map_div) {
 
     // create the tile layer with correct attribution
     var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-    osmUrl = 'https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png';    
+    //osmUrl = 'https://{s}.tiles.mapbox.com/v3/{id}/{z}/{x}/{y}.png';  
+
     var osmAttrib='Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors';
     var osm = new L.TileLayer(osmUrl, {
         minZoom: 8,
         maxZoom: 20,
         attribution: osmAttrib,
         id: 'examples.map-i86knfo3'
-    });       
+    });
+
+    var trimetUrl = "http://{s}.trimet.org/tilecache/tilecache.py/1.0.0/currentOSM/{z}/{x}/{y}";
+    var trimet = new L.TileLayer(trimetUrl, {
+        minZoom: 8,
+        maxZoom: 20,
+        attribution:"Map data &copy; 2015 Oregon Metro " + 
+            "and <a href='http://openstreetmap.org'>OpenStreetMap</a> contributors",
+        subdomains:["tilea", "tileb", "tilec", "tiled"]
+    }); 
+
 
     // start the map in South-East England
-    map.setView(new L.LatLng(45.51, -122.678),12);
-    map.addLayer(osm);
+    map.setView(new L.LatLng(45.51, -122.678),11);
+    //map.addLayer(osm);
+    map.addLayer(trimet);
     return map;
 }
+
+
+
 
 function makePieChart() {
       
