@@ -109,6 +109,7 @@ BuildStops.prototype = {
 
 function BuildQuotas(MAP_THIS) {
     this.MAP_THIS = MAP_THIS;
+    // '12a-3a', '3a-6a', ... (skip these first two)
     this.tblHeaders = ['', '', '6a-9a','9a-12p','12p-3p','3p-6p','6p-9p','9p-12a'];
 }
 
@@ -177,6 +178,8 @@ BuildQuotas.prototype = {
         }
     },
     buildTadTable:function(properties) {
+        console.log("BUILD TABLE");
+        console.log(properties);
         var THIS = this;
         var tableDiv = $('<div>')
         if (properties) {
@@ -193,7 +196,7 @@ BuildQuotas.prototype = {
             var header = THIS._buildCell(
                 'Time of Day - Quotas', pct, true)
                 .attr('colspan', '6')
-                .css('background-color', '#934696');
+                .css('background-color', 'rgba(255,255,255,0.5)');
             var summaryHeader = THIS._buildCell(
                 'Summary: ', pct, true).attr('colspan', '2');
             var summary = THIS._buildCell(complete, pct, true).attr('colspan', '4');
@@ -201,9 +204,11 @@ BuildQuotas.prototype = {
             row4.append(summaryHeader).append(summary);
             
             $(THIS.tblHeaders).each(function(index, item) {
+                // skip 12a-3a and 3a-6a
                 if(index > 1) {
                     var pct;
-                    var feat = properties.time[index];
+                    var feat = properties.time[index - 2];
+                    //console.log(feat);
                     var num_text = 'N/A';
                     if(feat) {
                         if(!feat.ons) pct = -1;
@@ -530,7 +535,7 @@ Map.prototype = {
             THIS.downloadStatusOn();
             THIS.manager.turnOff();
             $.getJSON(this.url, {rte_desc:args.rteDesc}, function(data) {
-                //console.log(data);
+                console.log(data);
                 THIS.manager.addRoute(THIS.currentRte)
                 THIS.buildData(data);
                 THIS.downloadStatusOff();

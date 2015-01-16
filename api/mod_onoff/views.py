@@ -276,13 +276,17 @@ def map_offs_details():
                 'geom':record[3],
                 'stop_name':record[2]
             }
+
+        # time of day buckets
         for record in query_time:
+            debug(record)
             tad = record[1]
             if tad not in time_data[record[0]]:
                 time_data[record[0]][tad] = []
             ons = int_zero(record[4])
             count = int_zero(record[5])
             bucket = int_zero(record[6])
+            # insert because data comes in sorted and needs to go out sorted?
             time_data[record[0]][tad].insert(bucket, {"count":count, "ons":ons})
 
         response['success'] = True
