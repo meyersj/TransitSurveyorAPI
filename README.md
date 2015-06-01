@@ -1,6 +1,6 @@
 ## API
 
-This repo contains basic endpoints used for TriMet's **Orange Line Before Survey**. The endpoints enabled ON and OFF data to be submitted by surveyors using the TransitSurveyor [MobileSurveyor](https://github.com/TransitSurveyor/MobileSurveyor) android application.
+This repo contains basic endpoints built using Python and Flask used for TriMet's **Orange Line Before Survey**. The endpoints enabled ON and OFF data to be submitted by surveyors using the TransitSurveyor [MobileSurveyor](https://github.com/TransitSurveyor/MobileSurveyor) android application.
 
 Data is handled as either a SCAN or STOP. SCAN records occur when collection is done using the **QR Code Scanner** mode while STOP records occur when collection is done using the **Map-Based** mode.
 
