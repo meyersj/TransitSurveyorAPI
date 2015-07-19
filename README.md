@@ -36,7 +36,7 @@ chmod +x setup.sh
 start api
 service nginx restart
 ```
-After running the setup script everything should be installed and configured.
+After running the setup script everything should be installed and configured. You should be able to go to http://new_ip_address and see the message "On-Off API" if everything worked properly.
 
 #### default settings
 + **linux user:** *survey*
