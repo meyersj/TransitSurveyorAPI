@@ -1,8 +1,43 @@
-## API
+# TransitSurveyor API
+=====================
 
-This repo contains basic endpoints built using Python and Flask used for TriMet's **Orange Line Before Survey**. The endpoints enabled ON and OFF data to be submitted by surveyors using the TransitSurveyor [MobileSurveyor](https://github.com/TransitSurveyor/MobileSurveyor) android application.
+## Setup
 
-Data is handled as either a SCAN or STOP. SCAN records occur when collection is done using the **QR Code Scanner** mode while STOP records occur when collection is done using the **Map-Based** mode.
+Here are instructions for how to get a server/database up and running for the [API](https://github.com/TransitSurveyor/API) to recieve and store data collected using [MobileSurveyor](https://github.com/TransitSurveyor/MobileSurveyor).
+
+#### Create a (virtual private) server
+If needed signup with [DigitalOcean](https://www.digitalocean.com/), then create a droplet. This will cost you $5 dollar a month to run. You can take a snapshot then destroy to avoid being charged when not using it. [Tutorial](https://www.digitalocean.com/community/tutorials/how-to-create-your-first-digitalocean-droplet-virtual-server)
++ Size: 512MB
++ OS: Ubuntu 14.04
+
+#### Build and Configure
+
+1. Connect to your server
+2. Create a new linux user
+3. Download and run setup script
+4. Update config files based on your system settings
+5. `TODO` Run tests
+
+```shell
+# connect
+ssh root@new_ip_address
+
+# new user
+useradd -d /home/survey -s /bin/bash -m survey
+passwd survey
+
+# if you change the new linux user from `survey` to something else
+# you need to make that change in `setup.sh` also
+
+# download and execute setup script
+curl https://raw.githubusercontent.com/TransitSurveyor/API/master/setup.sh -o setup.sh
+chmod +x setup.sh
+./setup.sh
+```
+
+## Description
+
+Data is received as either a SCAN or STOP. SCAN records occur when collection is done using the **QR Code Scanner** mode while STOP records occur when collection is done using the **Map-Based** mode.
 
 ##### SCAN
 
