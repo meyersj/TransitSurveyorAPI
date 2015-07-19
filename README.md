@@ -4,10 +4,14 @@
 
 Here are instructions for how to get a server/database up and running for the [API](https://github.com/TransitSurveyor/API) to recieve and store data collected using [MobileSurveyor](https://github.com/TransitSurveyor/MobileSurveyor).
 
++ OS: Ubuntu
++ Database: PostgreSQL
++ Framework: Python/Flask
++ Server: NginX/uWSGI
+
 #### Create a (virtual private) server
 If needed signup with [DigitalOcean](https://www.digitalocean.com/), then create a droplet. This will cost you $5 dollar a month to run. You can take a snapshot then destroy to avoid being charged when not using it. [Tutorial](https://www.digitalocean.com/community/tutorials/how-to-create-your-first-digitalocean-droplet-virtual-server)
-+ Size: 512MB
-+ OS: Ubuntu 14.04
++ choose Ubuntu 14.04 with 512MB RAM
 
 #### Build and Configure
 
@@ -25,7 +29,7 @@ ssh root@new_ip_address
 useradd -d /home/survey -s /bin/bash -m survey
 passwd survey
 
-# if you change the new linux user from `survey` to something else
+# if you change the user from `survey` to something else
 # you need to make that change in `setup.sh` also
 
 # download and execute setup script
