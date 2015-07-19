@@ -4,11 +4,12 @@ user=survey
 db=${user}
 db_user=${db}
 db_pass=${db}
+proj=/home/${user}/API
 
-# create linux users and passwords before running
-
-# useradd -d /home/survey -s /bin/bash -m survey
-# passwd survey
+# you must run these commands before running this script
+# to create a ew linux user with password
+#     useradd -d /home/survey -s /bin/bash -m survey
+#     passwd survey
 
 # install libraries
 apt-get update
@@ -18,33 +19,23 @@ postgresql-server-dev-9.3 python-pip python-dev nginx
 pip install virtualenv
 
 # create postgres user and geo-enabled database
-su - postgres # switch to postgres user
-psql -c "CREATE USER ${db_user} WITH PASSWORD '${db_password}'"
-createdb -O ${db_user} ${db}
-psql -c "CREATE EXTENSION postgis;" ${db}
-exit # switch back to root user
+su - postgres -c "psql -c \"CREATE USER ${db_user} WITH PASSWORD '${db_pass}';\""
+su - postgres -c "createdb -O ${db_user} ${db}"
+su - postgres -c "psql -c \"CREATE EXTENSION postgis;\" ${db}"
 
-# clone API repo and build database tables
+# clone API repo, build database tables and setup environment
 su - ${user} # switch to survey user
-git clone https://github.com/TransitSurveyor/API
-cd API
-psql -f db/schema.sql -d ${db}
-psql -f db/stops.sql -d ${db}
+su - ${user} -c "git clone https://github.com/TransitSurveyor/API"
+su - ${user} -c "psql -f ${proj}/db/schema.sql -d ${db}"
+su - ${user} -c "psql -f ${proj}/db/stops.sql -d ${db}"
+su - ${user} -c "virtualenv ${proj}/env"
+su - ${user} -c "${proj}/env/bin/pip install -r ${proj}/requirements.txt"
 
-virtualenv env
-env/bin/pip install -r requirements.txt
-exit
-
-cd /home/survey/API
-
-# !!! open nginx_site_config and correct server_name !!!
-cp nginx_site_config /etc/nginx/sites-available/api
-cp upstart_init_conf /etc/init/api.conf
+cp ${proj}/nginx_site_config /etc/nginx/sites-available/api
+cp ${proj}/upstart_init_conf /etc/init/api.conf
 rm /etc/nginx/sites-enabled/default
 ln -s /etc/nginx/sites-available/api /etc/nginx/sites-enabled/api
 
 # open up nginx and upstart configs and verify the paths and server_name ...
 #   vim /etc/nginx/sites-available/api
 #   vim /etc/init/api.conf
-
-reboot
