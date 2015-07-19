@@ -36,6 +36,7 @@ cp ${proj}/upstart_init_conf /etc/init/api.conf
 rm /etc/nginx/sites-enabled/default
 ln -s /etc/nginx/sites-available/api /etc/nginx/sites-enabled/api
 
-if [ "${server}" -gt "-1" ]
-  then sed -i 's/host_name_or_ip/${server}/' /etc/nginx/sites-available/api
+if [ ! -z "${server}" ]
+  then sed -i "s/host_name_or_ip/${server}/" /etc/nginx/sites-available/api
 fi
+
