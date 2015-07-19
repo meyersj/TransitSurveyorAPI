@@ -33,6 +33,14 @@ curl https://raw.githubusercontent.com/TransitSurveyor/API/master/setup.sh -o se
 chmod +x setup.sh
 ./setup.sh new_ip_address
 ```
+After running the setup script everything should be installed and configured.
+
+#### default settings
++ **linux user:** survey
++ **linux user pw:** whatever you entered when running `passwd survey`
++ **postgres db name:** survey
++ **postgres db user:** survey
++ **postgres db user pw:** survey
 
 ## Description
 
