@@ -31,8 +31,6 @@ su - ${user} -c "psql -f ${proj}/db/stops.sql -d ${db}"
 su - ${user} -c "virtualenv ${proj}/env"
 su - ${user} -c "${proj}/env/bin/pip install -r ${proj}/requirements.txt"
 
-
-
 cp ${proj}/nginx_site_config /etc/nginx/sites-available/api
 cp ${proj}/upstart_init_conf /etc/init/api.conf
 rm /etc/nginx/sites-enabled/default
@@ -41,7 +39,3 @@ ln -s /etc/nginx/sites-available/api /etc/nginx/sites-enabled/api
 if [ "${server}" -gt "-1" ]
   then sed -i 's/host_name_or_ip/${server}/' /etc/nginx/sites-available/api
 fi
-
-# open up nginx and upstart configs and verify the paths and server_name ...
-#   vim /etc/nginx/sites-available/api
-#   vim /etc/init/api.conf
