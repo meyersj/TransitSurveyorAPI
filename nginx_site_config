@@ -1,0 +1,10 @@
+server {
+    listen 80;
+    server_name host_name_or_ip;
+
+    location / {
+        include uwsgi_params;
+        uwsgi_pass unix:/home/survey/API/api.sock;
+    }
+}
+

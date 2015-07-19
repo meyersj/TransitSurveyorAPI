@@ -6,8 +6,8 @@ from api import app
 def index():
     return "BASE"
 
-@app.route('/tests')
-def tests():
-    return render_template("report.html")
+#@app.route('/tests')
+#def tests():
+#    return render_template("report.html")
 
 
