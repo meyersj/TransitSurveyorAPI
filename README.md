@@ -31,13 +31,7 @@ passwd survey
 # download and execute setup script
 curl https://raw.githubusercontent.com/TransitSurveyor/API/master/setup.sh -o setup.sh
 chmod +x setup.sh
-./setup.sh
-
-# -------------- update config files ------------------
-# open up nginx and upstart config files to verify the paths and server_name ...
-#   vim /etc/nginx/sites-available/api
-#   vim /etc/init/api.conf
-# -----------------------------------------------------
+./setup.sh new_ip_address
 ```
 
 ## Description
