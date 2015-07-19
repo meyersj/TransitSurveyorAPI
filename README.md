@@ -32,6 +32,9 @@ passwd survey
 curl https://raw.githubusercontent.com/TransitSurveyor/API/master/setup.sh -o setup.sh
 chmod +x setup.sh
 ./setup.sh new_ip_address
+
+start api
+service nginx restart
 ```
 After running the setup script everything should be installed and configured.
 
