@@ -1,5 +1,4 @@
 # TransitSurveyor API
-=====================
 
 ## Setup
 
