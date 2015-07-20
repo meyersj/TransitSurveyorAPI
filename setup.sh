@@ -36,7 +36,8 @@ cp ${proj}/server_config/upstart_init_conf /etc/init/api.conf
 rm /etc/nginx/sites-enabled/default
 ln -s /etc/nginx/sites-available/api /etc/nginx/sites-enabled/api
 
-if [ ! -z "${server}" ] then
+if [ ! -z "${server}" ]
+then
     sed -i "s/host_name_or_ip/${server}/" /etc/nginx/sites-available/api
     su - ${user} -c "echo \"export API_ENDPOINT=${server}\" >> ~/.bashrc"
 fi
