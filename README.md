@@ -23,7 +23,7 @@ ssh root@new_ip_address
 
 # create new user
 useradd -d /home/survey -s /bin/bash -m survey
-passwd survey
+passwd survey # enter new password for `survey` user
 
 # if you change the user from `survey` to something else
 # you need to make that change in `setup.sh` also
