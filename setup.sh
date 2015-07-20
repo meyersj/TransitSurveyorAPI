@@ -39,6 +39,6 @@ ln -s /etc/nginx/sites-available/api /etc/nginx/sites-enabled/api
 if [ ! -z "${server}" ]
 then
     sed -i "s/host_name_or_ip/${server}/" /etc/nginx/sites-available/api
-    su - ${user} -c "echo \"export API_ENDPOINT=${server}\" >> ~/.bashrc"
+    su - ${user} -c "echo \"\nexport API_ENDPOINT=${server}\" >> ~/.bashrc"
 fi
 
