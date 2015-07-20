@@ -54,6 +54,15 @@ After running the setup script everything should be installed and configured. Yo
 
 In addition to these files, there is a new environment variable `API_ENDPOINT` added to **survey** user's `~/.bashrc` that allows the unit tests to access the live endpoint.
 
+#### run tests
+
+In `/home/survey/API` you will find `tests.py`. This contains some basic tests. Some tests use the `API_ENDPOINT` so you will want to `echo $API_ENDPOINT` and verify that is the ip or hostname your server is at.
+
+```shell
+# to run tests
+/home/survey/API/env/bin/python /home/survey/API/tests.py
+```
+
 ## Description
 
 Data is received as either a SCAN or STOP. SCAN records occur when collection is done using the **QR Code Scanner** mode while STOP records occur when collection is done using the **Map-Based** mode.
