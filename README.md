@@ -12,8 +12,8 @@ distribution of this software for license terms.
 
 Here are instructions for how to get a server/database up and running for the [API](https://github.com/TransitSurveyor/API) to recieve and store data collected using [MobileSurveyor](https://github.com/TransitSurveyor/MobileSurveyor).
 
-+ *OS:* Ubuntu
-+ *Database:* PostgreSQL
++ *OS:* Ubuntu 14.04
++ *Database:* PostgreSQL 9.3
 + *Framework:* Python/Flask
 + *Server:* NginX/uWSGI
 
