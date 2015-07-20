@@ -31,8 +31,8 @@ su - ${user} -c "psql -f ${proj}/db/stops.sql -d ${db}"
 su - ${user} -c "virtualenv ${proj}/env"
 su - ${user} -c "${proj}/env/bin/pip install -r ${proj}/requirements.txt"
 
-cp ${proj}/nginx_site_config /etc/nginx/sites-available/api
-cp ${proj}/upstart_init_conf /etc/init/api.conf
+cp ${proj}/server_config/nginx_site_config /etc/nginx/sites-available/api
+cp ${proj}/server_config/upstart_init_conf /etc/init/api.conf
 rm /etc/nginx/sites-enabled/default
 ln -s /etc/nginx/sites-available/api /etc/nginx/sites-enabled/api
 
