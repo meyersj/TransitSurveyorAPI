@@ -52,6 +52,8 @@ After running the setup script everything should be installed and configured. Yo
 + **uWSGI wsgi script:** `/home/survey/API/wsgi.py`
 + **NginX server config:** `/etc/nginx/sites-available/api`
 
+In addition to these files, there is a new environment variable `API_ENDPOINT` added to **survey** users `~/.bashrc` that allows the unit tests to access the live endpoint.
+
 ## Description
 
 Data is received as either a SCAN or STOP. SCAN records occur when collection is done using the **QR Code Scanner** mode while STOP records occur when collection is done using the **Map-Based** mode.
