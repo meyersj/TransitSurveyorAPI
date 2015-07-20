@@ -26,9 +26,6 @@ ALTER TABLE ONLY on_temp
     ADD CONSTRAINT on_temp_pkey PRIMARY KEY (id);
 CREATE INDEX idx_on_temp_geom ON on_temp USING gist (geom);
 
-
-
-
 --
 -- Temporarily stores Off Scans
 -- Not required, used for debugging
@@ -57,8 +54,6 @@ ALTER TABLE ONLY off_temp
     ADD CONSTRAINT off_temp_pkey PRIMARY KEY (id);
 CREATE INDEX idx_off_temp_geom ON off_temp USING gist (geom);
 
-
-
 --
 -- Stores final On-Off scans that are linked up
 -- Data is copied from temp tables
@@ -85,8 +80,6 @@ ALTER TABLE ONLY scans
     ADD CONSTRAINT scans_pkey PRIMARY KEY (id);
 CREATE INDEX idx_scans_geom ON scans USING gist (geom);
 
-
-
 --
 -- Stores primary key for on-off pairs
 -- Used for Bus routes
@@ -109,8 +102,6 @@ ALTER TABLE ONLY on_off_pairs__scans ALTER COLUMN id SET DEFAULT nextval('on_off
 ALTER TABLE ONLY on_off_pairs__scans
     ADD CONSTRAINT on_off_pairs__scans_pkey PRIMARY KEY (id);
 
-
-
 --
 -- Stores on-off stops that were selected from map
 -- Used for MAX and Streetcar routes
@@ -132,12 +123,10 @@ CREATE SEQUENCE on_off_pairs__stops_id_seq
     NO MAXVALUE
     CACHE 1;
 
-
 ALTER SEQUENCE on_off_pairs__stops_id_seq OWNED BY on_off_pairs__stops.id;
 ALTER TABLE ONLY on_off_pairs__stops ALTER COLUMN id SET DEFAULT nextval('on_off_pairs__stops_id_seq'::regclass);
 ALTER TABLE ONLY on_off_pairs__stops
     ADD CONSTRAINT on_off_pairs__stops_pkey PRIMARY KEY (id);
-
 
 --
 -- Stores Survey User information
@@ -169,6 +158,7 @@ ALTER TABLE ONLY users
 -- Contains stop information for all TriMet stops
 -- populated via shapefile using shp2pgsql
 --
+
 CREATE TABLE stops (
     gid integer NOT NULL,
     rte smallint,
@@ -193,8 +183,6 @@ ALTER TABLE ONLY stops ALTER COLUMN gid SET DEFAULT nextval('stops_gid_seq'::reg
 ALTER TABLE ONLY stops
     ADD CONSTRAINT stops_pkey PRIMARY KEY (gid);
 CREATE INDEX stops_geom_gist ON stops USING gist (geom);
-
-
 
 --
 -- Foreign Key Constrains
