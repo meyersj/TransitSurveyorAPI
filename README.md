@@ -45,6 +45,13 @@ After running the setup script everything should be installed and configured. Yo
 + **postgres db user:** *survey*
 + **postgres db user pw:** *survey*
 
+#### new config and startup script file locations
++ **Flask app configuration:** `/home/survey/API/config.py`
++ **uWSGI startup config:** `/home/survey/API/api.ini`
++ **uWSGI upstart init script:** `/etc/init/api.conf`
++ **uWSGI wsgi script:** `/home/survey/API/wsgi.py`
++ **NginX server config:** `/etc/nginx/sites-available/api`
+
 ## Description
 
 Data is received as either a SCAN or STOP. SCAN records occur when collection is done using the **QR Code Scanner** mode while STOP records occur when collection is done using the **Map-Based** mode.
