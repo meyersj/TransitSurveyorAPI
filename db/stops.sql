@@ -1,3 +1,7 @@
+-- data downloaded from http://developer.trimet.org/gis/ as shapefile then
+-- converted into sql
+-- here is there terms of use http://developer.trimet.org/terms_of_use.shtml
+
 --
 -- PostgreSQL database dump
 --

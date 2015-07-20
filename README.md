@@ -1,6 +1,10 @@
 # TransitSurveyor API
 
-## Setup
+Copyright © 2015 Jeffrey Meyers
+This program is released under the "MIT License".
+Please see the file COPYING in the source
+distribution of this software for license terms.
+
 
 Here are instructions for how to get a server/database up and running for the [API](https://github.com/TransitSurveyor/API) to recieve and store data collected using [MobileSurveyor](https://github.com/TransitSurveyor/MobileSurveyor).
 
