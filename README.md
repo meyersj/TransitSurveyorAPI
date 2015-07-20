@@ -52,7 +52,7 @@ After running the setup script everything should be installed and configured. Yo
 + **uWSGI wsgi script:** `/home/survey/API/wsgi.py`
 + **NginX server config:** `/etc/nginx/sites-available/api`
 
-In addition to these files, there is a new environment variable `API_ENDPOINT` added to **survey** users `~/.bashrc` that allows the unit tests to access the live endpoint.
+In addition to these files, there is a new environment variable `API_ENDPOINT` added to **survey** user's `~/.bashrc` that allows the unit tests to access the live endpoint.
 
 ## Description
 
