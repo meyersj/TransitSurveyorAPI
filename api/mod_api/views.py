@@ -39,7 +39,7 @@ mod_api = Blueprint('api', __name__, url_prefix='/api')
 
 @mod_api.route('/')
 def index():
-    return "API"
+    return "API Module"
 
 def verify_user(username, password):
     user_match = False
@@ -61,7 +61,6 @@ def verify_user(username, password):
 
 @mod_api.route('/verifyUser', methods=['POST'])
 def verifyUser():
-    app.logger.debug('verify')
     cred = json.loads(request.form[CREDENTIALS])
     username = cred[USERNAME]
     password = cred[PASSWORD]
