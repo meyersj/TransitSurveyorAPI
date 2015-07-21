@@ -15,7 +15,7 @@ from geoalchemy2.elements import WKTElement
 from geoalchemy2 import functions as func
 import models
 
-from insert import InsertScan, InsertPair
+from insert import InsertScan, InsertPair, buildGeom
 from models import Users
 
 CREDENTIALS = "credentials"
@@ -75,7 +75,6 @@ def verifyUser():
 def insertScan():
     valid = False
     insertID = -1
-    
     try:
         data = dict(
             uuid=request.form[UUID],
@@ -100,7 +99,6 @@ def insertScan():
 def insertPair():
     valid = False
     insertID = -1
-
     try:
         data = dict(
             date=datetime.datetime.strptime(request.form[DATE], "%Y-%m-%d %H:%M:%S"),
@@ -115,21 +113,6 @@ def insertPair():
     except KeyError:
         return jsonify(error="invalid input data")
 
-    #data = json.loads(request.form[DATA])
-    #date = datetime.datetime.strptime(request.form[DATE], "%Y-%m-%d %H:%M:%S")
-    #rte = request.form[RTE]
-    #dir = request.form[DIR]
-    #on_stop = request.form[ON_STOP]
-    #off_stop = request.form[OFF_STOP]
-    #on_reversed = request.form[ON_REVERSED]
-    #off_reversed = request.form[OFF_REVERSED]
-
-    #if USER in data.keys():
-    #    user = data[USER]
-    #for testing api
-    #else:
-    #    user = TESTUSER
-
     #insert data into database
     insert = InsertPair(**data)
     valid, insertID = insert.isSuccessful()
@@ -137,19 +120,17 @@ def insertPair():
 
 @mod_api.route('/stopLookup', methods=['POST'])
 def stopLookup():
-    data = json.loads(request.form[DATA])
-    geom = getGeom(data[LAT], data[LON])
-    stop_name, stop_seq, error = findNearStop(geom, data[RTE], data[DIR]) 
+    try:
+        rte = request.form[RTE]
+        dir = request.form[DIR]
+        lat = request.form[LAT]
+        lon = request.form[LON]
+    except KeyError:
+        return jsonify(error="invalid input data", stop_seq_rem=-1, stop_name="")
+    error, geom = buildGeom(lat, lon)
+    stop_name, stop_seq, error = findNearStop(geom, rte, dir) 
     return jsonify(error=error, stop_seq_rem=stop_seq, stop_name=stop_name)
 
-def getGeom(lat, lon):
-    geom = None
-    try:
-        wkt = 'POINT('+lon+' '+lat+')'
-        geom = func.ST_Transform(WKTElement(wkt,srid=4326),2913)
-    except Exception as e:
-        app.logger.warn(e)
-    return geom
 
 def findNearStop(geom, rte, dir):
     stop_seq = None
@@ -172,8 +153,6 @@ def findNearStop(geom, rte, dir):
             
             stop_seq = int((max_stop[0] - stop_seq) / 50)
             error = False
-
     except Exception as e:
         app.logger.warn("Exception thrown in findNearStop: " + str(e))
-
     return stop_name, stop_seq, error
