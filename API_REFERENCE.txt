@@ -1,4 +1,14 @@
-Login using credentials - POST
+API Endpoints, request and response specification
+
+
+--------
+GET /
+
+response format: string
+
+    "On-Off Index"
+
+
 
 --------
 GET /api
@@ -16,7 +26,7 @@ request data:
     
     { 
         "user_name":"some username",
-        "password":"some password",
+        "password":"some password"
     }
 
 response format: json
@@ -31,17 +41,15 @@ response format: json
 --------------------
 POST /api/insertScan
 
-
 request data:
 
     {
-        
+        "user_id": "some username",
+        "mode": "on|off",
         "uuid": "temporary unique identifier for scan",
         "date": "YYYY-MM-DD HH24:MM:SS",
-        "user_id": "some username",
-        "line": "route id",
+        "rte": "route id",
         "dir": "direction id",
-        "mode": "on|off",
         "lon": "longitude",
         "lat": "latitude"
     }
@@ -49,14 +57,55 @@ request data:
 response format: json
 
     {
-
+        "insertID": "id of created record",
+        "success": true|false,
+        "match" true|false // if mode == off, whether matching on scan was found
     }
 
 
 
+--------------------
+POST /api/insertPair
+
+request data:
+
+    {
+        "user_id": "some username",
+        "date": "YYYY-MM-DD HH24:MM:SS",
+        "rte": "route id",
+        "dir": "direction id",
+        "on_stop": "alighting stop id",
+        "off_stop": "boarding stop id",
+        "on_reversed": true|false,   // if boarding stop direction is different than dir
+        "off_reversed": true|false,  // if boarding stop direction is different than dir
+    }
+
+response format: json
+
+    {
+        "insertID": id of created record,
+        "success": true|false
+    }
 
 
 
+--------------------
+POST /api/stopLookup
 
+request data:
 
+    {
+        "rte": "route id",
+        "dir": "direction id",
+        "lon": "longitude",
+        "lat": "latitude"
+    }
+
+response format: json
+
+    {
+        "error": true|false, // success of stop lookup
+        "stop_name": "stop name of nearest stop",
+        "stop_seq_rem": "number of stops until end of route"
+    }
 
