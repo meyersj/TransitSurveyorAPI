@@ -9,8 +9,23 @@ import models
 from geoalchemy2.elements import WKTElement
 from geoalchemy2 import functions as func
 
+
 ON = "on"
 OFF = "off"
+
+#convert latitude-longitude coordinates to geometry in Oregon State Plane North
+def buildGeom(lat, lon):
+    success = False
+    geom = None
+    if lat and lon:
+        try:
+            wkt = 'POINT({0} {1})'.format(lon, lat)
+            geom = func.ST_Transform(WKTElement(wkt,srid=4326),2913)
+            success = True
+        except Exception as e:
+            msg = "failed to convert lat {0} lon {1} to geom: ".format(lat,lon)
+            app.logger.warn(msg)
+    return success, geom 
 
 class InsertScan():
     #passed params
@@ -40,7 +55,7 @@ class InsertScan():
         self.isValid = True
         self.user = user_id
         
-        self.__getGeom()
+        self.isValid, self.geom = buildGeom(self.lat, self.lon)
         if self.isValid:
             if self.mode == ON:
                 self.isValid, self.insertID = self.__insertOn()
@@ -49,22 +64,6 @@ class InsertScan():
             else:
                 self.isValid = False
 
-    """convert latitude-longitude coordinates to geometry in Oregon State Plane North
-    """
-    def __getGeom(self):
-        
-        if self.lon and self.lat:
-            try:
-                wkt = 'POINT('+self.lon+' '+self.lat+')'
-                self.geom = func.ST_Transform(WKTElement(wkt,srid=4326),2913)
-            except Exception as e:
-                self.isValid = False
-                msg = "failed to convert lat {0} lon {1} to geom: "\
-                    .format(self.lat,self.lon) + e
-                app.logger.warn(e)
-        else:
-            app.logger.warn("lat or lon does not exist, user=" + self.user)
-
     """insert into temp ON table
     """
     def __insertOn(self):
@@ -72,7 +71,6 @@ class InsertScan():
         insert = models.OnTemp(uuid=self.uuid, date=self.date, 
                                rte=self.rte, dir=self.dir,
                                geom=self.geom, user_id=self.user)
-        
         db.session.add(insert)
         db.session.commit()
         insertID = insert.id
@@ -131,33 +129,26 @@ class InsertScan():
         insertOffTemp = models.OffTemp(
             uuid=self.uuid, date=self.date, rte=self.rte, dir=self.dir,
             geom=self.geom, user_id=self.user, match=match)
-        
         db.session.add(insertOffTemp)
         db.session.commit()
         insertID = insertOffTemp.id
-
         return True, insertID, match
 
     def isSuccessful(self):
         return self.isValid, self.insertID, self.match
-            
 
     def findNearStop(self, geom):
         stop_id = None
-
         try:
             near_stop = db.session.query(models.Stops.gid,
                 func.ST_Distance(models.Stops.geom, geom).label("dist"))\
                 .filter_by(rte=int(self.rte), dir=int(self.dir))\
                 .order_by(models.Stops.geom.distance_centroid(geom))\
                 .first()
-
             if near_stop:
                 stop_id = near_stop.gid
-        
         except Exception as e:
             app.logger.warn("Exception thrown in findNearStop: " + str(e))
-
         return stop_id
 
 
@@ -202,10 +193,8 @@ class InsertPair():
         if self.off_reversed == "true":
             off_dir = self.reverse_direction()
        
-        
         on_stop = models.Stops.query.filter_by(
             rte=self.rte, dir=on_dir, stop_id=self.on_stop).first()
-
         off_stop = models.Stops.query.filter_by(
             rte=self.rte, dir=off_dir, stop_id=self.off_stop).first()
 
@@ -213,11 +202,9 @@ class InsertPair():
             insert = models.OnOffPairs_Stops(
                 self.date, self.rte, self.dir,
                 on_stop.gid, off_stop.gid,self.user)
-
             db.session.add(insert)
             db.session.commit()
             self.insertID = insert.id 
- 
         else:
             self.valid = False
             if not on_stop:
