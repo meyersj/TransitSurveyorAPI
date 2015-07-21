@@ -16,7 +16,7 @@ from api import app
 from api import db
 
 from api.mod_api.views import verify_user
-from api.mod_api.insert import InsertScan, InsertPair
+from api.mod_api.insert import InsertScan, InsertPair, buildGeom
 
 ENDPOINT =  os.getenv("API_ENDPOINT", "default_ip_address")
 INDEX_RESPONSE = "On-Off Index"
@@ -28,15 +28,12 @@ class VerifyUserTestCase(unittest.TestCase):
     def setUp(self):
         self.app = app.test_client()
 
-    def tearDown(self):
-        pass
-
-    def test_verify_user_lookup_function(self):
+    def test_VerifyUser_lookup_function(self):
         match, user_id = verify_user("testuser", 1234)
         assert match is not None
         assert user_id is not None
 
-    def test_verify_user_endpoint(self):
+    def test_VerifyUser_endpoint(self):
         rv = self.app.post(
             '/api/verifyUser',
             data=dict(
@@ -76,9 +73,6 @@ class InsertScanTestCase(unittest.TestCase):
             mode="off",
             user_id="testuser"
         )
-
-    def tearDown(self):
-        pass
 
     def test_InsertScan_invalid(self):
         rv = self.app.post(
@@ -147,6 +141,31 @@ class InsertPairTestCase(unittest.TestCase):
         valid, insertID = insert.isSuccessful()
         assert valid, "InsertPair returned invalid response"
         assert insertID != -1, "InsertPair insert id should not be -1"
+
+class StopLookupTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.app = app.test_client()
+
+    def test_build_geom(self):
+        success, geom = buildGeom(45.5, -122)
+        assert success, "failed to build geometry"
+
+    def test_stopLookup_request(self):
+        rv = self.app.post(
+            '/api/stopLookup',
+            data=dict(
+                lat="45.5",
+                lon="-122.5",
+                rte="9",
+                dir="0"
+            ),
+            follow_redirects=True
+        )
+        assert rv.status_code == 200
+        data = json.loads(rv.data)
+        assert not data["error"], "stop lookup returned error"
+        assert data["stop_name"], "stop name is missing"
 
 
 class ServerUp(unittest.TestCase):
