@@ -1,0 +1,62 @@
+Login using credentials - POST
+
+--------
+GET /api
+
+response format: string
+
+    "API Module"
+
+
+
+--------------------
+POST /api/verifyUser
+
+request data:
+    
+    { 
+        "user_name":"some username",
+        "password":"some password",
+    }
+
+response format: json
+
+    {
+        "match": "true|false",  // if username/password matched db
+        "user_id": "corresponding user_id",
+    }
+
+
+
+--------------------
+POST /api/insertScan
+
+
+request data:
+
+    {
+        
+        "uuid": "temporary unique identifier for scan",
+        "date": "YYYY-MM-DD HH24:MM:SS",
+        "user_id": "some username",
+        "line": "route id",
+        "dir": "direction id",
+        "mode": "on|off",
+        "lon": "longitude",
+        "lat": "latitude"
+    }
+
+response format: json
+
+    {
+
+    }
+
+
+
+
+
+
+
+
+
