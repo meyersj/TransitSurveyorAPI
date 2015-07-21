@@ -44,11 +44,11 @@ chmod +x setup.sh
 start api               #   expected output: api start/running, process XXXXXX
 service nginx restart   #   expected output: * Restarting nginx nginx
 
-# quick check endpoint is live
-source /home/survey/.bashrc
-curl new_ip_address     #   expected output: On-Off Index
+# run tests
+/home/survey/API/env/bin/python /home/survey/API/tests.py
 ```
-After running the setup script everything should be installed and configured. You should be able to go to **http://new_ip_address** and see the message *On-Off API* if everything worked properly.
+
+You should now be able to go to **http://new_ip_address** and see the message *On-Off API* if everything worked properly.
 
 #### default settings
 + **linux user:** *survey*
