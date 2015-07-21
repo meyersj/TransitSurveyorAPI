@@ -16,7 +16,7 @@ class InsertScan():
     #passed params
     uuid = None
     date = None
-    line = None
+    rte = None
     dir = None
     lon = None
     lat = None
@@ -29,16 +29,16 @@ class InsertScan():
     insertID = None
     match = False
 
-    def __init__(self,uuid,date,line,dir,lon,lat,mode,user):
+    def __init__(self,uuid="",date="",rte="",dir="",lon="",lat="",mode="",user_id=""):
         self.uuid = uuid
         self.date = date
-        self.line = line
+        self.rte = rte
         self.dir = dir
         self.lon = lon
         self.lat = lat
         self.mode = mode
         self.isValid = True
-        self.user = user
+        self.user = user_id
         
         self.__getGeom()
         if self.isValid:
@@ -70,7 +70,7 @@ class InsertScan():
     def __insertOn(self):
         insertID = -1
         insert = models.OnTemp(uuid=self.uuid, date=self.date, 
-                               line=self.line, dir=self.dir,
+                               rte=self.rte, dir=self.dir,
                                geom=self.geom, user_id=self.user)
         
         db.session.add(insert)
@@ -91,7 +91,7 @@ class InsertScan():
         # fetch all records
         # grab first to match up and delete the rest if they exist
         on = models.OnTemp.query.filter_by(
-            uuid=self.uuid, line=self.line, dir=self.dir,
+            uuid=self.uuid, rte=self.rte, dir=self.dir,
             match=False).order_by(models.OnTemp.date.desc())
 
         if on.count() > 0:
@@ -110,9 +110,9 @@ class InsertScan():
           
             #insert on off records into Scans
             insertOn = models.Scans(
-                on.date, on.line, on.dir, on.geom, on.user_id, on_stop)
+                on.date, on.rte, on.dir, on.geom, on.user_id, on_stop)
             insertOff = models.Scans(
-                self.date, self.line, self.dir, self.geom, self.user, off_stop)
+                self.date, self.rte, self.dir, self.geom, self.user, off_stop)
             
             db.session.add(insertOn)
             db.session.add(insertOff)
@@ -129,7 +129,7 @@ class InsertScan():
         #for initial testing insert into OffTemp
         #in production this will not be needed
         insertOffTemp = models.OffTemp(
-            uuid=self.uuid, date=self.date, line=self.line, dir=self.dir,
+            uuid=self.uuid, date=self.date, rte=self.rte, dir=self.dir,
             geom=self.geom, user_id=self.user, match=match)
         
         db.session.add(insertOffTemp)
@@ -148,7 +148,7 @@ class InsertScan():
         try:
             near_stop = db.session.query(models.Stops.gid,
                 func.ST_Distance(models.Stops.geom, geom).label("dist"))\
-                .filter_by(rte=int(self.line), dir=int(self.dir))\
+                .filter_by(rte=int(self.rte), dir=int(self.dir))\
                 .order_by(models.Stops.geom.distance_centroid(geom))\
                 .first()
 
