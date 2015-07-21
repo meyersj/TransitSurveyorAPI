@@ -75,4 +75,3 @@ su - ${user} -c "echo >> ~/.bashrc"
 su - ${user} -c "echo \"export API_ENDPOINT=${server}\" >> ~/.bashrc"
 
 
-
