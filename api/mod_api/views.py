@@ -90,38 +90,49 @@ def insertScan():
     except KeyError:
         return jsonify(error="invalid input data")
     
-    
     #insert data into database
     insert = InsertScan(**data)
-    #uuid,date,rte,dir,lon,lat,mode,user)
     valid, insertID, match = insert.isSuccessful()
-
     return jsonify(success=valid, insertID=insertID, match=match)
     
 #api route for boarding and alighting locations selected from map
 @mod_api.route('/insertPair', methods=['POST'])
 def insertPair():
-    data = json.loads(request.form[DATA])
     valid = False
     insertID = -1
-    date = datetime.datetime.strptime(data[DATE], "%Y-%m-%d %H:%M:%S")
-    line = data[RTE]
-    dir = data[DIR]
-    on_stop = data[ON_STOP]
-    off_stop = data[OFF_STOP]
-    on_reversed = data[ON_REVERSED]
-    off_reversed = data[OFF_REVERSED]
 
-    if USER in data.keys():
-        user = data[USER]
+    try:
+        data = dict(
+            date=datetime.datetime.strptime(request.form[DATE], "%Y-%m-%d %H:%M:%S"),
+            rte=request.form[RTE],
+            dir=request.form[DIR],
+            on_stop = request.form[ON_STOP],
+            off_stop = request.form[OFF_STOP],
+            on_reversed = request.form[ON_REVERSED],
+            off_reversed = request.form[OFF_REVERSED],
+            user_id=request.form[USER]
+        )
+    except KeyError:
+        return jsonify(error="invalid input data")
+
+    #data = json.loads(request.form[DATA])
+    #date = datetime.datetime.strptime(request.form[DATE], "%Y-%m-%d %H:%M:%S")
+    #rte = request.form[RTE]
+    #dir = request.form[DIR]
+    #on_stop = request.form[ON_STOP]
+    #off_stop = request.form[OFF_STOP]
+    #on_reversed = request.form[ON_REVERSED]
+    #off_reversed = request.form[OFF_REVERSED]
+
+    #if USER in data.keys():
+    #    user = data[USER]
     #for testing api
-    else:
-        user = TESTUSER
+    #else:
+    #    user = TESTUSER
 
     #insert data into database
-    insert = InsertPair(date, line, dir, on_stop, off_stop, user, on_reversed, off_reversed)
+    insert = InsertPair(**data)
     valid, insertID = insert.isSuccessful()
-   
     return jsonify(success=valid, insertID=insertID)
 
 @mod_api.route('/stopLookup', methods=['POST'])

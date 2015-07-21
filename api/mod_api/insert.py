@@ -162,26 +162,26 @@ class InsertScan():
 
 
 class InsertPair():
-    #passed params
     date = None
-    line = None
+    rte = None
     dir = None
     on_stop = None
     off_stop = None 
     user = None
     on_reversed = None
     off_reversed = None
-    #created params
+    
     valid = True
     insertID = -1
 
-    def __init__(self,date,line,dir,on_stop,off_stop, user, on_reversed, off_reversed):
+    def __init__(self,date="",rte="",dir="",on_stop="",off_stop="",
+                    user_id="",on_reversed="",off_reversed=""):
         self.date = date
-        self.line = line
+        self.rte = rte
         self.dir = dir
         self.on_stop = on_stop
         self.off_stop = off_stop
-        self.user = user
+        self.user = user_id
         self.on_reversed = on_reversed
         self.off_reversed = off_reversed
         self.isValid = True
@@ -204,14 +204,14 @@ class InsertPair():
        
         
         on_stop = models.Stops.query.filter_by(
-            rte=self.line, dir=on_dir, stop_id=self.on_stop).first()
+            rte=self.rte, dir=on_dir, stop_id=self.on_stop).first()
 
         off_stop = models.Stops.query.filter_by(
-            rte=self.line, dir=off_dir, stop_id=self.off_stop).first()
+            rte=self.rte, dir=off_dir, stop_id=self.off_stop).first()
 
         if on_stop and off_stop:
             insert = models.OnOffPairs_Stops(
-                self.date, self.line, self.dir,
+                self.date, self.rte, self.dir,
                 on_stop.gid, off_stop.gid,self.user)
 
             db.session.add(insert)
