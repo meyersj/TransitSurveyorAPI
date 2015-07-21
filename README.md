@@ -41,14 +41,12 @@ curl https://raw.githubusercontent.com/TransitSurveyor/API/master/setup.sh -o se
 chmod +x setup.sh
 ./setup.sh new_ip_address
 
-start api
-#   expected output: api start/running, process 12224
-service nginx restart
-#   expected output: * Restarting nginx nginx
+start api               #   expected output: api start/running, process XXXXXX
+service nginx restart   #   expected output: * Restarting nginx nginx
 
-# quick check
-curl new_ip_address
-#   expected output: 
+# quick check endpoint is live
+source /home/survey/.bashrc
+curl new_ip_address     #   expected output: On-Off Index
 ```
 After running the setup script everything should be installed and configured. You should be able to go to **http://new_ip_address** and see the message *On-Off API* if everything worked properly.
 
