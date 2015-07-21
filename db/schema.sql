@@ -11,11 +11,11 @@ CREATE TABLE on_temp (
     id integer NOT NULL,
     uuid text,
     date timestamp without time zone,
-    line text,
-    dir text,
+    rte integer,
+    dir integer,
     match boolean,
     geom geometry(Point,2913),
-    user_id integer NOT NULL
+    user_id TEXT
 );
 
 CREATE SEQUENCE on_temp_id_seq
@@ -39,11 +39,11 @@ CREATE TABLE off_temp (
     id integer NOT NULL,
     uuid text,
     date timestamp without time zone,
-    line text,
-    dir text,
+    rte integer,
+    dir integer,
     match boolean,
     geom geometry(Point,2913),
-    user_id integer NOT NULL
+    user_id TEXT
 );
 
 CREATE SEQUENCE off_temp_id_seq
@@ -66,10 +66,11 @@ CREATE INDEX idx_off_temp_geom ON off_temp USING gist (geom);
 CREATE TABLE scans (
     id integer NOT NULL,
     date timestamp without time zone,
-    line text,
-    dir text,
+    rte integer,
+    dir integer,
     geom geometry(Point,2913),
-    user_id integer NOT NULL
+    user_id TEXT,
+    stop integer
 );
 
 CREATE SEQUENCE scans_id_seq
@@ -114,11 +115,11 @@ ALTER TABLE ONLY on_off_pairs__scans
 CREATE TABLE on_off_pairs__stops (
     id integer NOT NULL,
     date timestamp without time zone,
-    line text,
-    dir text,
+    rte integer,
+    dir integer,
     on_stop integer NOT NULL,
     off_stop integer NOT NULL,
-    user_id integer NOT NULL
+    user_id TEXT
 );
 
 CREATE SEQUENCE on_off_pairs__stops_id_seq
@@ -138,26 +139,12 @@ ALTER TABLE ONLY on_off_pairs__stops
 -- Can be expaned to include more information
 --
 CREATE TABLE users (
-    id integer NOT NULL,
-    first text,
-    last text,
     username text,
     password_hash text
 );
 
-CREATE SEQUENCE users_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE users_id_seq OWNED BY users.id;
-ALTER TABLE ONLY users ALTER COLUMN id SET DEFAULT nextval('users_id_seq'::regclass);
 ALTER TABLE ONLY users
-    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
-ALTER TABLE ONLY users
-    ADD CONSTRAINT users_unique_username UNIQUE (username);
+    ADD CONSTRAINT users_pkey PRIMARY KEY (username);
 
 --
 -- Contains stop information for all TriMet stops
@@ -193,18 +180,6 @@ CREATE INDEX stops_geom_gist ON stops USING gist (geom);
 -- Foreign Key Constrains
 --
 
--- on_temp
-ALTER TABLE ONLY on_temp
-    ADD CONSTRAINT on_temp_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id);
-
--- off_temp
-ALTER TABLE ONLY off_temp
-    ADD CONSTRAINT off_temp_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id);
-
--- scans
-ALTER TABLE ONLY scans
-    ADD CONSTRAINT scans_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id);
-
 -- on_off_pairs__scans
 ALTER TABLE ONLY on_off_pairs__scans
     ADD CONSTRAINT on_off_pairs__scans_off_id_fkey FOREIGN KEY (off_id) REFERENCES scans(id);
@@ -216,7 +191,6 @@ ALTER TABLE ONLY on_off_pairs__stops
     ADD CONSTRAINT on_off_pairs__stops_off_stop_fkey FOREIGN KEY (off_stop) REFERENCES stops(gid);
 ALTER TABLE ONLY on_off_pairs__stops
     ADD CONSTRAINT on_off_pairs__stops_on_stop_fkey FOREIGN KEY (on_stop) REFERENCES stops(gid);
-ALTER TABLE ONLY on_off_pairs__stops
-    ADD CONSTRAINT on_off_pairs__stops_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id);
-
+ALTER TABLE ONLY scans
+    ADD CONSTRAINT scans_stop_fkey FOREIGN KEY (stop) REFERENCES stops(gid);
 
