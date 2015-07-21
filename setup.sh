@@ -33,6 +33,7 @@ su - postgres -c "psql -c \"CREATE EXTENSION postgis;\" ${db}"
 su - ${user} -c "git clone https://github.com/TransitSurveyor/API"
 su - ${user} -c "psql -f ${proj}/db/schema.sql -d ${db}"
 su - ${user} -c "psql -f ${proj}/db/stops.sql -d ${db}"
+su - ${user} -c "/home/survey/API/add_user.sh testuser 1234"
 su - ${user} -c "virtualenv ${proj}/env"
 su - ${user} -c "${proj}/env/bin/pip install -r ${proj}/requirements.txt"
 
