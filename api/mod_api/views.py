@@ -5,24 +5,19 @@
 
 import datetime
 import json
-import logging
 import hashlib
 
 from flask import Blueprint, request, jsonify
 from api import app, db, debug
 from sqlalchemy import func as sql_func
-from geoalchemy2.elements import WKTElement
 from geoalchemy2 import functions as func
+
 import models
-
 from insert import InsertScan, InsertPair, buildGeom
-from models import Users
 
-CREDENTIALS = "credentials"
+
 USERNAME = "username"
 PASSWORD = "password"
-KEYS = "keys"
-DATA = "data"
 UUID = "uuid"
 DATE = "date"
 RTE = "rte"
@@ -35,8 +30,6 @@ OFF_STOP = "off_stop"
 ON_REVERSED = "on_reversed"
 OFF_REVERSED = "off_reversed"
 USER = "user_id"
-SALT = "SALT"
-TESTUSER = "testuser"
 
 
 mod_api = Blueprint('api', __name__, url_prefix='/api')
@@ -48,7 +41,7 @@ def index():
 def verify_user(username, password):
     match = False
     user_id = -1
-    user = Users.query.filter_by(username=username).first()
+    user = models.Users.query.filter_by(username=username).first()
     password_hash = hashlib.sha256(str(password)).hexdigest()
     if user and password_hash == user.password_hash:
         match = True
@@ -156,3 +149,6 @@ def findNearStop(geom, rte, dir):
     except Exception as e:
         app.logger.warn("Exception thrown in findNearStop: " + str(e))
     return stop_name, stop_seq, error
+
+
+
