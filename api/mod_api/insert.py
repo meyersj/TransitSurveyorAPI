@@ -13,7 +13,9 @@ from geoalchemy2 import functions as func
 ON = "on"
 OFF = "off"
 
-#convert latitude-longitude coordinates to geometry in Oregon State Plane North
+
+#convert latitude-longitude coordinates to geometry object
+# in Oregon State Plane North EPSG:2913
 def buildGeom(lat, lon):
     success = False
     geom = None
@@ -27,21 +29,9 @@ def buildGeom(lat, lon):
             app.logger.warn(msg)
     return success, geom 
 
-class InsertScan():
-    #passed params
-    uuid = None
-    date = None
-    rte = None
-    dir = None
-    lon = None
-    lat = None
-    mode = None
-    user = None
 
-    #created params
-    geom = None
-    valid = True
-    insertID = None
+class InsertScan():
+    insertID = -1
     match = False
 
     def __init__(self,uuid="",date="",rte="",dir="",lon="",lat="",mode="",user_id=""):
@@ -68,13 +58,17 @@ class InsertScan():
     """
     def __insertOn(self):
         insertID = -1
-        insert = models.OnTemp(uuid=self.uuid, date=self.date, 
-                               rte=self.rte, dir=self.dir,
-                               geom=self.geom, user_id=self.user)
+        insert = models.OnTemp(
+            uuid=self.uuid, 
+            date=self.date, 
+            rte=self.rte,
+            dir=self.dir,
+            geom=self.geom,
+            user_id=self.user
+        )
         db.session.add(insert)
         db.session.commit()
         insertID = insert.id
-
         return True, insertID
 
     """match OFF scan with most recent ON scan with same UUID
@@ -94,11 +88,9 @@ class InsertScan():
 
         if on.count() > 0:
             iter_on = iter(on)
-            # grab first 
+            # grab most recent, then delete the rest 
             on = next(iter_on)
-            # delete the rest
-            for record in iter_on:
-                db.session.delete(record)
+            for record in iter_on: db.session.delete(record)
 
             match = True
             on.match = True
@@ -153,16 +145,6 @@ class InsertScan():
 
 
 class InsertPair():
-    date = None
-    rte = None
-    dir = None
-    on_stop = None
-    off_stop = None 
-    user = None
-    on_reversed = None
-    off_reversed = None
-    
-    valid = True
     insertID = -1
 
     def __init__(self,date="",rte="",dir="",on_stop="",off_stop="",
@@ -179,10 +161,8 @@ class InsertPair():
         self.__insertPair()      
 
     def reverse_direction(self):
-        if self.dir == "1":
-            return "0"
-        else:
-            return "1"
+        if self.dir == "1": return "0"
+        else: return "1"
 
     def __insertPair(self):
         on_dir = self.dir
@@ -209,10 +189,10 @@ class InsertPair():
             self.valid = False
             if not on_stop:
                 app.logger.error(
-                    "On stop_id did not match have match in tm_route_stops table")
+                    "On stop_id did not find have match in stops table")
             else:
                 app.logger.error(
-                    "Off stop_id did not match have match in tm_route_stops table")
+                    "Off stop_id did not find have match in stops table")
 
     def isSuccessful(self):
         return self.valid, self.insertID
