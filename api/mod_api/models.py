@@ -7,6 +7,7 @@ from flask.ext.sqlalchemy import orm
 from geoalchemy2 import Geometry
 from api import db
 
+
 class OnTemp(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     uuid = db.Column(db.Text)
@@ -71,8 +72,6 @@ class Scans(db.Model):
     stop = db.Column(db.Integer, db.ForeignKey("stops.gid"), nullable=False)
     stop_key = orm.relationship("Stops", foreign_keys=stop)
 
-
-
     def __init__(self, date, rte, dir, geom, user_id, stop):
         self.date = date
         self.rte = rte
@@ -101,6 +100,7 @@ class OnOffPairs_Scans(db.Model):
         return '<OnOffPairs: id:%r, on_id:%r, off_id:%r >' %\
             (self.id, self.on_id, self.off_id)
 
+
 class OnOffPairs_Stops(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.DateTime)
@@ -112,7 +112,6 @@ class OnOffPairs_Stops(db.Model):
     on = orm.relationship("Stops", foreign_keys=on_stop)
     off = orm.relationship("Stops", foreign_keys=off_stop)
     user_id = db.Column(db.Text)
-
 
     def __init__(self, date, rte, dir, on_stop, off_stop, user_id):
         self.date = date
@@ -131,10 +130,6 @@ class Users(db.Model):
     __tablename__ = 'users'
     username = db.Column(db.Text, primary_key=True)
     password_hash = db.Column(db.Text)
-
-    def __init__(self, username, password_hash):
-        self.username = username
-        self.password_hash = password_hash
 
     def __repr__(self):
         return '<User: Name: %r %r, Username:%r >' %\
