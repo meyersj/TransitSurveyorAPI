@@ -186,7 +186,7 @@ class InsertPair():
             db.session.commit()
             self.insertID = insert.id 
         else:
-            self.valid = False
+            self.isValid = False
             if not on_stop:
                 app.logger.error(
                     "On stop_id did not find have match in stops table")
@@ -195,5 +195,5 @@ class InsertPair():
                     "Off stop_id did not find have match in stops table")
 
     def isSuccessful(self):
-        return self.valid, self.insertID
+        return self.isValid, self.insertID
     
