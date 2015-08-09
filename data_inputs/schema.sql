@@ -152,7 +152,7 @@ ALTER TABLE ONLY users
 --
 
 CREATE TABLE stops (
-    gid integer NOT NULL,
+    gid serial primary key,
     rte smallint,
     dir smallint,
     rte_desc character varying(50),
@@ -163,18 +163,6 @@ CREATE TABLE stops (
     geom geometry(Point,2913)
 );
 
-CREATE SEQUENCE stops_gid_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-ALTER SEQUENCE stops_gid_seq OWNED BY stops.gid;
-ALTER TABLE ONLY stops ALTER COLUMN gid SET DEFAULT nextval('stops_gid_seq'::regclass);
-ALTER TABLE ONLY stops
-    ADD CONSTRAINT stops_pkey PRIMARY KEY (gid);
-CREATE INDEX stops_geom_gist ON stops USING gist (geom);
 
 --
 -- Foreign Key Constrains
