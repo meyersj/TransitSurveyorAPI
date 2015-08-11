@@ -20,7 +20,7 @@ If needed signup with [DigitalOcean](https://www.digitalocean.com/), then create
 I mostly followed [THIS](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-uwsgi-and-nginx-on-ubuntu-14-04) tutorial to workout how to deploy the Flask app with NginX and uWSGI.
 
 ```shell
-# connect to server
+# connect to your new VPS server
 ssh root@new_ip_address
 
 # create new user
