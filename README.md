@@ -21,6 +21,7 @@ I mostly followed [THIS](https://www.digitalocean.com/community/tutorials/how-to
 
 ```shell
 # connect to your new VPS server
+# DigitalOcean will email you the one-time root password if you do not include an ssh keys
 ssh root@new_ip_address
 
 # create new user
