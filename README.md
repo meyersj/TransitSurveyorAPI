@@ -43,6 +43,8 @@ service nginx restart   #   expected output: * Restarting nginx nginx
 
 #### run tests
 
+A basic suite of tests to make sure endpoints are working and database is configured properly
+
 ```shell
 su - survey
 cd API
