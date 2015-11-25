@@ -1,4 +1,4 @@
-# Copyright (C) 2015 Jeffrey Meyers
+# Copyrigh (C) 2015 Jeffrey Meyers
 # This program is released under the "MIT License".
 # Please see the file COPYING in the source
 # distribution of this software for license terms.
@@ -18,7 +18,7 @@ from api import db
 from api.mod_api.views import verify_user
 from api.mod_api.insert import InsertScan, InsertPair, buildGeom
 
-ENDPOINT =  os.getenv("API_ENDPOINT", "default_ip_address")
+ENDPOINT =  os.getenv("API_ENDPOINT", "127.0.0.1:9000")
 INDEX_RESPONSE = "On-Off Index"
 API_RESPONSE = "API Module"
 
