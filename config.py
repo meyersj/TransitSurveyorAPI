@@ -4,5 +4,4 @@
 # distribution of this software for license terms.
 
 # SQLALCHEMY_DATABASE_URI = "postgresql://user:password@host/database"
-SQLALCHEMY_DATABASE_URI = "postgresql://survey:survey@localhost/survey"
-
+SQLALCHEMY_DATABASE_URI = "postgresql://onoff:onoff_password@localhost/onoff"

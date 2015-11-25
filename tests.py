@@ -37,8 +37,8 @@ class VerifyUserTestCase(unittest.TestCase):
         rv = self.app.post(
             '/api/verifyUser',
             data=dict(
-        	    username="testuser",
-		        password="1234" 
+       	        username="testuser",
+		password="1234" 
             ),
             follow_redirects=True
         )
