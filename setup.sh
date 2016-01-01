@@ -8,3 +8,5 @@ cd $SCRIPTDIR
 rm -rf env
 virtualenv env
 env/bin/pip install -r requirements.txt
+
+psql -f sql/onoff.sql
