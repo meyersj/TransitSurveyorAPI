@@ -13,10 +13,11 @@ SET client_min_messages = warning;
 -- Name: onoff; Type: DATABASE; Schema: -; Owner: -
 --
 
-CREATE DATABASE onoff WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8';
+DROP DATABASE IF EXISTS test_onoff_fbbe1fb96b4a;
+CREATE DATABASE test_onoff_fbbe1fb96b4a WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8';
 
 
-\connect onoff
+\connect test_onoff_fbbe1fb96b4a
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
