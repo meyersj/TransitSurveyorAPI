@@ -25,7 +25,7 @@ POST /api/verifyUser
 request data:
     
     { 
-        "user_name":"some username",
+        "username":"some username",
         "password":"some password"
     }
 
