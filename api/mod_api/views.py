@@ -59,6 +59,7 @@ def verifyUser():
         match, user_id = verify_user(username, password)
         ret_val = jsonify(match=match, user_id=user_id)
     except Exception as e:
+        app.logger.warn("Exception thrown in verifyUser: " + str(e))
         ret_val = jsonify(error=True)
     return ret_val
     
