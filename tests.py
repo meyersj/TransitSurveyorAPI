@@ -1,4 +1,4 @@
-# Copyright (C) 2015 Jeffrey Meyers
+# Copyrigh (C) 2015 Jeffrey Meyers
 # This program is released under the "MIT License".
 # Please see the file COPYING in the source
 # distribution of this software for license terms.
@@ -18,7 +18,7 @@ from api import db
 from api.mod_api.views import verify_user
 from api.mod_api.insert import InsertScan, InsertPair, buildGeom
 
-ENDPOINT =  os.getenv("API_ENDPOINT", "default_ip_address")
+ENDPOINT =  os.getenv("API_ENDPOINT", "127.0.0.1:9000")
 INDEX_RESPONSE = "On-Off Index"
 API_RESPONSE = "API Module"
 
@@ -37,8 +37,8 @@ class VerifyUserTestCase(unittest.TestCase):
         rv = self.app.post(
             '/api/verifyUser',
             data=dict(
-        	    username="testuser",
-		        password="1234" 
+       	        username="testuser",
+		password="1234" 
             ),
             follow_redirects=True
         )
@@ -142,6 +142,7 @@ class InsertPairTestCase(unittest.TestCase):
         assert valid, "InsertPair returned invalid response"
         assert insertID != -1, "InsertPair insert id should not be -1"
 
+
 class StopLookupTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -168,17 +169,21 @@ class StopLookupTestCase(unittest.TestCase):
         assert data["stop_name"], "stop name is missing"
 
 
-class ServerUp(unittest.TestCase):
+class IndexTest(unittest.TestCase):
+    
+    def setUp(self):
+        self.app = app.test_client()
 
-    def test_production_index(self):
-        r = requests.get("http://" + ENDPOINT)
-        assert r.status_code == 200
-        assert r.text == INDEX_RESPONSE
+    def test_index(self):
+        rv = self.app.get('/', follow_redirects=True)
+        assert rv.status_code == 200
+        assert rv.data == INDEX_RESPONSE
+    
+    def test_api_index(self):
+        rv = self.app.get('/api', follow_redirects=True)
+        assert rv.status_code == 200
+        assert rv.data == API_RESPONSE
 
-    def test_production_mod_api(self):
-        r = requests.get("http://"+ os.path.join(ENDPOINT, "api"))
-        assert r.status_code == 200
-        assert r.text == API_RESPONSE
 
 if __name__ == '__main__':
     unittest.main()
