@@ -2,5 +2,5 @@
 *.*~
 *.swp
 env/
-config.py
-api/templates/report.html
+api.sock
+newrelic.ini

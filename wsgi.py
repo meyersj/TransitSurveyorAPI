@@ -3,9 +3,7 @@
 # Please see the file COPYING in the source
 # distribution of this software for license terms.
 
-from api import app
+from api import app as application
 
-@app.route('/')
-def index():
-    return "On-Off Index"
-
+if __name__ == "__main__":
+    application.run()
